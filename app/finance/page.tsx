@@ -87,30 +87,30 @@ export default function FinancePage() {
 
         <div className={styles.summaryGrid}>
           <div className={`sl-panel ${styles.summaryCard}`}>
-            <MdTrendingUp style={{ fontSize: '1.5rem', color: 'var(--sl-accent-green)' }} />
-            <div className={styles.summaryLabel}>Income</div>
-            <div className={styles.summaryValue} style={{ color: 'var(--sl-accent-green)' }}>
+            <MdTrendingUp style={{ fontSize: '2rem', color: 'var(--sl-green)', filter: 'drop-shadow(0 0 10px hsla(150, 100%, 50%, 0.3))' }} />
+            <div className={styles.summaryLabel}>Total Gold Gain</div>
+            <div className={styles.summaryValue} style={{ color: 'var(--sl-green)' }}>
               ₹{summary.income.toLocaleString()}
             </div>
           </div>
           <div className={`sl-panel ${styles.summaryCard}`}>
-            <MdTrendingDown style={{ fontSize: '1.5rem', color: 'var(--sl-accent-red)' }} />
-            <div className={styles.summaryLabel}>Expenses</div>
-            <div className={styles.summaryValue} style={{ color: 'var(--sl-accent-red)' }}>
+            <MdTrendingDown style={{ fontSize: '2rem', color: 'var(--sl-red)', filter: 'drop-shadow(0 0 10px hsla(0, 100%, 60%, 0.3))' }} />
+            <div className={styles.summaryLabel}>Gold Consumption</div>
+            <div className={styles.summaryValue} style={{ color: 'var(--sl-red)' }}>
               ₹{summary.expenses.toLocaleString()}
             </div>
           </div>
           <div className={`sl-panel ${styles.summaryCard}`}>
-            <div className={styles.summaryLabel}>Net</div>
-            <div className={styles.summaryValue} style={{ color: summary.net >= 0 ? 'var(--sl-accent-green)' : 'var(--sl-accent-red)' }}>
+            <div className={styles.summaryLabel}>Current Reserve</div>
+            <div className={styles.summaryValue} style={{ color: summary.net >= 0 ? 'var(--sl-green)' : 'var(--sl-red)' }}>
               {summary.net >= 0 ? '+' : ''}₹{summary.net.toLocaleString()}
             </div>
           </div>
         </div>
 
         <div className={styles.financeLayout}>
-          <div className="sl-panel" style={{ padding: '24px' }}>
-            <h2 className="sl-section-title">Expense Breakdown</h2>
+          <div className="sl-panel" style={{ padding: '32px' }}>
+            <h2 className="sl-section-title">Expense Sector Analysis</h2>
             {Object.keys(categoryBreakdown).length > 0 ? (
               <div className={styles.categoryList}>
                 {Object.entries(categoryBreakdown)
@@ -119,7 +119,7 @@ export default function FinancePage() {
                     <div key={cat} className={styles.categoryItem}>
                       <div className={styles.categoryInfo}>
                         <span>{cat}</span>
-                        <span style={{ color: 'var(--sl-accent-blue)', fontFamily: 'var(--sl-font-display)', fontWeight: 700 }}>
+                        <span style={{ color: 'var(--sl-blue)', fontFamily: 'var(--sl-font-display)', fontWeight: 800 }}>
                           ₹{amount.toLocaleString()}
                         </span>
                       </div>
@@ -130,36 +130,38 @@ export default function FinancePage() {
                   ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>No expenses recorded</div>
+              <div style={{ textAlign: 'center', padding: '60px', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', fontSize: '0.8rem' }}>
+                [SYSTEM] NO CONSUMPTION DATA DETECTED
+              </div>
             )}
           </div>
 
-          <div className="sl-panel" style={{ padding: '24px' }}>
-            <h2 className="sl-section-title">Recent Transactions</h2>
+          <div className="sl-panel" style={{ padding: '32px' }}>
+            <h2 className="sl-section-title">Gold Flow History</h2>
             {transactions.length > 0 ? (
               <div className={styles.txList}>
                 {transactions.map((t) => (
                   <div key={t._id} className={styles.txItem}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                       <div className={`${styles.txIcon} ${t.type === 'income' ? styles.txIconIncome : styles.txIconExpense}`}>
                         {t.type === 'income' ? <MdTrendingUp /> : <MdTrendingDown />}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{t.description}</div>
-                        <div style={{ fontSize: '0.6875rem', color: 'var(--sl-text-muted)' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--sl-text-bright)' }}>{t.description}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', textTransform: 'uppercase', marginTop: '2px' }}>
                           {t.category} • {new Date(t.date).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontFamily: 'var(--sl-font-display)', fontWeight: 700, color: t.type === 'income' ? 'var(--sl-accent-green)' : 'var(--sl-accent-red)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.125rem', fontWeight: 800, color: t.type === 'income' ? 'var(--sl-green)' : 'var(--sl-red)' }}>
                         {t.type === 'income' ? '+' : '-'}₹{t.amount.toLocaleString()}
                       </span>
                       <button 
                         type="button"
                         className="sl-btn sl-btn-ghost" 
                         onClick={() => deleteTransaction(t._id)} 
-                        style={{ padding: '4px' }}
+                        style={{ padding: '8px', color: 'var(--sl-text-ghost)' }}
                       >
                         <MdDelete />
                       </button>
@@ -168,7 +170,9 @@ export default function FinancePage() {
                 ))}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>No transactions found</div>
+              <div style={{ textAlign: 'center', padding: '60px', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', fontSize: '0.8rem' }}>
+                [SYSTEM] TRANSACTION LOG EMPTY
+              </div>
             )}
           </div>
         </div>
@@ -189,18 +193,18 @@ export default function FinancePage() {
               </button>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className={styles.typeToggle}>
                 <button 
                   type="button"
-                  className={`${styles.typeBtn} ${form.type === 'expense' ? styles.typeBtnExpense : ''}`} 
+                  className={`${styles.typeBtn} ${styles.typeBtnExpense} ${form.type === 'expense' ? styles.typeBtnActive : ''}`} 
                   onClick={() => setForm({ ...form, type: 'expense', category: '' })}
                 >
                   Expense
                 </button>
                 <button 
                   type="button"
-                  className={`${styles.typeBtn} ${form.type === 'income' ? styles.typeBtnIncome : ''}`} 
+                  className={`${styles.typeBtn} ${styles.typeBtnIncome} ${form.type === 'income' ? styles.typeBtnActive : ''}`} 
                   onClick={() => setForm({ ...form, type: 'income', category: '' })}
                 >
                   Income
