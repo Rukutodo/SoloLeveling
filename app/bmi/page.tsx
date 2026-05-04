@@ -94,11 +94,11 @@ export default function BMIPage() {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'Underweight': return 'var(--sl-accent-blue)';
-      case 'Normal': return 'var(--sl-accent-green)';
-      case 'Overweight': return 'var(--sl-accent-gold)';
-      case 'Obese': return 'var(--sl-accent-red)';
-      default: return 'var(--sl-text-primary)';
+      case 'Underweight': return 'var(--sl-blue)';
+      case 'Normal': return 'var(--sl-green)';
+      case 'Overweight': return 'var(--sl-gold)';
+      case 'Obese': return 'var(--sl-red)';
+      default: return 'var(--sl-text-main)';
     }
   };
 
@@ -112,12 +112,12 @@ export default function BMIPage() {
       <main className="sl-main-content">
         <div className="sl-page-header">
           <h1 className="sl-page-title">⚖️ BMI Tracker</h1>
-          <p className="sl-page-subtitle">[SYSTEM] Body composition analysis</p>
+          <p className="sl-page-subtitle">[SYSTEM] Body composition analysis report</p>
         </div>
 
         <div className={styles.grid}>
           {/* Current BMI Display */}
-          <div className="sl-panel" style={{ padding: '24px' }}>
+          <div className="sl-panel" style={{ padding: '32px' }}>
             <h2 className="sl-section-title">Current Status</h2>
             {latestBmi ? (
               <div className={styles.bmiDisplay}>
@@ -128,10 +128,10 @@ export default function BMIPage() {
                 {/* BMI Scale */}
                 <div className={styles.bmiScale}>
                   <div className={styles.scaleBar}>
-                    <div className={styles.scaleSection} style={{ background: 'var(--sl-accent-blue)', width: '14%' }} />
-                    <div className={styles.scaleSection} style={{ background: 'var(--sl-accent-green)', width: '26%' }} />
-                    <div className={styles.scaleSection} style={{ background: 'var(--sl-accent-gold)', width: '20%' }} />
-                    <div className={styles.scaleSection} style={{ background: 'var(--sl-accent-red)', width: '40%' }} />
+                    <div className={styles.scaleSection} style={{ background: 'var(--sl-blue)', width: '14%' }} />
+                    <div className={styles.scaleSection} style={{ background: 'var(--sl-green)', width: '26%' }} />
+                    <div className={styles.scaleSection} style={{ background: 'var(--sl-gold)', width: '20%' }} />
+                    <div className={styles.scaleSection} style={{ background: 'var(--sl-red)', width: '40%' }} />
                     <div className={styles.scaleMarker} style={{ left: `${getBmiPosition(latestBmi)}%` }} />
                   </div>
                   <div className={styles.scaleLabels}>
@@ -142,9 +142,9 @@ export default function BMIPage() {
                 {/* Target Weight Progress */}
                 {targetWeight && (
                   <div className={styles.targetProgress}>
-                    <div className="sl-flex-between" style={{ marginBottom: '8px' }}>
+                    <div className="sl-flex-between" style={{ marginBottom: '12px' }}>
                       <span className="sl-label" style={{ margin: 0 }}>Goal: {targetWeight} kg</span>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sl-accent-blue)' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sl-blue)', fontFamily: 'var(--sl-font-display)', letterSpacing: '1px' }}>
                         {latestWeight && latestWeight > Number(targetWeight) ? `${(latestWeight - Number(targetWeight)).toFixed(1)}kg to go` : 'Goal Reached!'}
                       </span>
                     </div>
@@ -155,32 +155,34 @@ export default function BMIPage() {
                 )}
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>No data yet. Log your first entry!</div>
+              <div style={{ textAlign: 'center', padding: '60px', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', fontSize: '0.8rem', letterSpacing: '1px' }}>
+                [SYSTEM] NO DATA DETECTED. INITIALIZE SCAN?
+              </div>
             )}
           </div>
 
           {/* Input Form */}
-          <div className="sl-panel" style={{ padding: '24px' }}>
+          <div className="sl-panel" style={{ padding: '32px' }}>
             <h2 className="sl-section-title">Log Entry</h2>
             <form onSubmit={handleSubmit} className={styles.form}>
-              <div>
+              <div className="sl-form-group">
                 <label className="sl-label">Weight (kg)</label>
                 <input className="sl-input" type="number" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="e.g. 70" required />
               </div>
-              <div>
+              <div className="sl-form-group">
                 <label className="sl-label">Height (cm)</label>
                 <input className="sl-input" type="number" step="0.1" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g. 175" required />
               </div>
-              <div>
+              <div className="sl-form-group">
                 <label className="sl-label">Target Weight (kg)</label>
                 <input className="sl-input" type="number" step="0.1" value={targetWeight} onChange={(e) => setTargetWeight(e.target.value)} placeholder="Your goal weight" />
               </div>
               {weight && height && (
                 <div className={styles.previewBmi}>
-                  Preview: <strong>{(Number(weight) / Math.pow(Number(height) / 100, 2)).toFixed(1)}</strong> BMI
+                  PREVIEW: <strong>{(Number(weight) / Math.pow(Number(height) / 100, 2)).toFixed(1)}</strong> BMI
                 </div>
               )}
-              <button type="submit" className="sl-btn sl-btn-primary" disabled={saving} style={{ width: '100%' }}>
+              <button type="submit" className="sl-btn sl-btn-primary" disabled={saving} style={{ width: '100%', marginTop: '8px' }}>
                 {saving ? 'SAVING DATA...' : '⚡ UPDATE SYSTEM'}
               </button>
             </form>
@@ -189,21 +191,22 @@ export default function BMIPage() {
 
         {/* Chart */}
         {chartData.length > 1 && (
-          <div className="sl-panel" style={{ padding: '24px', marginTop: '24px' }}>
-            <h2 className="sl-section-title">BMI Trend</h2>
-            <div style={{ width: '100%', height: 300 }}>
+          <div className="sl-panel" style={{ padding: '32px', marginTop: '32px' }}>
+            <h2 className="sl-section-title">BMI Trend Analysis</h2>
+            <div style={{ width: '100%', height: 350 }}>
               <ResponsiveContainer>
                 <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,212,255,0.1)" />
-                  <XAxis dataKey="date" stroke="var(--sl-text-muted)" fontSize={12} />
-                  <YAxis stroke="var(--sl-text-muted)" fontSize={12} domain={['auto', 'auto']} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsla(0, 0%, 100%, 0.05)" vertical={false} />
+                  <XAxis dataKey="date" stroke="var(--sl-text-ghost)" fontSize={11} tickMargin={15} />
+                  <YAxis stroke="var(--sl-text-ghost)" fontSize={11} domain={['auto', 'auto']} tickMargin={10} />
                   <Tooltip
-                    contentStyle={{ background: 'var(--sl-bg-panel-solid)', border: '1px solid var(--sl-border)', borderRadius: '8px', color: 'var(--sl-text-primary)' }}
+                    contentStyle={{ background: 'var(--sl-bg-sub)', border: '1px solid var(--sl-glass-border)', borderRadius: '12px', color: 'var(--sl-text-bright)', boxShadow: 'var(--sl-shadow-lg)' }}
+                    itemStyle={{ color: 'var(--sl-blue)', fontFamily: 'var(--sl-font-display)', fontSize: '0.75rem' }}
                   />
-                  <ReferenceLine y={18.5} stroke="var(--sl-accent-blue)" strokeDasharray="5 5" />
-                  <ReferenceLine y={25} stroke="var(--sl-accent-gold)" strokeDasharray="5 5" />
-                  <ReferenceLine y={30} stroke="var(--sl-accent-red)" strokeDasharray="5 5" />
-                  <Line type="monotone" dataKey="bmi" stroke="var(--sl-accent-blue)" strokeWidth={2} dot={{ fill: 'var(--sl-accent-blue)', r: 4 }} activeDot={{ r: 6, fill: 'var(--sl-accent-blue)' }} />
+                  <ReferenceLine y={18.5} stroke="var(--sl-blue)" strokeDasharray="5 5" strokeOpacity={0.3} />
+                  <ReferenceLine y={25} stroke="var(--sl-gold)" strokeDasharray="5 5" strokeOpacity={0.3} />
+                  <ReferenceLine y={30} stroke="var(--sl-red)" strokeDasharray="5 5" strokeOpacity={0.3} />
+                  <Line type="monotone" dataKey="bmi" stroke="var(--sl-blue)" strokeWidth={3} dot={{ fill: 'var(--sl-blue)', r: 5, strokeWidth: 2, stroke: 'var(--sl-bg-base)' }} activeDot={{ r: 8, fill: 'var(--sl-blue)', strokeWidth: 0 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -212,22 +215,41 @@ export default function BMIPage() {
 
         {/* History */}
         {metrics.length > 0 && (
-          <div className="sl-panel" style={{ padding: '24px', marginTop: '24px' }}>
-            <h2 className="sl-section-title">History</h2>
-            <table className="sl-table">
-              <thead><tr><th>Date</th><th>Weight</th><th>Height</th><th>BMI</th><th>Category</th></tr></thead>
-              <tbody>
-                {metrics.map((m) => (
-                  <tr key={m._id}>
-                    <td>{new Date(m.date).toLocaleDateString()}</td>
-                    <td>{m.weight} kg</td>
-                    <td>{m.height} cm</td>
-                    <td style={{ fontFamily: 'var(--sl-font-display)', color: getCategoryColor(m.category) }}>{m.bmi}</td>
-                    <td><span className={`sl-badge ${m.category === 'Normal' ? 'sl-badge-green' : m.category === 'Overweight' ? 'sl-badge-gold' : m.category === 'Obese' ? 'sl-badge-red' : 'sl-badge-blue'}`}>{m.category}</span></td>
+          <div className="sl-panel" style={{ padding: '32px', marginTop: '32px' }}>
+            <h2 className="sl-section-title">Record History</h2>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="sl-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Weight</th>
+                    <th>Height</th>
+                    <th>BMI</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {metrics.map((m) => (
+                    <tr key={m._id}>
+                      <td style={{ fontFamily: 'var(--sl-font-mono)', fontSize: '0.75rem' }}>{new Date(m.date).toLocaleDateString()}</td>
+                      <td style={{ fontWeight: 600 }}>{m.weight} kg</td>
+                      <td style={{ color: 'var(--sl-text-ghost)' }}>{m.height} cm</td>
+                      <td style={{ fontFamily: 'var(--sl-font-display)', fontWeight: 800, color: getCategoryColor(m.category) }}>{m.bmi}</td>
+                      <td>
+                        <span className={`sl-badge ${
+                          m.category === 'Normal' ? 'sl-badge-green' : 
+                          m.category === 'Overweight' ? 'sl-badge-gold' : 
+                          m.category === 'Obese' ? 'sl-badge-red' : 
+                          'sl-badge-blue'
+                        }`}>
+                          {m.category}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </main>
