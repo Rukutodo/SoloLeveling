@@ -261,7 +261,14 @@ export default function CaloriesPage() {
                 {step === 'idle' && <button className="sl-btn sl-btn-primary" onClick={analyzeImage}>⚡ Analyze with AI</button>}
               </div>
             )}
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} style={{ display: 'none' }} />
+            <input 
+              ref={fileInputRef} 
+              type="file" 
+              accept="image/*" 
+              capture="environment"
+              onChange={handleFileSelect} 
+              style={{ display: 'none' }} 
+            />
           </div>
 
           {/* Analysis Steps */}
