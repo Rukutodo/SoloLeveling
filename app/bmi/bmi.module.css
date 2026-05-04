@@ -1,17 +1,19 @@
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 
-.bmiDisplay { text-align: center; padding: 20px 0; }
-.bmiValue { font-family: var(--sl-font-display); font-size: 3.5rem; font-weight: 900; line-height: 1; }
-.bmiCategory { font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin: 8px 0; }
-.bmiWeight { font-size: 0.875rem; color: var(--sl-text-secondary); }
+.bmiDisplay { text-align: center; }
+.bmiValue { font-family: var(--sl-font-display); font-size: 3rem; font-weight: 800; line-height: 1; }
+.bmiCategory { font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin: 8px 0; }
+.bmiWeight { font-size: 1.125rem; color: var(--sl-text-secondary); margin-bottom: 24px; }
 
-.bmiScale { margin-top: 24px; }
-.scaleBar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; position: relative; }
-.scaleSection { height: 100%; }
-.scaleMarker { position: absolute; top: -6px; width: 4px; height: 22px; background: var(--sl-text-primary); border-radius: 2px; transform: translateX(-50%); box-shadow: 0 0 8px rgba(255,255,255,0.5); }
-.scaleLabels { display: flex; justify-content: space-between; font-size: 0.625rem; color: var(--sl-text-muted); margin-top: 6px; }
+.bmiScale { margin-top: 32px; }
+.scaleBar { height: 12px; display: flex; border-radius: 6px; overflow: hidden; position: relative; margin-bottom: 12px; }
+.scaleSection { height: 100%; border-right: 1px solid rgba(0,0,0,0.2); }
+.scaleMarker { position: absolute; top: -4px; width: 4px; height: 20px; background: #fff; border-radius: 2px; box-shadow: 0 0 10px rgba(255,255,255,0.5); z-index: 2; transition: left var(--sl-transition-slow); }
+.scaleLabels { display: flex; justify-content: space-between; font-size: 0.625rem; color: var(--sl-text-muted); font-weight: 600; }
 
-.form { display: flex; flex-direction: column; gap: 16px; }
-.previewBmi { text-align: center; padding: 12px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); color: var(--sl-accent-blue); font-size: 0.875rem; }
+.targetProgress { margin-top: 32px; padding: 16px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); text-align: left; }
+
+.form { display: flex; flex-direction: column; gap: 20px; }
+.previewBmi { padding: 12px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); font-size: 0.875rem; color: var(--sl-text-secondary); text-align: center; border: 1px dashed var(--sl-border); }
 
 @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }

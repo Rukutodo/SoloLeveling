@@ -10,6 +10,7 @@ export interface IUser extends Document {
   title: string;
   rank: string;
   height?: number;
+  targetWeight?: number;
   dailyCalorieGoal: number;
   createdAt: Date;
   updatedAt: Date;
@@ -40,6 +41,7 @@ const UserSchema = new Schema<IUser>(
     title: { type: String, default: 'Awakened Hunter' },
     rank: { type: String, default: 'E' },
     height: { type: Number },
+    targetWeight: { type: Number },
     dailyCalorieGoal: { type: Number, default: 2000 },
   },
   {

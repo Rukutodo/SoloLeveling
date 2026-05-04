@@ -20,6 +20,7 @@ export default function BMIPage() {
   const [metrics, setMetrics] = useState<BodyMetric[]>([]);
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
+  const [targetWeight, setTargetWeight] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
@@ -37,6 +38,7 @@ export default function BMIPage() {
         const data = await bmiRes.json();
         setMetrics(data.metrics);
         if (data.savedHeight) setHeight(String(data.savedHeight));
+        if (data.targetWeight) setTargetWeight(String(data.targetWeight));
       }
       if (userRes.ok) {
         const data = await userRes.json();
@@ -58,7 +60,11 @@ export default function BMIPage() {
       const res = await fetch('/api/bmi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ weight: Number(weight), height: Number(height) }),
+        body: JSON.stringify({ 
+          weight: Number(weight), 
+          height: Number(height),
+          targetWeight: targetWeight ? Number(targetWeight) : undefined
+        }),
       });
       if (res.ok) {
         setWeight('');
@@ -74,6 +80,11 @@ export default function BMIPage() {
   const latestBmi = metrics.length > 0 ? metrics[0].bmi : null;
   const latestCategory = metrics.length > 0 ? metrics[0].category : '';
   const latestWeight = metrics.length > 0 ? metrics[0].weight : null;
+
+  // Progress toward target weight
+  const progressToGoal = latestWeight && targetWeight 
+    ? Math.max(0, Math.min(100, (1 - Math.abs(latestWeight - Number(targetWeight)) / Math.abs(latestWeight)) * 100))
+    : 0;
 
   const chartData = [...metrics].reverse().map((m) => ({
     date: new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -127,6 +138,21 @@ export default function BMIPage() {
                     <span>15</span><span>18.5</span><span>25</span><span>30</span><span>40</span>
                   </div>
                 </div>
+
+                {/* Target Weight Progress */}
+                {targetWeight && (
+                  <div className={styles.targetProgress}>
+                    <div className="sl-flex-between" style={{ marginBottom: '8px' }}>
+                      <span className="sl-label" style={{ margin: 0 }}>Goal: {targetWeight} kg</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--sl-accent-blue)' }}>
+                        {latestWeight && latestWeight > Number(targetWeight) ? `${(latestWeight - Number(targetWeight)).toFixed(1)}kg to go` : 'Goal Reached!'}
+                      </span>
+                    </div>
+                    <div className="sl-progress sl-progress-blue">
+                      <div className="sl-progress-fill" style={{ width: `${progressToGoal}%` }} />
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>No data yet. Log your first entry!</div>
@@ -145,13 +171,17 @@ export default function BMIPage() {
                 <label className="sl-label">Height (cm)</label>
                 <input className="sl-input" type="number" step="0.1" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g. 175" required />
               </div>
+              <div>
+                <label className="sl-label">Target Weight (kg)</label>
+                <input className="sl-input" type="number" step="0.1" value={targetWeight} onChange={(e) => setTargetWeight(e.target.value)} placeholder="Your goal weight" />
+              </div>
               {weight && height && (
                 <div className={styles.previewBmi}>
                   Preview: <strong>{(Number(weight) / Math.pow(Number(height) / 100, 2)).toFixed(1)}</strong> BMI
                 </div>
               )}
               <button type="submit" className="sl-btn sl-btn-primary" disabled={saving} style={{ width: '100%' }}>
-                {saving ? 'Saving...' : '⚡ Log Weight'}
+                {saving ? 'SAVING DATA...' : '⚡ UPDATE SYSTEM'}
               </button>
             </form>
           </div>

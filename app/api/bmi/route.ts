@@ -30,9 +30,13 @@ export async function GET() {
       .sort({ date: -1 })
       .limit(30);
 
-    const user = await User.findById(session.user.id).select('height');
+    const user = await User.findById(session.user.id).select('height targetWeight');
 
-    return NextResponse.json({ metrics, savedHeight: user?.height });
+    return NextResponse.json({ 
+      metrics, 
+      savedHeight: user?.height, 
+      targetWeight: user?.targetWeight 
+    });
   } catch (error) {
     console.error('BMI GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -47,7 +51,7 @@ export async function POST(req: NextRequest) {
     }
 
     await dbConnect();
-    const { weight, height } = await req.json();
+    const { weight, height, targetWeight } = await req.json();
 
     if (!weight || !height) {
       return NextResponse.json({ error: 'Weight and height are required' }, { status: 400 });
@@ -64,8 +68,11 @@ export async function POST(req: NextRequest) {
       category,
     });
 
-    // Save height to user profile
-    await User.findByIdAndUpdate(session.user.id, { height });
+    // Save height and target weight to user profile
+    await User.findByIdAndUpdate(session.user.id, { 
+      height, 
+      ...(targetWeight && { targetWeight: Number(targetWeight) }) 
+    });
 
     // Award XP
     const xpResult = await awardXP(session.user.id, XP_REWARDS.LOG_WEIGHT);
