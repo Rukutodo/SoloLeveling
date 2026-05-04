@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚔️ Solo Leveling: Personal Development System
 
-## Getting Started
+![System Status](https://img.shields.io/badge/System-Awakened-00d4ff?style=for-the-badge&logo=shadow)
+![Hunter Rank](https://img.shields.io/badge/Hunter_Rank-S--Rank-7b2ff7?style=for-the-badge)
 
-First, run the development server:
+An all-in-one, responsive personal development application inspired by the **Solo Leveling** system. Track your evolution, manage your quests, and level up your life.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔮 Core Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 🥗 Calorie Tracker (AI Vision)
+- **AI-Powered Analysis**: Upload a photo of your meal and the system (powered by Gemini AI) will identify the food and estimate calories/macros.
+- **3-Step Cascade**: Image Analysis ➔ Dish Identification ➔ Ingredient Breakdown.
+- **Daily Logs**: Keep track of your nutritional intake across breakfast, lunch, dinner, and snacks.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### ⚖️ BMI Tracker
+- **Status Analysis**: Track your weight and height evolution.
+- **Visual Scale**: RPG-inspired gauges showing your current body composition category.
+- **Trend Charts**: Beautifully rendered charts showing your progress over time.
 
-## Learn More
+### 💪 Workout Modes
+- **Home Mode**: 15+ bodyweight exercises for hunters training in the field.
+- **Gym Mode**: Equipment-based exercises for maximum power gain.
+- **Detailed Guides**: Every exercise includes step-by-step instructions, muscle targeting, and hunter tips.
 
-To learn more about Next.js, take a look at the following resources:
+### 📅 Quest Calendar
+- **Event Tracking**: Log your daily tasks, appointments, and "quests".
+- **RPG UI**: Visual indicators for completed activities.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 💰 Gold Reserve (Finance)
+- **Financial Ledger**: Track your income and expenses.
+- **Category Breakdown**: Dynamic bars showing exactly where your "gold" is being spent.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 📈 Gamification Engine
+- **XP System**: Earn experience points for every productive action.
+- **Hunter Ranks**: Progress from E-Rank to S-Rank as you level up.
+- **Player Stats**: Track your total XP and current Hunter Title.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠️ Technology Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework**: [Next.js 14+](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Database**: [MongoDB Atlas](https://www.mongodb.com/atlas)
+- **AI Engine**: [Google Gemini Pro Vision](https://ai.google.dev/)
+- **Authentication**: [Auth.js (NextAuth v5)](https://authjs.dev/)
+- **Styling**: Vanilla CSS (Solo Leveling Design System)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Charts**: [Recharts](https://recharts.org/)
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- MongoDB Atlas account
+- Gemini AI API Key
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Rukutodo/SoloLeveling.git
+   cd SoloLeveling
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables**
+   Create a `.env.local` file in the root directory:
+   ```env
+   MONGODB_URI=your_mongodb_connection_string
+   GEMINI_API_KEY=your_gemini_api_key
+   AUTH_SECRET=your_generated_secret
+   NEXTAUTH_URL=http://localhost:3000
+   ```
+
+4. **Run the System**
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 📜 System Rules
+1. Never miss a Daily Quest.
+2. Every action counts toward your Level Up.
+3. **Become the Strongest Version of Yourself.**
+
+---
+
+*Developed with the Solo Leveling System Interface.*
