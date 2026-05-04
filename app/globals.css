@@ -3,68 +3,60 @@
    Solo Leveling Anime-Inspired Dark Theme
    ═══════════════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
-/* ─── CSS Custom Properties (Design Tokens) ───────────────────────── */
+/* ─── CSS Custom Properties (S-Rank Tokens) ───────────────────────── */
 :root {
-  /* Backgrounds */
-  --sl-bg-primary: #06060b;
-  --sl-bg-secondary: #0c0c14;
-  --sl-bg-tertiary: #12121e;
-  --sl-bg-panel: rgba(12, 12, 20, 0.75);
-  --sl-bg-panel-solid: #0e0e18;
-  --sl-bg-hover: rgba(0, 212, 255, 0.05);
-  --sl-bg-input: rgba(12, 12, 20, 0.9);
+  /* Core Palette (Vibrant HSL) */
+  --sl-bg-base: hsl(240, 15%, 4%);
+  --sl-bg-sub: hsl(240, 15%, 8%);
+  --sl-bg-surface: hsla(240, 15%, 12%, 0.7);
+  --sl-bg-glass: hsla(240, 15%, 15%, 0.4);
+  
+  /* Primary Accents */
+  --sl-blue: hsl(190, 100%, 50%);
+  --sl-blue-glow: hsla(190, 100%, 50%, 0.4);
+  --sl-purple: hsl(270, 90%, 65%);
+  --sl-purple-glow: hsla(270, 90%, 65%, 0.4);
+  --sl-gold: hsl(45, 100%, 50%);
+  --sl-red: hsl(0, 100%, 60%);
+  --sl-green: hsl(150, 100%, 50%);
+  
+  /* Text Strategy */
+  --sl-text-bright: hsl(0, 0%, 98%);
+  --sl-text-main: hsl(240, 10%, 85%);
+  --sl-text-dim: hsl(240, 5%, 60%);
+  --sl-text-ghost: hsl(240, 5%, 35%);
 
-  /* Accent Colors */
-  --sl-accent-blue: #00d4ff;
-  --sl-accent-blue-dim: rgba(0, 212, 255, 0.15);
-  --sl-accent-purple: #7b2ff7;
-  --sl-accent-purple-dim: rgba(123, 47, 247, 0.15);
-  --sl-accent-gold: #ffd700;
-  --sl-accent-gold-dim: rgba(255, 215, 0, 0.15);
-  --sl-accent-red: #ff3e3e;
-  --sl-accent-red-dim: rgba(255, 62, 62, 0.15);
-  --sl-accent-green: #00ff88;
-  --sl-accent-green-dim: rgba(0, 255, 136, 0.15);
+  /* Borders & Glass */
+  --sl-glass-border: hsla(0, 0%, 100%, 0.08);
+  --sl-glass-border-bright: hsla(190, 100%, 50%, 0.25);
+  
+  /* Elevation */
+  --sl-shadow-sm: 0 2px 8px rgba(0,0,0,0.4);
+  --sl-shadow-md: 0 8px 32px rgba(0,0,0,0.6);
+  --sl-shadow-lg: 0 16px 48px rgba(0,0,0,0.8);
+  --sl-glow-sm: 0 0 15px var(--sl-blue-glow);
+  --sl-glow-md: 0 0 30px var(--sl-blue-glow);
 
-  /* Text */
-  --sl-text-primary: #e8eaed;
-  --sl-text-secondary: #8b949e;
-  --sl-text-muted: #484f58;
-  --sl-text-accent: #00d4ff;
+  /* Typography System */
+  --sl-font-display: 'Orbitron', sans-serif;
+  --sl-font-main: 'Outfit', sans-serif;
+  --sl-font-mono: 'JetBrains Mono', monospace;
 
-  /* Borders */
-  --sl-border: rgba(0, 212, 255, 0.12);
-  --sl-border-hover: rgba(0, 212, 255, 0.3);
-  --sl-border-active: rgba(0, 212, 255, 0.5);
+  /* Geometry */
+  --sl-radius-sm: 8px;
+  --sl-radius-md: 12px;
+  --sl-radius-lg: 20px;
+  --sl-radius-xl: 32px;
 
-  /* Shadows & Glows */
-  --sl-glow-blue: 0 0 15px rgba(0, 212, 255, 0.2), 0 0 30px rgba(0, 212, 255, 0.1);
-  --sl-glow-blue-strong: 0 0 20px rgba(0, 212, 255, 0.4), 0 0 40px rgba(0, 212, 255, 0.2);
-  --sl-glow-purple: 0 0 15px rgba(123, 47, 247, 0.2), 0 0 30px rgba(123, 47, 247, 0.1);
-  --sl-glow-gold: 0 0 15px rgba(255, 215, 0, 0.2), 0 0 30px rgba(255, 215, 0, 0.1);
-  --sl-shadow-panel: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 1px rgba(0, 212, 255, 0.1);
-
-  /* Typography */
-  --sl-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --sl-font-display: 'Orbitron', 'Inter', monospace;
-
-  /* Spacing */
-  --sl-radius-sm: 6px;
-  --sl-radius-md: 10px;
-  --sl-radius-lg: 16px;
-  --sl-radius-xl: 24px;
-
-  /* Transitions */
-  --sl-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --sl-transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --sl-transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Layout */
-  --sl-sidebar-width: 260px;
-  --sl-sidebar-collapsed: 72px;
-  --sl-header-height: 64px;
+  /* Motion */
+  --sl-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --sl-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Dimensions */
+  --sl-sidebar-w: 280px;
+  --sl-sidebar-c: 80px;
 }
 
 /* ─── Reset & Base ─────────────────────────────────────────────────── */
@@ -152,24 +144,30 @@ input, textarea, select {
 }
 
 /* ─── Utility Classes ──────────────────────────────────────────────── */
-
-/* Panels */
 .sl-panel {
-  background: var(--sl-bg-panel);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--sl-border);
+  background: var(--sl-bg-surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--sl-glass-border);
   border-radius: var(--sl-radius-lg);
-  box-shadow: var(--sl-shadow-panel);
-  transition: border-color var(--sl-transition-normal), box-shadow var(--sl-transition-normal);
+  box-shadow: var(--sl-shadow-md);
+  transition: all var(--sl-ease-out);
+  position: relative;
+  overflow: hidden;
+}
+
+.sl-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, hsla(0, 0%, 100%, 0.05) 0%, transparent 40%);
+  pointer-events: none;
 }
 
 .sl-panel:hover {
-  border-color: var(--sl-border-hover);
-}
-
-.sl-panel-glow {
-  box-shadow: var(--sl-shadow-panel), var(--sl-glow-blue);
+  border-color: var(--sl-glass-border-bright);
+  transform: translateY(-2px);
+  box-shadow: var(--sl-shadow-lg), var(--sl-glow-sm);
 }
 
 /* Buttons */
@@ -177,122 +175,90 @@ input, textarea, select {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 24px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  gap: 10px;
+  padding: 12px 28px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-family: var(--sl-font-display);
+  letter-spacing: 1.5px;
   text-transform: uppercase;
   border-radius: var(--sl-radius-md);
-  transition: all var(--sl-transition-normal);
+  transition: all var(--sl-spring);
   position: relative;
-  overflow: hidden;
-}
-
-.sl-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
-  opacity: 0;
-  transition: opacity var(--sl-transition-fast);
-}
-
-.sl-btn:hover::before {
-  opacity: 1;
+  border: none;
+  cursor: pointer;
 }
 
 .sl-btn-primary {
-  background: linear-gradient(135deg, var(--sl-accent-blue), #0099cc);
-  color: #000;
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+  background: var(--sl-blue);
+  color: hsl(240, 15%, 5%);
+  box-shadow: 0 4px 0 hsl(190, 100%, 35%), var(--sl-glow-sm);
 }
 
 .sl-btn-primary:hover {
-  box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 hsl(190, 100%, 35%), var(--sl-glow-md);
 }
 
 .sl-btn-primary:active {
-  transform: translateY(0);
+  transform: translateY(2px);
+  box-shadow: 0 0px 0 hsl(190, 100%, 35%);
 }
 
 .sl-btn-secondary {
-  background: transparent;
-  color: var(--sl-accent-blue);
-  border: 1px solid var(--sl-border-hover);
+  background: var(--sl-bg-glass);
+  color: var(--sl-blue);
+  border: 1px solid var(--sl-glass-border-bright);
 }
 
 .sl-btn-secondary:hover {
-  background: var(--sl-accent-blue-dim);
-  border-color: var(--sl-accent-blue);
-}
-
-.sl-btn-danger {
-  background: linear-gradient(135deg, var(--sl-accent-red), #cc2020);
-  color: #fff;
-  box-shadow: 0 0 20px rgba(255, 62, 62, 0.2);
-}
-
-.sl-btn-danger:hover {
-  box-shadow: 0 0 30px rgba(255, 62, 62, 0.4);
-  transform: translateY(-1px);
+  background: var(--sl-blue-glow);
+  box-shadow: var(--sl-glow-sm);
 }
 
 .sl-btn-ghost {
   background: transparent;
-  color: var(--sl-text-secondary);
-  padding: 8px 16px;
+  color: var(--sl-text-dim);
 }
 
 .sl-btn-ghost:hover {
-  color: var(--sl-text-primary);
-  background: var(--sl-bg-hover);
+  color: var(--sl-text-bright);
+  background: hsla(0, 0%, 100%, 0.05);
 }
 
 /* Inputs */
 .sl-input {
   width: 100%;
-  padding: 12px 16px;
-  background: var(--sl-bg-input);
-  border: 1px solid var(--sl-border);
+  padding: 14px 20px;
+  background: var(--sl-bg-sub);
+  border: 1px solid var(--sl-glass-border);
   border-radius: var(--sl-radius-md);
-  color: var(--sl-text-primary);
+  color: var(--sl-text-bright);
+  font-family: var(--sl-font-main);
   font-size: 0.9375rem;
-  transition: all var(--sl-transition-normal);
-}
-
-.sl-input::placeholder {
-  color: var(--sl-text-muted);
+  transition: all var(--sl-ease-out);
 }
 
 .sl-input:focus {
-  border-color: var(--sl-accent-blue);
-  box-shadow: 0 0 0 3px var(--sl-accent-blue-dim), var(--sl-glow-blue);
-}
-
-.sl-input:hover:not(:focus) {
-  border-color: var(--sl-border-hover);
+  background: var(--sl-bg-surface);
+  border-color: var(--sl-blue);
+  box-shadow: 0 0 0 4px var(--sl-blue-glow);
 }
 
 .sl-label {
   display: block;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--sl-text-secondary);
-  margin-bottom: 6px;
+  letter-spacing: 2px;
+  color: var(--sl-text-dim);
+  margin-bottom: 8px;
+  font-family: var(--sl-font-display);
 }
 
 /* Select */
 .sl-select {
   width: 100%;
-  padding: 12px 16px;
-  background: var(--sl-bg-input);
-  border: 1px solid var(--sl-border);
-  border-radius: var(--sl-radius-md);
-  color: var(--sl-text-primary);
   font-size: 0.9375rem;
   transition: all var(--sl-transition-normal);
   appearance: none;
@@ -315,17 +281,17 @@ input, textarea, select {
 /* Progress Bars */
 .sl-progress {
   width: 100%;
-  height: 8px;
-  background: var(--sl-bg-tertiary);
-  border-radius: 4px;
+  height: 6px;
+  background: var(--sl-bg-sub);
+  border-radius: 3px;
   overflow: hidden;
   position: relative;
 }
 
 .sl-progress-fill {
   height: 100%;
-  border-radius: 4px;
-  transition: width var(--sl-transition-slow);
+  border-radius: 3px;
+  transition: width 1.2s var(--sl-ease-out);
   position: relative;
 }
 
@@ -333,114 +299,67 @@ input, textarea, select {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  animation: shimmer 2s infinite;
+  background: linear-gradient(90deg, transparent, hsla(0, 0%, 100%, 0.15), transparent);
+  animation: shimmer 3s infinite;
 }
 
-.sl-progress-blue .sl-progress-fill {
-  background: linear-gradient(90deg, #0066aa, var(--sl-accent-blue));
-  box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-}
-
-.sl-progress-purple .sl-progress-fill {
-  background: linear-gradient(90deg, #5500bb, var(--sl-accent-purple));
-  box-shadow: 0 0 10px rgba(123, 47, 247, 0.3);
-}
-
-.sl-progress-gold .sl-progress-fill {
-  background: linear-gradient(90deg, #cc9900, var(--sl-accent-gold));
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-}
-
-.sl-progress-green .sl-progress-fill {
-  background: linear-gradient(90deg, #009944, var(--sl-accent-green));
-  box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
-}
-
-.sl-progress-red .sl-progress-fill {
-  background: linear-gradient(90deg, #cc2020, var(--sl-accent-red));
-  box-shadow: 0 0 10px rgba(255, 62, 62, 0.3);
-}
+.sl-progress-blue .sl-progress-fill { background: var(--sl-blue); box-shadow: 0 0 12px var(--sl-blue-glow); }
+.sl-progress-purple .sl-progress-fill { background: var(--sl-purple); box-shadow: 0 0 12px var(--sl-purple-glow); }
+.sl-progress-gold .sl-progress-fill { background: var(--sl-gold); box-shadow: 0 0 12px hsla(45, 100%, 50%, 0.3); }
 
 /* Stat Cards */
 .sl-stat-card {
-  padding: 20px;
-  background: var(--sl-bg-panel);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--sl-border);
+  padding: 24px;
+  background: var(--sl-bg-surface);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--sl-glass-border);
   border-radius: var(--sl-radius-lg);
-  transition: all var(--sl-transition-normal);
+  transition: all var(--sl-ease-out);
 }
 
 .sl-stat-card:hover {
-  border-color: var(--sl-border-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--sl-shadow-panel), var(--sl-glow-blue);
+  border-color: var(--sl-glass-border-bright);
+  transform: translateY(-4px);
+  box-shadow: var(--sl-shadow-lg), var(--sl-glow-sm);
 }
 
 .sl-stat-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
+  font-family: var(--sl-font-display);
+  font-size: 0.65rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: var(--sl-text-secondary);
-  margin-bottom: 4px;
+  letter-spacing: 2.5px;
+  color: var(--sl-text-dim);
+  margin-bottom: 8px;
 }
 
 .sl-stat-value {
   font-family: var(--sl-font-display);
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--sl-text-primary);
-  line-height: 1.2;
-}
-
-.sl-stat-accent {
-  color: var(--sl-accent-blue);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--sl-text-bright);
+  line-height: 1;
 }
 
 /* Badges */
 .sl-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  font-size: 0.6875rem;
-  font-weight: 700;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  font-family: var(--sl-font-display);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  border-radius: 999px;
+  letter-spacing: 1.5px;
+  border-radius: 6px;
+  background: var(--sl-bg-sub);
+  border: 1px solid var(--sl-glass-border);
 }
 
-.sl-badge-blue {
-  background: var(--sl-accent-blue-dim);
-  color: var(--sl-accent-blue);
-  border: 1px solid rgba(0, 212, 255, 0.2);
-}
-
-.sl-badge-purple {
-  background: var(--sl-accent-purple-dim);
-  color: var(--sl-accent-purple);
-  border: 1px solid rgba(123, 47, 247, 0.2);
-}
-
-.sl-badge-gold {
-  background: var(--sl-accent-gold-dim);
-  color: var(--sl-accent-gold);
-  border: 1px solid rgba(255, 215, 0, 0.2);
-}
-
-.sl-badge-red {
-  background: var(--sl-accent-red-dim);
-  color: var(--sl-accent-red);
-  border: 1px solid rgba(255, 62, 62, 0.2);
-}
-
-.sl-badge-green {
-  background: var(--sl-accent-green-dim);
-  color: var(--sl-accent-green);
-  border: 1px solid rgba(0, 255, 136, 0.2);
-}
+.sl-badge-blue { color: var(--sl-blue); border-color: hsla(190, 100%, 50%, 0.3); }
+.sl-badge-purple { color: var(--sl-purple); border-color: hsla(270, 90%, 65%, 0.3); }
+.sl-badge-green { color: var(--sl-green); border-color: hsla(150, 100%, 50%, 0.3); }
 
 /* Rank Colors */
 .rank-e { color: #8b8b8b; }
