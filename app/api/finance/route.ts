@@ -19,18 +19,32 @@ export async function GET(req: NextRequest) {
     const startDate = new Date(year, month, 1);
     const endDate = new Date(year, month + 1, 1);
 
+    // Fetch transactions
     const transactions = await Transaction.find({
       userId: session.user.id,
       date: { $gte: startDate, $lt: endDate },
     }).sort({ date: -1 });
 
+    // Fetch active EMIs
+    const EMI = (await import('@/lib/models/EMI')).default;
+    const activeEmis = await EMI.find({ 
+      userId: session.user.id, 
+      active: true,
+      startDate: { $lt: endDate } // EMI started before or during this month
+    });
+
     // Calculate summary
-    const income = transactions
+    let income = transactions
       .filter((t) => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0);
-    const expenses = transactions
+    
+    let expenses = transactions
       .filter((t) => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
+
+    // Add EMIs to expenses
+    const emiTotal = activeEmis.reduce((sum, e) => sum + e.amount, 0);
+    expenses += emiTotal;
 
     // Category breakdown
     const categoryBreakdown: Record<string, number> = {};
@@ -40,10 +54,16 @@ export async function GET(req: NextRequest) {
         categoryBreakdown[t.category] = (categoryBreakdown[t.category] || 0) + t.amount;
       });
 
+    // Add EMI category
+    if (emiTotal > 0) {
+      categoryBreakdown['EMI'] = (categoryBreakdown['EMI'] || 0) + emiTotal;
+    }
+
     return NextResponse.json({
       transactions,
       summary: { income, expenses, net: income - expenses },
       categoryBreakdown,
+      emiTotal,
     });
   } catch (error) {
     console.error('Finance GET error:', error);

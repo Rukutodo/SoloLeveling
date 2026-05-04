@@ -16,10 +16,20 @@ const CATEGORIES = {
 export default function FinancePage() {
   const { status } = useSession();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [emis, setEmis] = useState<any[]>([]);
+  const [investments, setInvestments] = useState<any[]>([]);
   const [summary, setSummary] = useState({ income: 0, expenses: 0, net: 0 });
   const [categoryBreakdown, setCategoryBreakdown] = useState<Record<string, number>>({});
+  const [activeTab, setActiveTab] = useState<'tx' | 'emi' | 'inv'>('tx');
+  
   const [showModal, setShowModal] = useState(false);
+  const [showEmiModal, setShowEmiModal] = useState(false);
+  const [showInvModal, setShowInvModal] = useState(false);
+
   const [form, setForm] = useState({ amount: '', type: 'expense' as 'income' | 'expense', category: '', description: '', date: new Date().toISOString().split('T')[0] });
+  const [emiForm, setEmiForm] = useState({ name: '', amount: '', dayOfMonth: '1', totalMonths: '12', category: 'EMI' });
+  const [invForm, setInvForm] = useState({ fundName: '', investedAmount: '', currentAmount: '', expectedReturnRate: '12', type: 'Mutual Fund' });
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
 
@@ -30,9 +40,17 @@ export default function FinancePage() {
   useEffect(() => { if (status === 'authenticated') fetchData(); }, [status, month, year]);
 
   const fetchData = async () => {
-    const [fRes, uRes] = await Promise.all([fetch(`/api/finance?month=${month}&year=${year}`), fetch('/api/user')]);
+    const [fRes, uRes, eRes, iRes] = await Promise.all([
+      fetch(`/api/finance?month=${month}&year=${year}`),
+      fetch('/api/user'),
+      fetch('/api/finance/emi'),
+      fetch('/api/finance/investments')
+    ]);
+
     if (fRes.ok) { const d = await fRes.json(); setTransactions(d.transactions); setSummary(d.summary); setCategoryBreakdown(d.categoryBreakdown); }
     if (uRes.ok) { const d = await uRes.json(); setSidebarData({ userName: d.stats.name, level: d.stats.level, xp: d.stats.xp, xpToNext: d.stats.xpToNext, rank: d.stats.rank, title: d.stats.title, rankColor: d.stats.rankColor }); }
+    if (eRes.ok) { const d = await eRes.json(); setEmis(d.emis); }
+    if (iRes.ok) { const d = await iRes.json(); setInvestments(d.investments); }
   };
 
   const addTransaction = async () => {
@@ -108,12 +126,26 @@ export default function FinancePage() {
           </div>
         </div>
 
+        <div className={styles.tabHeader}>
+          <button className={`${styles.tabBtn} ${activeTab === 'tx' ? styles.tabBtnActive : ''}`} onClick={() => setActiveTab('tx')}>
+            <MdAdd /> Transactions
+          </button>
+          <button className={`${styles.tabBtn} ${activeTab === 'emi' ? styles.tabBtnActive : ''}`} onClick={() => setActiveTab('emi')}>
+            <MdTrendingDown /> EMIs
+          </button>
+          <button className={`${styles.tabBtn} ${activeTab === 'inv' ? styles.tabBtnActive : ''}`} onClick={() => setActiveTab('inv')}>
+            <MdTrendingUp /> Investments
+          </button>
+        </div>
+
         <div className={styles.financeLayout}>
+          {/* Left Column: Analysis */}
           <div className="sl-panel" style={{ padding: '32px' }}>
-            <h2 className="sl-section-title">Expense Sector Analysis</h2>
-            {Object.keys(categoryBreakdown).length > 0 ? (
-              <div className={styles.categoryList}>
-                {Object.entries(categoryBreakdown)
+            <h2 className="sl-section-title">Analysis Sector</h2>
+            <div className={styles.categoryList}>
+              <h3 style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>Expense Breakdown</h3>
+              {Object.keys(categoryBreakdown).length > 0 ? (
+                Object.entries(categoryBreakdown)
                   .sort(([, a], [, b]) => b - a)
                   .map(([cat, amount]) => (
                     <div key={cat} className={styles.categoryItem}>
@@ -127,18 +159,50 @@ export default function FinancePage() {
                         <div className={styles.categoryFill} style={{ width: `${(amount / maxCat) * 100}%` }} />
                       </div>
                     </div>
-                  ))}
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '60px', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', fontSize: '0.8rem' }}>
-                [SYSTEM] NO CONSUMPTION DATA DETECTED
+                  ))
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', fontSize: '0.75rem' }}>
+                  [SYSTEM] NO DATA
+                </div>
+              )}
+            </div>
+
+            {activeTab === 'inv' && investments.length > 0 && (
+              <div style={{ marginTop: '40px' }}>
+                <h3 style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>Investment Growth</h3>
+                <div className={styles.invStats}>
+                  <div className={styles.invStatItem}>
+                    <div className={styles.invStatLabel}>Total Invested</div>
+                    <div className={styles.invStatValue}>₹{investments.reduce((s, i) => s + i.investedAmount, 0).toLocaleString()}</div>
+                  </div>
+                  <div className={styles.invStatItem}>
+                    <div className={styles.invStatLabel}>Current Value</div>
+                    <div className={styles.invStatValue} style={{ color: 'var(--sl-green)' }}>₹{investments.reduce((s, i) => s + i.currentAmount, 0).toLocaleString()}</div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
 
+          {/* Right Column: List Content */}
           <div className="sl-panel" style={{ padding: '32px' }}>
-            <h2 className="sl-section-title">Gold Flow History</h2>
-            {transactions.length > 0 ? (
+            <div className="sl-flex-between" style={{ marginBottom: '24px' }}>
+              <h2 className="sl-section-title">
+                {activeTab === 'tx' ? 'Gold Flow' : activeTab === 'emi' ? 'System Deductions' : 'Asset Management'}
+              </h2>
+              {activeTab === 'emi' && (
+                <button className="sl-btn sl-btn-secondary" onClick={() => setShowEmiModal(true)} style={{ padding: '8px 16px', fontSize: '0.75rem' }}>
+                  <MdAdd /> New EMI
+                </button>
+              )}
+              {activeTab === 'inv' && (
+                <button className="sl-btn sl-btn-secondary" onClick={() => setShowInvModal(true)} style={{ padding: '8px 16px', fontSize: '0.75rem' }}>
+                  <MdAdd /> New Investment
+                </button>
+              )}
+            </div>
+
+            {activeTab === 'tx' && (
               <div className={styles.txList}>
                 {transactions.map((t) => (
                   <div key={t._id} className={styles.txItem}>
@@ -148,7 +212,7 @@ export default function FinancePage() {
                       </div>
                       <div>
                         <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--sl-text-bright)' }}>{t.description}</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', textTransform: 'uppercase', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', textTransform: 'uppercase' }}>
                           {t.category} • {new Date(t.date).toLocaleDateString()}
                         </div>
                       </div>
@@ -157,21 +221,77 @@ export default function FinancePage() {
                       <span style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.125rem', fontWeight: 800, color: t.type === 'income' ? 'var(--sl-green)' : 'var(--sl-red)' }}>
                         {t.type === 'income' ? '+' : '-'}₹{t.amount.toLocaleString()}
                       </span>
-                      <button 
-                        type="button"
-                        className="sl-btn sl-btn-ghost" 
-                        onClick={() => deleteTransaction(t._id)} 
-                        style={{ padding: '8px', color: 'var(--sl-text-ghost)' }}
-                      >
-                        <MdDelete />
-                      </button>
+                      <button className="sl-btn sl-btn-ghost" onClick={() => deleteTransaction(t._id)} style={{ padding: '8px' }}><MdDelete /></button>
                     </div>
                   </div>
                 ))}
               </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '60px', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', fontSize: '0.8rem' }}>
-                [SYSTEM] TRANSACTION LOG EMPTY
+            )}
+
+            {activeTab === 'emi' && (
+              <div className={styles.txList}>
+                {emis.map((e) => (
+                  <div key={e._id} className={styles.txItem} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '12px' }}>
+                    <div className="sl-flex-between" style={{ width: '100%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div className={`${styles.txIcon} ${styles.txIconExpense}`}><MdTrendingDown /></div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--sl-text-bright)' }}>{e.name}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)' }}>
+                            Day {e.dayOfMonth} • {e.category}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.125rem', fontWeight: 800, color: 'var(--sl-red)' }}>
+                          ₹{e.amount.toLocaleString()}
+                        </span>
+                        <button className="sl-btn sl-btn-ghost" onClick={async () => { await fetch(`/api/finance/emi?id=${e._id}`, { method: 'DELETE' }); fetchData(); }} style={{ padding: '8px' }}><MdDelete /></button>
+                      </div>
+                    </div>
+                    <div style={{ width: '100%' }}>
+                      <div className="sl-flex-between" style={{ marginBottom: '6px', fontSize: '0.65rem', fontWeight: 700, color: 'var(--sl-text-ghost)', textTransform: 'uppercase' }}>
+                        <span>Tenure Progress</span>
+                        <span>{e.totalMonths - e.remainingMonths} / {e.totalMonths} Months</span>
+                      </div>
+                      <div className="sl-progress sl-progress-gold">
+                        <div className="sl-progress-fill" style={{ width: `${((e.totalMonths - e.remainingMonths) / e.totalMonths) * 100}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'inv' && (
+              <div className={styles.txList}>
+                {investments.map((i) => (
+                  <div key={i._id} className={styles.txItem} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
+                    <div className="sl-flex-between" style={{ width: '100%' }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--sl-text-bright)' }}>{i.fundName}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)' }}>
+                          {i.type} • Est. {i.expectedReturnRate}% Return
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.25rem', fontWeight: 800, color: 'var(--sl-green)' }}>
+                          ₹{i.currentAmount.toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: i.returnPercent >= 0 ? 'var(--sl-green)' : 'var(--sl-red)', textTransform: 'uppercase' }}>
+                          {i.returnPercent >= 0 ? '+' : ''}{i.returnPercent.toFixed(2)}% Return
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                      <button className="sl-btn sl-btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.7rem' }} onClick={() => {
+                        const newAmt = prompt('Enter current value for ' + i.fundName, i.currentAmount);
+                        if (newAmt) fetch('/api/finance/investments', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: i._id, currentAmount: Number(newAmt) }) }).then(fetchData);
+                      }}>Update Value</button>
+                      <button className="sl-btn sl-btn-ghost" onClick={async () => { await fetch(`/api/finance/investments?id=${i._id}`, { method: 'DELETE' }); fetchData(); }} style={{ padding: '8px' }}><MdDelete /></button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -264,6 +384,77 @@ export default function FinancePage() {
               >
                 ⚡ Complete Transaction
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* EMI MODAL */}
+      {showEmiModal && (
+        <div className="sl-modal-overlay" onClick={() => setShowEmiModal(false)}>
+          <div className="sl-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="sl-flex-between" style={{ marginBottom: '24px' }}>
+              <h3 className="sl-modal-title">Authorize New EMI</h3>
+              <button className="sl-btn sl-btn-ghost" onClick={() => setShowEmiModal(false)}><MdClose /></button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <label className="sl-label">Loan / EMI Name</label>
+                <input className="sl-input" value={emiForm.name} onChange={(e) => setEmiForm({ ...emiForm, name: e.target.value })} placeholder="e.g. Car Loan, iPhone EMI" />
+              </div>
+              <div className="sl-grid-2">
+                <div>
+                  <label className="sl-label">Monthly Amount (₹)</label>
+                  <input className="sl-input" type="number" value={emiForm.amount} onChange={(e) => setEmiForm({ ...emiForm, amount: e.target.value })} placeholder="0" />
+                </div>
+                <div>
+                  <label className="sl-label">Due Day (1-31)</label>
+                  <input className="sl-input" type="number" min="1" max="31" value={emiForm.dayOfMonth} onChange={(e) => setEmiForm({ ...emiForm, dayOfMonth: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <label className="sl-label">Total Tenure (Months)</label>
+                <input className="sl-input" type="number" value={emiForm.totalMonths} onChange={(e) => setEmiForm({ ...emiForm, totalMonths: e.target.value })} />
+              </div>
+              <button className="sl-btn sl-btn-primary" onClick={async () => {
+                await fetch('/api/finance/emi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...emiForm, amount: Number(emiForm.amount), dayOfMonth: Number(emiForm.dayOfMonth), totalMonths: Number(emiForm.totalMonths) }) });
+                setShowEmiModal(false); fetchData();
+              }} style={{ width: '100%', marginTop: '8px' }}>⚡ Authorize Recurring Deduction</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* INVESTMENT MODAL */}
+      {showInvModal && (
+        <div className="sl-modal-overlay" onClick={() => setShowInvModal(false)}>
+          <div className="sl-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="sl-flex-between" style={{ marginBottom: '24px' }}>
+              <h3 className="sl-modal-title">Initialize Investment</h3>
+              <button className="sl-btn sl-btn-ghost" onClick={() => setShowInvModal(false)}><MdClose /></button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <label className="sl-label">Fund / Asset Name</label>
+                <input className="sl-input" value={invForm.fundName} onChange={(e) => setInvForm({ ...invForm, fundName: e.target.value })} placeholder="e.g. Nifty 50 Index, Bitcoin" />
+              </div>
+              <div className="sl-grid-2">
+                <div>
+                  <label className="sl-label">Invested Capital (₹)</label>
+                  <input className="sl-input" type="number" value={invForm.investedAmount} onChange={(e) => setInvForm({ ...invForm, investedAmount: e.target.value })} placeholder="0" />
+                </div>
+                <div>
+                  <label className="sl-label">Expected Return (%)</label>
+                  <input className="sl-input" type="number" value={invForm.expectedReturnRate} onChange={(e) => setInvForm({ ...invForm, expectedReturnRate: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <label className="sl-label">Current Asset Value (₹)</label>
+                <input className="sl-input" type="number" value={invForm.currentAmount} onChange={(e) => setInvForm({ ...invForm, currentAmount: e.target.value })} placeholder="Initial value" />
+              </div>
+              <button className="sl-btn sl-btn-primary" onClick={async () => {
+                await fetch('/api/finance/investments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...invForm, investedAmount: Number(invForm.investedAmount), currentAmount: Number(invForm.currentAmount), expectedReturnRate: Number(invForm.expectedReturnRate) }) });
+                setShowInvModal(false); fetchData();
+              }} style={{ width: '100%', marginTop: '8px' }}>⚡ Register Asset</button>
             </div>
           </div>
         </div>

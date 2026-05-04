@@ -73,5 +73,30 @@
   transform: scale(1.02);
 }
 
+.tabHeader { display: flex; gap: 12px; margin-bottom: 24px; padding: 4px; background: var(--sl-bg-base); border-radius: 16px; border: 1px solid var(--sl-glass-border); width: fit-content; }
+.tabBtn { 
+  display: flex; 
+  align-items: center; 
+  gap: 10px; 
+  padding: 10px 24px; 
+  font-family: var(--sl-font-display); 
+  font-size: 0.7rem; 
+  font-weight: 800; 
+  text-transform: uppercase; 
+  letter-spacing: 1.5px; 
+  color: var(--sl-text-ghost); 
+  background: transparent; 
+  border: none; 
+  border-radius: 12px; 
+  transition: all var(--sl-ease-out); 
+}
+.tabBtn:hover { color: var(--sl-text-bright); background: hsla(0, 0%, 100%, 0.05); }
+.tabBtnActive { background: var(--sl-bg-sub); color: var(--sl-blue); box-shadow: var(--sl-shadow-sm); }
+
+.invStats { display: flex; gap: 16px; margin-top: 16px; }
+.invStatItem { flex: 1; padding: 16px; background: var(--sl-bg-base); border-radius: 12px; border: 1px solid var(--sl-glass-border); }
+.invStatLabel { font-size: 0.6rem; font-weight: 700; color: var(--sl-text-ghost); text-transform: uppercase; margin-bottom: 4px; }
+.invStatValue { font-family: var(--sl-font-display); font-size: 1rem; font-weight: 800; color: var(--sl-text-bright); }
+
 @media (max-width: 1200px) { .financeLayout { grid-template-columns: 1fr; } }
-@media (max-width: 768px) { .summaryGrid { grid-template-columns: 1fr; } .monthLabel { min-width: auto; flex: 1; } }
+@media (max-width: 768px) { .summaryGrid { grid-template-columns: 1fr; } .monthLabel { min-width: auto; flex: 1; } .tabHeader { width: 100%; overflow-x: auto; } }
