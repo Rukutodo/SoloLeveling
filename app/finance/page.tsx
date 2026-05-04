@@ -50,19 +50,62 @@ export default function FinancePage() {
     <div className="sl-page-wrapper">
       <Sidebar {...sidebarData} />
       <main className="sl-main-content">
-        <div className="sl-page-header"><h1 className="sl-page-title">💰 Finance Tracker</h1><p className="sl-page-subtitle">[SYSTEM] Gold reserve management</p></div>
+        <div className="sl-page-header">
+          <h1 className="sl-page-title">💰 Finance Tracker</h1>
+          <p className="sl-page-subtitle">[SYSTEM] Gold reserve management</p>
+        </div>
 
+        {/* Month Navigation */}
         <div className={styles.monthNav}>
-          <button className="sl-btn sl-btn-ghost" onClick={() => setCurrentDate(new Date(year, month - 1, 1))}><MdChevronLeft /></button>
+          <button 
+            type="button"
+            className="sl-btn sl-btn-ghost" 
+            onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
+          >
+            <MdChevronLeft />
+          </button>
           <span className={styles.monthLabel}>{monthName}</span>
-          <button className="sl-btn sl-btn-ghost" onClick={() => setCurrentDate(new Date(year, month + 1, 1))}><MdChevronRight /></button>
-          <button className="sl-btn sl-btn-primary" onClick={() => setShowModal(true)} style={{ marginLeft: 'auto' }}><MdAdd /> Add</button>
+          <button 
+            type="button"
+            className="sl-btn sl-btn-ghost" 
+            onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
+          >
+            <MdChevronRight />
+          </button>
+          <button 
+            type="button"
+            className="sl-btn sl-btn-primary" 
+            onClick={() => {
+              console.log('Opening Transaction Modal...');
+              setShowModal(true);
+            }} 
+            style={{ marginLeft: 'auto' }}
+          >
+            <MdAdd /> Add Transaction
+          </button>
         </div>
 
         <div className={styles.summaryGrid}>
-          <div className={`sl-panel ${styles.summaryCard}`}><MdTrendingUp style={{ fontSize: '1.5rem', color: 'var(--sl-accent-green)' }} /><div className={styles.summaryLabel}>Income</div><div className={styles.summaryValue} style={{ color: 'var(--sl-accent-green)' }}>₹{summary.income.toLocaleString()}</div></div>
-          <div className={`sl-panel ${styles.summaryCard}`}><MdTrendingDown style={{ fontSize: '1.5rem', color: 'var(--sl-accent-red)' }} /><div className={styles.summaryLabel}>Expenses</div><div className={styles.summaryValue} style={{ color: 'var(--sl-accent-red)' }}>₹{summary.expenses.toLocaleString()}</div></div>
-          <div className={`sl-panel ${styles.summaryCard}`}><div className={styles.summaryLabel}>Net</div><div className={styles.summaryValue} style={{ color: summary.net >= 0 ? 'var(--sl-accent-green)' : 'var(--sl-accent-red)' }}>{summary.net >= 0 ? '+' : ''}₹{summary.net.toLocaleString()}</div></div>
+          <div className={`sl-panel ${styles.summaryCard}`}>
+            <MdTrendingUp style={{ fontSize: '1.5rem', color: 'var(--sl-accent-green)' }} />
+            <div className={styles.summaryLabel}>Income</div>
+            <div className={styles.summaryValue} style={{ color: 'var(--sl-accent-green)' }}>
+              ₹{summary.income.toLocaleString()}
+            </div>
+          </div>
+          <div className={`sl-panel ${styles.summaryCard}`}>
+            <MdTrendingDown style={{ fontSize: '1.5rem', color: 'var(--sl-accent-red)' }} />
+            <div className={styles.summaryLabel}>Expenses</div>
+            <div className={styles.summaryValue} style={{ color: 'var(--sl-accent-red)' }}>
+              ₹{summary.expenses.toLocaleString()}
+            </div>
+          </div>
+          <div className={`sl-panel ${styles.summaryCard}`}>
+            <div className={styles.summaryLabel}>Net</div>
+            <div className={styles.summaryValue} style={{ color: summary.net >= 0 ? 'var(--sl-accent-green)' : 'var(--sl-accent-red)' }}>
+              {summary.net >= 0 ? '+' : ''}₹{summary.net.toLocaleString()}
+            </div>
+          </div>
         </div>
 
         <div className={styles.financeLayout}>
@@ -70,56 +113,157 @@ export default function FinancePage() {
             <h2 className="sl-section-title">Expense Breakdown</h2>
             {Object.keys(categoryBreakdown).length > 0 ? (
               <div className={styles.categoryList}>
-                {Object.entries(categoryBreakdown).sort(([, a], [, b]) => b - a).map(([cat, amount]) => (
-                  <div key={cat} className={styles.categoryItem}>
-                    <div className={styles.categoryInfo}><span>{cat}</span><span style={{ color: 'var(--sl-accent-blue)', fontFamily: 'var(--sl-font-display)', fontWeight: 700 }}>₹{amount.toLocaleString()}</span></div>
-                    <div className={styles.categoryBar}><div className={styles.categoryFill} style={{ width: `${(amount / maxCat) * 100}%` }} /></div>
-                  </div>
-                ))}
+                {Object.entries(categoryBreakdown)
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([cat, amount]) => (
+                    <div key={cat} className={styles.categoryItem}>
+                      <div className={styles.categoryInfo}>
+                        <span>{cat}</span>
+                        <span style={{ color: 'var(--sl-accent-blue)', fontFamily: 'var(--sl-font-display)', fontWeight: 700 }}>
+                          ₹{amount.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className={styles.categoryBar}>
+                        <div className={styles.categoryFill} style={{ width: `${(amount / maxCat) * 100}%` }} />
+                      </div>
+                    </div>
+                  ))}
               </div>
-            ) : <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>No expenses</div>}
+            ) : (
+              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>No expenses recorded</div>
+            )}
           </div>
 
           <div className="sl-panel" style={{ padding: '24px' }}>
-            <h2 className="sl-section-title">Transactions</h2>
+            <h2 className="sl-section-title">Recent Transactions</h2>
             {transactions.length > 0 ? (
               <div className={styles.txList}>
                 {transactions.map((t) => (
                   <div key={t._id} className={styles.txItem}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div className={`${styles.txIcon} ${t.type === 'income' ? styles.txIconIncome : styles.txIconExpense}`}>{t.type === 'income' ? <MdTrendingUp /> : <MdTrendingDown />}</div>
-                      <div><div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{t.description}</div><div style={{ fontSize: '0.6875rem', color: 'var(--sl-text-muted)' }}>{t.category} • {new Date(t.date).toLocaleDateString()}</div></div>
+                      <div className={`${styles.txIcon} ${t.type === 'income' ? styles.txIconIncome : styles.txIconExpense}`}>
+                        {t.type === 'income' ? <MdTrendingUp /> : <MdTrendingDown />}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{t.description}</div>
+                        <div style={{ fontSize: '0.6875rem', color: 'var(--sl-text-muted)' }}>
+                          {t.category} • {new Date(t.date).toLocaleDateString()}
+                        </div>
+                      </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontFamily: 'var(--sl-font-display)', fontWeight: 700, color: t.type === 'income' ? 'var(--sl-accent-green)' : 'var(--sl-accent-red)' }}>{t.type === 'income' ? '+' : '-'}₹{t.amount.toLocaleString()}</span>
-                      <button className="sl-btn sl-btn-ghost" onClick={() => deleteTransaction(t._id)} style={{ padding: '4px' }}><MdDelete /></button>
+                      <span style={{ fontFamily: 'var(--sl-font-display)', fontWeight: 700, color: t.type === 'income' ? 'var(--sl-accent-green)' : 'var(--sl-accent-red)' }}>
+                        {t.type === 'income' ? '+' : '-'}₹{t.amount.toLocaleString()}
+                      </span>
+                      <button 
+                        type="button"
+                        className="sl-btn sl-btn-ghost" 
+                        onClick={() => deleteTransaction(t._id)} 
+                        style={{ padding: '4px' }}
+                      >
+                        <MdDelete />
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
-            ) : <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>No transactions</div>}
+            ) : (
+              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>No transactions found</div>
+            )}
           </div>
         </div>
+      </main>
 
-        {showModal && (
-          <div className="sl-modal-overlay" onClick={() => setShowModal(false)}>
-            <div className="sl-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="sl-flex-between" style={{ marginBottom: '16px' }}><h3 className="sl-modal-title">Add Transaction</h3><button className="sl-btn sl-btn-ghost" onClick={() => setShowModal(false)}><MdClose /></button></div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div className={styles.typeToggle}>
-                  <button className={`${styles.typeBtn} ${form.type === 'expense' ? styles.typeBtnExpense : ''}`} onClick={() => setForm({ ...form, type: 'expense', category: '' })}>Expense</button>
-                  <button className={`${styles.typeBtn} ${form.type === 'income' ? styles.typeBtnIncome : ''}`} onClick={() => setForm({ ...form, type: 'income', category: '' })}>Income</button>
-                </div>
-                <div><label className="sl-label">Amount (₹)</label><input className="sl-input" type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} placeholder="Enter amount" /></div>
-                <div><label className="sl-label">Category</label><select className="sl-select" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}><option value="">Select</option>{CATEGORIES[form.type].map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div><label className="sl-label">Description</label><input className="sl-input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What was this for?" /></div>
-                <div><label className="sl-label">Date</label><input className="sl-input" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} /></div>
-                <button className="sl-btn sl-btn-primary" onClick={addTransaction} style={{ width: '100%' }}>⚡ Add Transaction</button>
+      {/* MODAL MOVED OUTSIDE MAIN FOR STACKING CONTEXT SAFETY */}
+      {showModal && (
+        <div className="sl-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="sl-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="sl-flex-between" style={{ marginBottom: '16px' }}>
+              <h3 className="sl-modal-title">Log Transaction</h3>
+              <button 
+                type="button"
+                className="sl-btn sl-btn-ghost" 
+                onClick={() => setShowModal(false)}
+              >
+                <MdClose />
+              </button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className={styles.typeToggle}>
+                <button 
+                  type="button"
+                  className={`${styles.typeBtn} ${form.type === 'expense' ? styles.typeBtnExpense : ''}`} 
+                  onClick={() => setForm({ ...form, type: 'expense', category: '' })}
+                >
+                  Expense
+                </button>
+                <button 
+                  type="button"
+                  className={`${styles.typeBtn} ${form.type === 'income' ? styles.typeBtnIncome : ''}`} 
+                  onClick={() => setForm({ ...form, type: 'income', category: '' })}
+                >
+                  Income
+                </button>
               </div>
+
+              <div>
+                <label className="sl-label">Amount (₹)</label>
+                <input 
+                  className="sl-input" 
+                  type="number" 
+                  value={form.amount} 
+                  onChange={(e) => setForm({ ...form, amount: e.target.value })} 
+                  placeholder="0.00" 
+                />
+              </div>
+
+              <div>
+                <label className="sl-label">Category</label>
+                <select 
+                  className="sl-select" 
+                  value={form.category} 
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                >
+                  <option value="">Select Category</option>
+                  {CATEGORIES[form.type].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="sl-label">Description</label>
+                <input 
+                  className="sl-input" 
+                  value={form.description} 
+                  onChange={(e) => setForm({ ...form, description: e.target.value })} 
+                  placeholder="e.g. Dungeon Loot, Rent, Groceries" 
+                />
+              </div>
+
+              <div>
+                <label className="sl-label">Date</label>
+                <input 
+                  className="sl-input" 
+                  type="date" 
+                  value={form.date} 
+                  onChange={(e) => setForm({ ...form, date: e.target.value })} 
+                />
+              </div>
+
+              <button 
+                type="button"
+                className="sl-btn sl-btn-primary" 
+                onClick={addTransaction} 
+                style={{ width: '100%', marginTop: '8px' }}
+              >
+                ⚡ Complete Transaction
+              </button>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 }
