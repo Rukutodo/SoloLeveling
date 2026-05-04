@@ -1,0 +1,33 @@
+.modeToggle { display: flex; gap: 8px; margin-bottom: 20px; }
+.modeBtn { display: flex; align-items: center; gap: 8px; padding: 12px 24px; font-size: 0.875rem; font-weight: 600; background: var(--sl-bg-panel); border: 1px solid var(--sl-border); border-radius: var(--sl-radius-md); color: var(--sl-text-secondary); cursor: pointer; transition: all var(--sl-transition-fast); }
+.modeBtn:hover { border-color: var(--sl-border-hover); color: var(--sl-text-primary); }
+.modeBtnActive { background: var(--sl-accent-blue-dim); border-color: var(--sl-accent-blue); color: var(--sl-accent-blue); }
+
+.filterRow { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
+
+.layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+
+.exerciseGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.exerciseCard { padding: 16px; cursor: pointer; transition: all var(--sl-transition-fast); }
+.exerciseCard:hover { transform: translateY(-2px); border-color: var(--sl-border-hover); }
+.exerciseHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.exerciseIcon { font-size: 1.25rem; color: var(--sl-accent-blue); }
+.exerciseName { font-weight: 600; font-size: 0.875rem; color: var(--sl-text-primary); margin-bottom: 4px; }
+.exerciseMeta { font-size: 0.75rem; color: var(--sl-text-muted); }
+
+.workoutList { display: flex; flex-direction: column; gap: 12px; }
+.workoutItem { padding: 12px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); }
+.workoutItemName { font-weight: 600; font-size: 0.875rem; margin-bottom: 8px; color: var(--sl-text-primary); }
+.workoutInputs { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+
+.stepsList { padding-left: 20px; color: var(--sl-text-secondary); font-size: 0.875rem; display: flex; flex-direction: column; gap: 6px; }
+.tipsList { padding-left: 20px; color: var(--sl-accent-gold); font-size: 0.8125rem; display: flex; flex-direction: column; gap: 4px; }
+.metaBox { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); font-size: 0.8125rem; color: var(--sl-accent-blue); }
+
+.historyItem { padding: 14px; border-bottom: 1px solid rgba(0,212,255,0.05); }
+.historyHeader { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+.historyExercises { display: flex; gap: 6px; flex-wrap: wrap; }
+.historyExTag { padding: 4px 10px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-sm); font-size: 0.75rem; color: var(--sl-text-secondary); }
+
+@media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .exerciseGrid { grid-template-columns: 1fr; } }

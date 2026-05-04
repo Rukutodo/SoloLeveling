@@ -1,0 +1,30 @@
+.monthNav { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.monthLabel { font-family: var(--sl-font-display); font-size: 1rem; font-weight: 700; color: var(--sl-text-primary); min-width: 180px; text-align: center; }
+
+.summaryGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.summaryCard { padding: 20px; text-align: center; }
+.summaryLabel { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--sl-text-secondary); margin: 8px 0 4px; }
+.summaryValue { font-family: var(--sl-font-display); font-size: 1.5rem; font-weight: 700; }
+
+.financeLayout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+.categoryList { display: flex; flex-direction: column; gap: 14px; }
+.categoryItem { }
+.categoryInfo { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.8125rem; color: var(--sl-text-primary); }
+.categoryBar { width: 100%; height: 6px; background: var(--sl-bg-tertiary); border-radius: 3px; overflow: hidden; }
+.categoryFill { height: 100%; background: linear-gradient(90deg, var(--sl-accent-blue), var(--sl-accent-purple)); border-radius: 3px; transition: width 0.4s ease; }
+
+.txList { display: flex; flex-direction: column; gap: 8px; }
+.txItem { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); transition: background var(--sl-transition-fast); }
+.txItem:hover { background: var(--sl-bg-hover); }
+.txIcon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+.txIconIncome { background: var(--sl-accent-green-dim); color: var(--sl-accent-green); }
+.txIconExpense { background: var(--sl-accent-red-dim); color: var(--sl-accent-red); }
+
+.typeToggle { display: flex; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); padding: 4px; }
+.typeBtn { flex: 1; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 600; color: var(--sl-text-secondary); background: transparent; border: none; border-radius: var(--sl-radius-sm); cursor: pointer; transition: all var(--sl-transition-fast); }
+.typeBtnExpense { background: var(--sl-accent-red-dim); color: var(--sl-accent-red); }
+.typeBtnIncome { background: var(--sl-accent-green-dim); color: var(--sl-accent-green); }
+
+@media (max-width: 1024px) { .financeLayout { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .summaryGrid { grid-template-columns: 1fr; } }

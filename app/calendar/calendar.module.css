@@ -1,0 +1,31 @@
+.calendarLayout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
+
+.calHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.monthTitle { font-family: var(--sl-font-display); font-size: 1.125rem; font-weight: 700; color: var(--sl-text-primary); }
+
+.weekDays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; }
+.weekDay { text-align: center; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--sl-text-muted); padding: 8px 0; }
+
+.daysGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.dayEmpty { aspect-ratio: 1; }
+.dayCell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: var(--sl-radius-md); cursor: pointer; transition: all var(--sl-transition-fast); position: relative; border: 1px solid transparent; }
+.dayCell:hover { background: var(--sl-bg-hover); border-color: var(--sl-border); }
+.dayCellToday { background: var(--sl-accent-blue-dim); border-color: var(--sl-accent-blue) !important; }
+.dayCellToday .dayNumber { color: var(--sl-accent-blue); font-weight: 700; }
+.dayCellSelected { border-color: var(--sl-accent-blue) !important; box-shadow: var(--sl-glow-blue); }
+.dayNumber { font-size: 0.8125rem; color: var(--sl-text-primary); }
+
+.eventDots { display: flex; gap: 3px; margin-top: 4px; }
+.eventDot { width: 5px; height: 5px; border-radius: 50%; }
+
+.eventList { display: flex; flex-direction: column; gap: 8px; }
+.eventItem { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); }
+.eventInfo { display: flex; align-items: center; gap: 10px; }
+.eventTitle { font-size: 0.875rem; font-weight: 600; color: var(--sl-text-primary); }
+.eventCompleted { text-decoration: line-through; opacity: 0.5; }
+.eventType { font-size: 0.6875rem; color: var(--sl-text-muted); text-transform: capitalize; }
+.eventNotes { font-size: 0.75rem; color: var(--sl-text-secondary); margin-top: 2px; }
+.checkbox { accent-color: var(--sl-accent-blue); width: 16px; height: 16px; cursor: pointer; }
+
+@media (max-width: 1024px) { .calendarLayout { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .dayNumber { font-size: 0.6875rem; } }

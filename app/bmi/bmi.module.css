@@ -1,0 +1,17 @@
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+.bmiDisplay { text-align: center; padding: 20px 0; }
+.bmiValue { font-family: var(--sl-font-display); font-size: 3.5rem; font-weight: 900; line-height: 1; }
+.bmiCategory { font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin: 8px 0; }
+.bmiWeight { font-size: 0.875rem; color: var(--sl-text-secondary); }
+
+.bmiScale { margin-top: 24px; }
+.scaleBar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; position: relative; }
+.scaleSection { height: 100%; }
+.scaleMarker { position: absolute; top: -6px; width: 4px; height: 22px; background: var(--sl-text-primary); border-radius: 2px; transform: translateX(-50%); box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+.scaleLabels { display: flex; justify-content: space-between; font-size: 0.625rem; color: var(--sl-text-muted); margin-top: 6px; }
+
+.form { display: flex; flex-direction: column; gap: 16px; }
+.previewBmi { text-align: center; padding: 12px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); color: var(--sl-accent-blue); font-size: 0.875rem; }
+
+@media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
