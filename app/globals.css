@@ -1,26 +1,35 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   SOLOLEVELING — Global Design System
-   S-Rank Premium RPG Interface
+   SOLOLEVELING — S-Rank Design System v2.0
+   Premium Cyber-RPG Interface
    ═══════════════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Bangers&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
 /* ─── CSS Custom Properties (S-Rank Tokens) ───────────────────────── */
 :root {
-  /* Core Palette (Vibrant HSL) */
+  /* Core Palette */
   --sl-bg-base: hsl(240, 15%, 4%);
   --sl-bg-sub: hsl(240, 15%, 8%);
   --sl-bg-surface: hsla(240, 15%, 12%, 0.7);
   --sl-bg-glass: hsla(240, 15%, 15%, 0.4);
+  --sl-bg-elevated: hsl(240, 15%, 14%);
   
   /* Primary Accents */
   --sl-blue: hsl(190, 100%, 50%);
   --sl-blue-glow: hsla(190, 100%, 50%, 0.4);
+  --sl-blue-dim: hsla(190, 100%, 50%, 0.1);
   --sl-purple: hsl(270, 90%, 65%);
   --sl-purple-glow: hsla(270, 90%, 65%, 0.4);
+  --sl-purple-dim: hsla(270, 90%, 65%, 0.1);
   --sl-gold: hsl(45, 100%, 50%);
+  --sl-gold-glow: hsla(45, 100%, 50%, 0.3);
+  --sl-gold-dim: hsla(45, 100%, 50%, 0.1);
   --sl-red: hsl(0, 100%, 60%);
+  --sl-red-glow: hsla(0, 100%, 60%, 0.3);
+  --sl-red-dim: hsla(0, 100%, 60%, 0.1);
   --sl-green: hsl(150, 100%, 50%);
+  --sl-green-glow: hsla(150, 100%, 50%, 0.3);
+  --sl-green-dim: hsla(150, 100%, 50%, 0.1);
   
   /* Text Strategy */
   --sl-text-bright: hsl(0, 0%, 98%);
@@ -41,8 +50,9 @@
 
   /* Typography System */
   --sl-font-display: 'Orbitron', sans-serif;
-  --sl-font-main: 'Outfit', sans-serif;
+  --sl-font-main: 'Poppins', sans-serif;
   --sl-font-mono: 'JetBrains Mono', monospace;
+  --sl-font-fun: 'Bangers', cursive;
 
   /* Geometry */
   --sl-radius-sm: 8px;
@@ -84,7 +94,7 @@ body {
   min-height: 100vh;
 }
 
-/* Animated background pattern */
+/* Animated background mesh */
 body::before {
   content: '';
   position: fixed;
@@ -100,17 +110,11 @@ body::before {
 a {
   color: var(--sl-blue);
   text-decoration: none;
-  transition: color var(--sl-ease-out);
+  transition: color 0.3s var(--sl-ease-out);
 }
+a:hover { color: var(--sl-text-bright); }
 
-a:hover {
-  color: var(--sl-text-bright);
-}
-
-img {
-  max-width: 100%;
-  display: block;
-}
+img { max-width: 100%; display: block; }
 
 button {
   font-family: var(--sl-font-main);
@@ -125,25 +129,16 @@ input, textarea, select {
 }
 
 /* ─── Scrollbar ────────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--sl-bg-sub); }
+::-webkit-scrollbar-thumb { background: hsla(190, 100%, 50%, 0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsla(190, 100%, 50%, 0.3); }
 
-::-webkit-scrollbar-track {
-  background: var(--sl-bg-sub);
-}
+/* ═══════════════════════════════════════════════════════════════════════
+   COMPONENT LIBRARY
+   ═══════════════════════════════════════════════════════════════════════ */
 
-::-webkit-scrollbar-thumb {
-  background: hsla(190, 100%, 50%, 0.15);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsla(190, 100%, 50%, 0.3);
-}
-
-/* ─── Utility Classes ──────────────────────────────────────────────── */
+/* ─── Panels ───────────────────────────────────────────────────────── */
 .sl-panel {
   background: var(--sl-bg-surface);
   backdrop-filter: blur(20px);
@@ -151,7 +146,7 @@ input, textarea, select {
   border: 1px solid var(--sl-glass-border);
   border-radius: var(--sl-radius-lg);
   box-shadow: var(--sl-shadow-md);
-  transition: all var(--sl-ease-out);
+  transition: border-color 0.4s var(--sl-ease-out), box-shadow 0.4s var(--sl-ease-out), transform 0.4s var(--sl-ease-out);
   position: relative;
   overflow: hidden;
 }
@@ -170,7 +165,7 @@ input, textarea, select {
   box-shadow: var(--sl-shadow-lg), var(--sl-glow-sm);
 }
 
-/* Buttons */
+/* ─── Buttons ──────────────────────────────────────────────────────── */
 .sl-btn {
   display: inline-flex;
   align-items: center;
@@ -183,7 +178,7 @@ input, textarea, select {
   letter-spacing: 1.5px;
   text-transform: uppercase;
   border-radius: var(--sl-radius-md);
-  transition: all var(--sl-spring);
+  transition: all 0.35s var(--sl-spring);
   position: relative;
   border: none;
   cursor: pointer;
@@ -194,12 +189,10 @@ input, textarea, select {
   color: hsl(240, 15%, 5%);
   box-shadow: 0 4px 0 hsl(190, 100%, 35%), var(--sl-glow-sm);
 }
-
 .sl-btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 0 hsl(190, 100%, 35%), var(--sl-glow-md);
 }
-
 .sl-btn-primary:active {
   transform: translateY(2px);
   box-shadow: 0 0px 0 hsl(190, 100%, 35%);
@@ -210,9 +203,8 @@ input, textarea, select {
   color: var(--sl-blue);
   border: 1px solid var(--sl-glass-border-bright);
 }
-
 .sl-btn-secondary:hover {
-  background: hsla(190, 100%, 50%, 0.1);
+  background: var(--sl-blue-dim);
   box-shadow: var(--sl-glow-sm);
 }
 
@@ -220,14 +212,13 @@ input, textarea, select {
   background: transparent;
   color: var(--sl-text-dim);
 }
-
 .sl-btn-ghost:hover {
   color: var(--sl-text-bright);
   background: hsla(0, 0%, 100%, 0.05);
 }
 
-/* Inputs */
-.sl-input {
+/* ─── Inputs ───────────────────────────────────────────────────────── */
+.sl-input, .sl-select {
   width: 100%;
   padding: 14px 20px;
   background: var(--sl-bg-sub);
@@ -236,13 +227,22 @@ input, textarea, select {
   color: var(--sl-text-bright);
   font-family: var(--sl-font-main);
   font-size: 0.9375rem;
-  transition: all var(--sl-ease-out);
+  transition: all 0.3s var(--sl-ease-out);
 }
-
-.sl-input:focus {
+.sl-input:focus, .sl-select:focus {
   background: var(--sl-bg-surface);
   border-color: var(--sl-blue);
   box-shadow: 0 0 0 4px var(--sl-blue-glow);
+}
+.sl-input::placeholder {
+  color: var(--sl-text-ghost);
+}
+
+.sl-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='hsl(190, 100%, 50%)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 20px center;
 }
 
 .sl-label {
@@ -256,23 +256,13 @@ input, textarea, select {
   font-family: var(--sl-font-display);
 }
 
-/* Select */
-.sl-select {
-  width: 100%;
-  padding: 14px 20px;
-  background: var(--sl-bg-sub);
-  border: 1px solid var(--sl-glass-border);
-  border-radius: var(--sl-radius-md);
-  color: var(--sl-text-bright);
-  font-family: var(--sl-font-main);
-  transition: all var(--sl-ease-out);
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='hsl(190, 100%, 50%)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 20px center;
+.sl-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* Progress Bars */
+/* ─── Progress Bars ────────────────────────────────────────────────── */
 .sl-progress {
   width: 100%;
   height: 6px;
@@ -281,14 +271,12 @@ input, textarea, select {
   overflow: hidden;
   position: relative;
 }
-
 .sl-progress-fill {
   height: 100%;
   border-radius: 3px;
   transition: width 1.2s var(--sl-ease-out);
   position: relative;
 }
-
 .sl-progress-fill::after {
   content: '';
   position: absolute;
@@ -299,24 +287,23 @@ input, textarea, select {
 
 .sl-progress-blue .sl-progress-fill { background: var(--sl-blue); box-shadow: 0 0 12px var(--sl-blue-glow); }
 .sl-progress-purple .sl-progress-fill { background: var(--sl-purple); box-shadow: 0 0 12px var(--sl-purple-glow); }
-.sl-progress-gold .sl-progress-fill { background: var(--sl-gold); box-shadow: 0 0 12px hsla(45, 100%, 50%, 0.3); }
+.sl-progress-gold .sl-progress-fill { background: var(--sl-gold); box-shadow: 0 0 12px var(--sl-gold-glow); }
+.sl-progress-green .sl-progress-fill { background: var(--sl-green); box-shadow: 0 0 12px var(--sl-green-glow); }
 
-/* Stat Cards */
+/* ─── Stat Cards ───────────────────────────────────────────────────── */
 .sl-stat-card {
   padding: 24px;
   background: var(--sl-bg-surface);
   backdrop-filter: blur(20px);
   border: 1px solid var(--sl-glass-border);
   border-radius: var(--sl-radius-lg);
-  transition: all var(--sl-ease-out);
+  transition: all 0.4s var(--sl-ease-out);
 }
-
 .sl-stat-card:hover {
   border-color: var(--sl-glass-border-bright);
   transform: translateY(-4px);
   box-shadow: var(--sl-shadow-lg), var(--sl-glow-sm);
 }
-
 .sl-stat-label {
   font-family: var(--sl-font-display);
   font-size: 0.65rem;
@@ -326,7 +313,6 @@ input, textarea, select {
   color: var(--sl-text-ghost);
   margin-bottom: 8px;
 }
-
 .sl-stat-value {
   font-family: var(--sl-font-display);
   font-size: 2rem;
@@ -335,7 +321,7 @@ input, textarea, select {
   line-height: 1;
 }
 
-/* Badges */
+/* ─── Badges ───────────────────────────────────────────────────────── */
 .sl-badge {
   display: inline-flex;
   align-items: center;
@@ -350,20 +336,21 @@ input, textarea, select {
   background: var(--sl-bg-sub);
   border: 1px solid var(--sl-glass-border);
 }
+.sl-badge-blue { color: var(--sl-blue); border-color: hsla(190, 100%, 50%, 0.3); background: var(--sl-blue-dim); }
+.sl-badge-purple { color: var(--sl-purple); border-color: hsla(270, 90%, 65%, 0.3); background: var(--sl-purple-dim); }
+.sl-badge-green { color: var(--sl-green); border-color: hsla(150, 100%, 50%, 0.3); background: var(--sl-green-dim); }
+.sl-badge-gold { color: var(--sl-gold); border-color: hsla(45, 100%, 50%, 0.3); background: var(--sl-gold-dim); }
+.sl-badge-red { color: var(--sl-red); border-color: hsla(0, 100%, 60%, 0.3); background: var(--sl-red-dim); }
 
-.sl-badge-blue { color: var(--sl-blue); border-color: hsla(190, 100%, 50%, 0.3); }
-.sl-badge-purple { color: var(--sl-purple); border-color: hsla(270, 90%, 65%, 0.3); }
-.sl-badge-green { color: var(--sl-green); border-color: hsla(150, 100%, 50%, 0.3); }
-
-/* Rank Colors */
+/* ─── Rank Colors ──────────────────────────────────────────────────── */
 .rank-e { color: hsl(0, 0%, 55%); }
 .rank-d { color: hsl(200, 100%, 65%); }
 .rank-c { color: hsl(150, 100%, 50%); }
 .rank-b { color: var(--sl-purple); }
 .rank-a { color: var(--sl-gold); }
-.rank-s { color: var(--sl-red); text-shadow: 0 0 10px hsla(0, 100%, 60%, 0.5); }
+.rank-s { color: var(--sl-red); text-shadow: 0 0 10px var(--sl-red-glow); }
 
-/* Section Headers */
+/* ─── Section Headers ──────────────────────────────────────────────── */
 .sl-section-title {
   font-family: var(--sl-font-display);
   font-size: 0.8125rem;
@@ -371,12 +358,11 @@ input, textarea, select {
   text-transform: uppercase;
   letter-spacing: 2px;
   color: var(--sl-blue);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
 .sl-section-title::before {
   content: '';
   width: 3px;
@@ -384,9 +370,10 @@ input, textarea, select {
   background: var(--sl-blue);
   border-radius: 2px;
   box-shadow: 0 0 8px var(--sl-blue-glow);
+  flex-shrink: 0;
 }
 
-/* Dividers */
+/* ─── Dividers ─────────────────────────────────────────────────────── */
 .sl-divider {
   border: none;
   height: 1px;
@@ -394,7 +381,7 @@ input, textarea, select {
   margin: 16px 0;
 }
 
-/* Modal Overlay */
+/* ─── Modal ────────────────────────────────────────────────────────── */
 .sl-modal-overlay {
   position: fixed;
   inset: 0;
@@ -405,6 +392,7 @@ input, textarea, select {
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  animation: fade-in 0.2s var(--sl-ease-out);
 }
 
 .sl-modal {
@@ -417,25 +405,24 @@ input, textarea, select {
   border-radius: var(--sl-radius-xl);
   box-shadow: var(--sl-shadow-lg), var(--sl-glow-sm);
   padding: 40px;
+  animation: modal-in 0.35s var(--sl-ease-out);
 }
 
 .sl-modal-title {
   font-family: var(--sl-font-display);
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--sl-blue);
-  margin-bottom: 24px;
   text-transform: uppercase;
   letter-spacing: 2px;
 }
 
-/* Table */
+/* ─── Table ────────────────────────────────────────────────────────── */
 .sl-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
 }
-
 .sl-table th {
   font-size: 0.65rem;
   font-weight: 800;
@@ -447,20 +434,61 @@ input, textarea, select {
   text-align: left;
   border-bottom: 1px solid var(--sl-glass-border);
 }
-
 .sl-table td {
   padding: 16px;
   border-bottom: 1px solid hsla(0, 0%, 100%, 0.02);
   font-size: 0.875rem;
   color: var(--sl-text-main);
-  transition: background var(--sl-ease-out);
+  transition: background 0.3s var(--sl-ease-out);
 }
-
 .sl-table tr:hover td {
   background: hsla(0, 0%, 100%, 0.02);
 }
 
-/* ─── Keyframe Animations ──────────────────────────────────────────── */
+/* ─── Empty States ─────────────────────────────────────────────────── */
+.sl-empty {
+  text-align: center;
+  padding: 60px 24px;
+}
+.sl-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+.sl-empty-text {
+  font-family: var(--sl-font-mono);
+  font-size: 0.8rem;
+  color: var(--sl-text-ghost);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ─── Toast / Notifications ────────────────────────────────────────── */
+.sl-toast-success {
+  padding: 14px 20px;
+  background: var(--sl-green-dim);
+  border: 1px solid var(--sl-green);
+  border-radius: var(--sl-radius-md);
+  color: var(--sl-green);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+}
+.sl-toast-error {
+  padding: 14px 20px;
+  background: var(--sl-red-dim);
+  border: 1px solid var(--sl-red);
+  border-radius: var(--sl-radius-md);
+  color: var(--sl-red);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   KEYFRAME ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════ */
+
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
@@ -471,7 +499,25 @@ input, textarea, select {
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* ─── Layout Helpers ───────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-in {
+  from { transform: scale(0.95) translateY(10px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 15px var(--sl-blue-glow); }
+  50% { box-shadow: 0 0 30px var(--sl-blue-glow); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LAYOUT SYSTEM
+   ═══════════════════════════════════════════════════════════════════════ */
+
 .sl-page-wrapper {
   display: flex;
   min-height: 100vh;
@@ -521,7 +567,7 @@ input, textarea, select {
   justify-content: space-between;
 }
 
-/* ─── Responsive Breakpoints ───────────────────────────────────────── */
+/* ─── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .sl-main-content {
     margin-left: 0;

@@ -123,7 +123,7 @@ export default function WorkoutsPage() {
             <h2 className="sl-section-title">Current Workout</h2>
             <div className="sl-panel" style={{ padding: '20px' }}>
               {workoutExercises.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>Add exercises to build your workout</div>
+                <div className="sl-empty"><div className="sl-empty-text">[SYSTEM] Add exercises to build your workout</div></div>
               ) : (
                 <div className={styles.workoutList}>
                   {workoutExercises.map((ex) => (
@@ -134,7 +134,7 @@ export default function WorkoutsPage() {
                           type="button"
                           className="sl-btn sl-btn-ghost" 
                           onClick={() => removeFromWorkout(ex.exerciseId)} 
-                          style={{ padding: '4px', color: 'var(--sl-accent-red)' }}
+                          style={{ padding: '4px', color: 'var(--sl-red)' }}
                         >
                           <MdClose />
                         </button>
@@ -186,7 +186,7 @@ export default function WorkoutsPage() {
                         />
                       </div>
                       <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                        <div style={{ color: 'var(--sl-text-muted)', fontSize: '0.75rem', marginBottom: '10px' }}>
+                        <div style={{ color: 'var(--sl-text-ghost)', fontSize: '0.75rem', marginBottom: '10px' }}>
                           [SYSTEM] XP will be awarded upon completion.
                         </div>
                       </div>
@@ -230,7 +230,7 @@ export default function WorkoutsPage() {
                 <span className="sl-badge sl-badge-blue">{selectedExercise.muscle}</span>
                 <span className="sl-badge sl-badge-purple">{selectedExercise.mode}</span>
               </div>
-              <p style={{ color: 'var(--sl-text-secondary)', marginBottom: '16px' }}>{selectedExercise.description}</p>
+              <p style={{ color: 'var(--sl-text-dim)', marginBottom: '16px' }}>{selectedExercise.description}</p>
               <h4 className="sl-section-title" style={{ fontSize: '0.6875rem' }}>Steps</h4>
               <ol className={styles.stepsList}>{selectedExercise.steps.map((s, i) => <li key={i}>{s}</li>)}</ol>
               <div style={{ display: 'flex', gap: '16px', margin: '16px 0' }}>
@@ -256,8 +256,8 @@ export default function WorkoutsPage() {
               <div key={w._id} className={styles.historyItem}>
                 <div className={styles.historyHeader}>
                   <span className="sl-badge sl-badge-blue" style={{ textTransform: 'capitalize' }}>{w.mode}</span>
-                  <span style={{ color: 'var(--sl-text-secondary)', fontSize: '0.8125rem' }}>{new Date(w.date).toLocaleDateString()}</span>
-                  <span style={{ color: 'var(--sl-text-muted)', fontSize: '0.75rem' }}>{w.duration} min</span>
+                  <span style={{ color: 'var(--sl-text-dim)', fontSize: '0.8125rem' }}>{new Date(w.date).toLocaleDateString()}</span>
+                  <span style={{ color: 'var(--sl-text-ghost)', fontSize: '0.75rem' }}>{w.duration} min</span>
                 </div>
                 <div className={styles.historyExercises}>
                   {w.exercises.map((e, i) => (

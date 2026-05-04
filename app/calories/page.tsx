@@ -364,8 +364,8 @@ export default function CaloriesPage() {
                   <tr key={entry._id}>
                     <td>{entry.foodName}</td>
                     <td><span className="sl-badge sl-badge-blue" style={{ textTransform: 'capitalize' }}>{entry.mealType}</span></td>
-                    <td style={{ fontFamily: 'var(--sl-font-display)', color: 'var(--sl-accent-blue)' }}>{entry.calories}</td>
-                    <td style={{ fontSize: '0.8125rem', color: 'var(--sl-text-secondary)' }}>{entry.protein}g / {entry.carbs}g / {entry.fat}g</td>
+                    <td style={{ fontFamily: 'var(--sl-font-display)', color: 'var(--sl-blue)' }}>{entry.calories}</td>
+                    <td style={{ fontSize: '0.8125rem', color: 'var(--sl-text-dim)' }}>{entry.protein}g / {entry.carbs}g / {entry.fat}g</td>
                     <td><span className={`sl-badge ${entry.source === 'ai' ? 'sl-badge-purple' : 'sl-badge-green'}`}>{entry.source}</span></td>
                     <td><button className="sl-btn sl-btn-ghost" onClick={() => deleteEntry(entry._id)} style={{ padding: '4px 8px' }}><MdDelete /></button></td>
                   </tr>
@@ -373,7 +373,7 @@ export default function CaloriesPage() {
               </tbody>
             </table>
           ) : (
-            <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>No meals logged for this date</div>
+            <div className="sl-empty"><div className="sl-empty-text">[SYSTEM] No meals logged for this date</div></div>
           )}
         </div>
 

@@ -164,10 +164,10 @@ export default function CalendarPage() {
                   ))}
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>No events for this day</div>
+                <div className="sl-empty"><div className="sl-empty-text">[SYSTEM] No quests for this day</div></div>
               )
             ) : (
-              <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>Click a day to view events</div>
+              <div className="sl-empty"><div className="sl-empty-text">[SYSTEM] Select a day to view quests</div></div>
             )}
           </div>
         </div>

@@ -163,13 +163,13 @@ export default function DashboardPage() {
             </div>
             <div className={styles.playerStatsRow}>
               <div className={styles.playerStatItem}>
-                <div className={styles.playerStatValue} style={{ color: 'var(--sl-accent-gold)' }}>
+                <div className={styles.playerStatValue} style={{ color: 'var(--sl-gold)' }}>
                   {stats?.totalXp || 0}
                 </div>
                 <div className={styles.playerStatLabel}>Total XP</div>
               </div>
               <div className={styles.playerStatItem}>
-                <div className={styles.playerStatValue} style={{ color: 'var(--sl-accent-blue)' }}>
+                <div className={styles.playerStatValue} style={{ color: 'var(--sl-blue)' }}>
                   {stats?.level || 1}
                 </div>
                 <div className={styles.playerStatLabel}>Level</div>
