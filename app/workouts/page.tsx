@@ -127,24 +127,90 @@ export default function WorkoutsPage() {
               ) : (
                 <div className={styles.workoutList}>
                   {workoutExercises.map((ex) => (
-                    <div key={ex.exerciseId} className={styles.workoutItem}>
-                      <div className={styles.workoutItemName}>{ex.name}</div>
-                      <div className={styles.workoutInputs}>
-                        <div><label className="sl-label">Sets</label><input className="sl-input" type="number" value={ex.sets} onChange={(e) => updateExercise(ex.exerciseId, 'sets', Number(e.target.value))} style={{ width: '70px' }} /></div>
-                        <div><label className="sl-label">Reps</label><input className="sl-input" type="number" value={ex.reps} onChange={(e) => updateExercise(ex.exerciseId, 'reps', Number(e.target.value))} style={{ width: '70px' }} /></div>
-                        {mode === 'gym' && <div><label className="sl-label">Weight</label><input className="sl-input" type="number" value={ex.weight || ''} onChange={(e) => updateExercise(ex.exerciseId, 'weight', Number(e.target.value))} placeholder="kg" style={{ width: '80px' }} /></div>}
-                        <button className="sl-btn sl-btn-ghost" onClick={() => removeFromWorkout(ex.exerciseId)} style={{ padding: '6px' }}><MdClose /></button>
+                    <div key={ex.exerciseId} className={`sl-panel ${styles.workoutItem}`}>
+                      <div className={styles.workoutItemHeader}>
+                        <div className={styles.workoutItemName}>{ex.name}</div>
+                        <button 
+                          type="button"
+                          className="sl-btn sl-btn-ghost" 
+                          onClick={() => removeFromWorkout(ex.exerciseId)} 
+                          style={{ padding: '4px', color: 'var(--sl-accent-red)' }}
+                        >
+                          <MdClose />
+                        </button>
+                      </div>
+                      
+                      <div className={styles.workoutInputGrid}>
+                        <div className={styles.inputGroup}>
+                          <label className="sl-label">Sets</label>
+                          <input 
+                            className="sl-input" 
+                            type="number" 
+                            value={ex.sets} 
+                            onChange={(e) => updateExercise(ex.exerciseId, 'sets', Number(e.target.value))} 
+                          />
+                        </div>
+                        <div className={styles.inputGroup}>
+                          <label className="sl-label">Reps</label>
+                          <input 
+                            className="sl-input" 
+                            type="number" 
+                            value={ex.reps} 
+                            onChange={(e) => updateExercise(ex.exerciseId, 'reps', Number(e.target.value))} 
+                          />
+                        </div>
+                        <div className={styles.inputGroup}>
+                          <label className="sl-label">{mode === 'gym' ? 'Weight (kg)' : 'Added Weight'}</label>
+                          <input 
+                            className="sl-input" 
+                            type="number" 
+                            value={ex.weight || ''} 
+                            onChange={(e) => updateExercise(ex.exerciseId, 'weight', Number(e.target.value))} 
+                            placeholder="0"
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
-                  <hr className="sl-divider" />
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'end' }}>
-                    <div style={{ flex: 1 }}><label className="sl-label">Duration (min)</label><input className="sl-input" type="number" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="e.g. 45" /></div>
+                  
+                  <div className={`sl-panel ${styles.workoutSummaryBox}`}>
+                    <div className="sl-grid-2">
+                      <div>
+                        <label className="sl-label">Session Duration (min)</label>
+                        <input 
+                          className="sl-input" 
+                          type="number" 
+                          value={duration} 
+                          onChange={(e) => setDuration(e.target.value)} 
+                          placeholder="e.g. 45" 
+                        />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                        <div style={{ color: 'var(--sl-text-muted)', fontSize: '0.75rem', marginBottom: '10px' }}>
+                          [SYSTEM] XP will be awarded upon completion.
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: '16px' }}>
+                      <label className="sl-label">Hunter's Notes</label>
+                      <textarea 
+                        className="sl-input" 
+                        value={notes} 
+                        onChange={(e) => setNotes(e.target.value)} 
+                        placeholder="How did the training go?"
+                        style={{ resize: 'none', height: '80px' }}
+                      />
+                    </div>
+                    <button 
+                      type="button"
+                      className="sl-btn sl-btn-primary" 
+                      onClick={saveWorkout} 
+                      disabled={saving} 
+                      style={{ width: '100%', marginTop: '20px' }}
+                    >
+                      {saving ? 'TRANSFORMING...' : '⚡ COMPLETE TRAINING'}
+                    </button>
                   </div>
-                  <div style={{ marginTop: '12px' }}><label className="sl-label">Notes (optional)</label><input className="sl-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="How did it feel?" /></div>
-                  <button className="sl-btn sl-btn-primary" onClick={saveWorkout} disabled={saving} style={{ width: '100%', marginTop: '16px' }}>
-                    {saving ? 'Saving...' : '⚡ Complete Workout'}
-                  </button>
                 </div>
               )}
             </div>

@@ -1,33 +1,37 @@
-.modeToggle { display: flex; gap: 8px; margin-bottom: 20px; }
-.modeBtn { display: flex; align-items: center; gap: 8px; padding: 12px 24px; font-size: 0.875rem; font-weight: 600; background: var(--sl-bg-panel); border: 1px solid var(--sl-border); border-radius: var(--sl-radius-md); color: var(--sl-text-secondary); cursor: pointer; transition: all var(--sl-transition-fast); }
-.modeBtn:hover { border-color: var(--sl-border-hover); color: var(--sl-text-primary); }
-.modeBtnActive { background: var(--sl-accent-blue-dim); border-color: var(--sl-accent-blue); color: var(--sl-accent-blue); }
+.modeToggle { display: flex; gap: 12px; margin-bottom: 24px; }
+.modeBtn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; background: var(--sl-bg-tertiary); border: 1px solid var(--sl-border); border-radius: var(--sl-radius-lg); color: var(--sl-text-secondary); font-family: var(--sl-font-display); font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: all var(--sl-transition-normal); }
+.modeBtnActive { background: var(--sl-accent-blue-dim); border-color: var(--sl-accent-blue); color: var(--sl-accent-blue); box-shadow: var(--sl-glow-blue); }
 
-.filterRow { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
+.filterRow { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 24px; }
+.filterRow::-webkit-scrollbar { height: 4px; }
 
-.layout { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+.layout { display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
 
-.exerciseGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-.exerciseCard { padding: 16px; cursor: pointer; transition: all var(--sl-transition-fast); }
-.exerciseCard:hover { transform: translateY(-2px); border-color: var(--sl-border-hover); }
-.exerciseHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.exerciseIcon { font-size: 1.25rem; color: var(--sl-accent-blue); }
-.exerciseName { font-weight: 600; font-size: 0.875rem; color: var(--sl-text-primary); margin-bottom: 4px; }
-.exerciseMeta { font-size: 0.75rem; color: var(--sl-text-muted); }
+.exerciseGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.exerciseCard { padding: 16px; cursor: pointer; }
+.exerciseHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.exerciseIcon { font-size: 1.5rem; color: var(--sl-accent-blue); }
+.exerciseName { font-weight: 700; font-size: 0.9375rem; margin-bottom: 4px; }
+.exerciseMeta { font-size: 0.75rem; color: var(--sl-text-secondary); }
 
-.workoutList { display: flex; flex-direction: column; gap: 12px; }
-.workoutItem { padding: 12px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); }
-.workoutItemName { font-weight: 600; font-size: 0.875rem; margin-bottom: 8px; color: var(--sl-text-primary); }
-.workoutInputs { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+.workoutList { display: flex; flex-direction: column; gap: 16px; }
+.workoutItem { padding: 16px; border-left: 3px solid var(--sl-accent-blue); }
+.workoutItemHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.workoutItemName { font-family: var(--sl-font-display); font-size: 0.8125rem; font-weight: 700; color: var(--sl-text-primary); }
 
-.stepsList { padding-left: 20px; color: var(--sl-text-secondary); font-size: 0.875rem; display: flex; flex-direction: column; gap: 6px; }
-.tipsList { padding-left: 20px; color: var(--sl-accent-gold); font-size: 0.8125rem; display: flex; flex-direction: column; gap: 4px; }
-.metaBox { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); font-size: 0.8125rem; color: var(--sl-accent-blue); }
+.workoutInputGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.inputGroup { display: flex; flex-direction: column; gap: 4px; }
 
-.historyItem { padding: 14px; border-bottom: 1px solid rgba(0,212,255,0.05); }
-.historyHeader { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
-.historyExercises { display: flex; gap: 6px; flex-wrap: wrap; }
-.historyExTag { padding: 4px 10px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-sm); font-size: 0.75rem; color: var(--sl-text-secondary); }
+.workoutSummaryBox { padding: 20px; background: var(--sl-bg-secondary); border-top: 2px solid var(--sl-accent-blue); }
 
-@media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } }
-@media (max-width: 768px) { .exerciseGrid { grid-template-columns: 1fr; } }
+.stepsList { padding-left: 20px; color: var(--sl-text-secondary); font-size: 0.875rem; display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.metaBox { flex: 1; padding: 12px; background: var(--sl-bg-tertiary); border-radius: var(--sl-radius-md); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 0.875rem; }
+.tipsList { list-style: none; color: var(--sl-text-secondary); font-size: 0.8125rem; display: flex; flex-direction: column; gap: 6px; }
+.tipsList li::before { content: '◈'; color: var(--sl-accent-blue); margin-right: 8px; }
+
+.historyItem { padding: 16px; border-bottom: 1px solid var(--sl-border); }
+.historyHeader { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.historyExercises { display: flex; flex-wrap: wrap; gap: 6px; }
+.historyExTag { font-size: 0.75rem; color: var(--sl-text-primary); background: var(--sl-bg-tertiary); padding: 4px 10px; border-radius: 4px; }
+
+@media (max-width: 1200px) { .layout { grid-template-columns: 1fr; } }
