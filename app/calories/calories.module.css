@@ -48,10 +48,33 @@
 .manualForm { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
 .manualRow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 
+.mobileCameraBtn {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--sl-blue);
+  color: #000;
+  font-size: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  box-shadow: 0 0 20px var(--sl-blue-glow), var(--sl-shadow-lg);
+  z-index: 1000;
+  cursor: pointer;
+  transition: all var(--sl-spring);
+}
+
+.mobileCameraBtn:active { transform: scale(0.9); background: var(--sl-text-bright); }
+
 @media (max-width: 768px) {
   .macroGrid { grid-template-columns: repeat(2, 1fr); }
   .manualRow { grid-template-columns: repeat(2, 1fr); }
   .followUpRow { flex-direction: column; }
   .previewContainer { flex-direction: column; }
   .previewImage { width: 100%; height: 200px; }
+  .mobileCameraBtn { display: flex; }
 }

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
 import { GiMeal } from 'react-icons/gi';
-import { MdCloudUpload, MdDelete, MdFastfood } from 'react-icons/md';
+import { MdCloudUpload, MdDelete, MdFastfood, MdCameraAlt } from 'react-icons/md';
 import styles from './calories.module.css';
 
 interface FoodEntry {
@@ -369,6 +369,15 @@ export default function CaloriesPage() {
             <div style={{ textAlign: 'center', padding: '30px', color: 'var(--sl-text-muted)' }}>No meals logged for this date</div>
           )}
         </div>
+
+        {/* Mobile FAB for Camera */}
+        <button 
+          className={styles.mobileCameraBtn}
+          onClick={() => fileInputRef.current?.click()}
+          aria-label="Scan Food"
+        >
+          <MdCameraAlt />
+        </button>
       </main>
     </div>
   );
