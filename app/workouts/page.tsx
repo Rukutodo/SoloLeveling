@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
 import { GiMuscleUp, GiHouse, GiWeightLiftingUp } from 'react-icons/gi';
-import { MdTimer, MdFitnessCenter, MdClose } from 'react-icons/md';
+import { MdTimer, MdFitnessCenter, MdClose, MdTrendingUp } from 'react-icons/md';
 import exercisesData from '@/lib/data/exercises.json';
 import styles from './workouts.module.css';
 
@@ -93,10 +93,29 @@ export default function WorkoutsPage() {
         </div>
 
         {/* Muscle Filter */}
-        <div className={styles.filterRow}>
-          {muscles.map((m) => (
-            <button key={m} className={`sl-btn ${muscleFilter === m ? 'sl-btn-primary' : 'sl-btn-ghost'}`} onClick={() => setMuscleFilter(m)} style={{ fontSize: '0.75rem' }}>{m}</button>
-          ))}
+        <div className={styles.filterRow} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {muscles.map((m) => (
+              <button key={m} className={`sl-btn ${muscleFilter === m ? 'sl-btn-primary' : 'sl-btn-ghost'}`} onClick={() => setMuscleFilter(m)} style={{ fontSize: '0.75rem' }}>{m}</button>
+            ))}
+          </div>
+          <button 
+            className="sl-btn sl-btn-secondary" 
+            style={{ border: '1px solid var(--sl-purple-glow)', color: 'var(--sl-purple)' }}
+            onClick={async () => {
+              const res = await fetch('/api/ai/advisor', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'workout', data: { mode, muscleFilter, level: sidebarData.level } })
+              });
+              if (res.ok) {
+                const d = await res.json();
+                alert(`[SYSTEM SUGGESTION: ${d.analysis.routineName}]\nFocus: ${d.analysis.focus}\n\nEXERCISES:\n${d.analysis.exercises.map((e: any) => `- ${e.name} (${e.sets}x${e.reps}): ${e.reason}`).join('\n')}\n\n[ADVISOR TIP]: ${d.analysis.advisorTip}`);
+              }
+            }}
+          >
+            <MdTrendingUp /> System Suggestion
+          </button>
         </div>
 
         <div className={styles.layout}>

@@ -8,6 +8,8 @@ export interface IEMI extends Document {
   startDate: Date;
   totalMonths: number;
   remainingMonths: number;
+  principalTotal?: number;
+  principalPaid?: number;
   category: string;
   active: boolean;
 }
@@ -20,6 +22,8 @@ const EMISchema: Schema = new Schema({
   startDate: { type: Date, default: Date.now },
   totalMonths: { type: Number, required: true },
   remainingMonths: { type: Number, required: true },
+  principalTotal: { type: Number, default: 0 },
+  principalPaid: { type: Number, default: 0 },
   category: { type: String, default: 'EMI' },
   active: { type: Boolean, default: true },
 }, { timestamps: true });

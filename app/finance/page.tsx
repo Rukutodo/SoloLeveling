@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
 import { MdAdd, MdClose, MdDelete, MdTrendingUp, MdTrendingDown, MdChevronLeft, MdChevronRight } from 'react-icons/md';
+import { GiHeartBeats } from 'react-icons/gi';
 import styles from './finance.module.css';
 
 interface Transaction { _id: string; date: string; amount: number; type: 'income' | 'expense'; category: string; description: string; }
@@ -18,17 +19,20 @@ export default function FinancePage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [emis, setEmis] = useState<any[]>([]);
   const [investments, setInvestments] = useState<any[]>([]);
+  const [insurances, setInsurances] = useState<any[]>([]);
   const [summary, setSummary] = useState({ income: 0, expenses: 0, net: 0 });
   const [categoryBreakdown, setCategoryBreakdown] = useState<Record<string, number>>({});
-  const [activeTab, setActiveTab] = useState<'tx' | 'emi' | 'inv'>('tx');
+  const [activeTab, setActiveTab] = useState<'tx' | 'emi' | 'inv' | 'ins'>('tx');
   
   const [showModal, setShowModal] = useState(false);
   const [showEmiModal, setShowEmiModal] = useState(false);
   const [showInvModal, setShowInvModal] = useState(false);
+  const [showInsModal, setShowInsModal] = useState(false);
 
   const [form, setForm] = useState({ amount: '', type: 'expense' as 'income' | 'expense', category: '', description: '', date: new Date().toISOString().split('T')[0] });
-  const [emiForm, setEmiForm] = useState({ name: '', amount: '', dayOfMonth: '1', totalMonths: '12', category: 'EMI' });
+  const [emiForm, setEmiForm] = useState({ name: '', amount: '', dayOfMonth: '1', totalMonths: '12', category: 'EMI', principalTotal: '', principalPaid: '' });
   const [invForm, setInvForm] = useState({ fundName: '', investedAmount: '', currentAmount: '', expectedReturnRate: '12', type: 'Mutual Fund' });
+  const [insForm, setInsForm] = useState({ policyName: '', premiumAmount: '', frequency: 'Monthly', provider: '', nextDueDate: new Date().toISOString().split('T')[0] });
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
@@ -40,17 +44,19 @@ export default function FinancePage() {
   useEffect(() => { if (status === 'authenticated') fetchData(); }, [status, month, year]);
 
   const fetchData = async () => {
-    const [fRes, uRes, eRes, iRes] = await Promise.all([
+    const [fRes, uRes, eRes, iRes, insRes] = await Promise.all([
       fetch(`/api/finance?month=${month}&year=${year}`),
       fetch('/api/user'),
       fetch('/api/finance/emi'),
-      fetch('/api/finance/investments')
+      fetch('/api/finance/investments'),
+      fetch('/api/finance/insurance')
     ]);
 
     if (fRes.ok) { const d = await fRes.json(); setTransactions(d.transactions); setSummary(d.summary); setCategoryBreakdown(d.categoryBreakdown); }
     if (uRes.ok) { const d = await uRes.json(); setSidebarData({ userName: d.stats.name, level: d.stats.level, xp: d.stats.xp, xpToNext: d.stats.xpToNext, rank: d.stats.rank, title: d.stats.title, rankColor: d.stats.rankColor }); }
     if (eRes.ok) { const d = await eRes.json(); setEmis(d.emis); }
     if (iRes.ok) { const d = await iRes.json(); setInvestments(d.investments); }
+    if (insRes.ok) { const d = await insRes.json(); setInsurances(d.insurances); }
   };
 
   const addTransaction = async () => {
@@ -70,7 +76,7 @@ export default function FinancePage() {
       <main className="sl-main-content">
         <div className="sl-page-header">
           <h1 className="sl-page-title">💰 Finance Tracker</h1>
-          <p className="sl-page-subtitle">[SYSTEM] Gold reserve management</p>
+          <p className="sl-page-subtitle">[SYSTEM] Credit reserve management</p>
         </div>
 
         {/* Month Navigation */}
@@ -94,32 +100,31 @@ export default function FinancePage() {
             type="button"
             className="sl-btn sl-btn-primary" 
             onClick={() => {
-              console.log('Opening Transaction Modal...');
               setShowModal(true);
             }} 
             style={{ marginLeft: 'auto' }}
           >
-            <MdAdd /> Add Transaction
+            <MdAdd /> Log Transaction
           </button>
         </div>
 
         <div className={styles.summaryGrid}>
           <div className={`sl-panel ${styles.summaryCard}`}>
             <MdTrendingUp style={{ fontSize: '2rem', color: 'var(--sl-green)', filter: 'drop-shadow(0 0 10px hsla(150, 100%, 50%, 0.3))' }} />
-            <div className={styles.summaryLabel}>Total Gold Gain</div>
+            <div className={styles.summaryLabel}>Credits Earned</div>
             <div className={styles.summaryValue} style={{ color: 'var(--sl-green)' }}>
               ₹{summary.income.toLocaleString()}
             </div>
           </div>
           <div className={`sl-panel ${styles.summaryCard}`}>
             <MdTrendingDown style={{ fontSize: '2rem', color: 'var(--sl-red)', filter: 'drop-shadow(0 0 10px hsla(0, 100%, 60%, 0.3))' }} />
-            <div className={styles.summaryLabel}>Gold Consumption</div>
+            <div className={styles.summaryLabel}>Credits Spent</div>
             <div className={styles.summaryValue} style={{ color: 'var(--sl-red)' }}>
               ₹{summary.expenses.toLocaleString()}
             </div>
           </div>
           <div className={`sl-panel ${styles.summaryCard}`}>
-            <div className={styles.summaryLabel}>Current Reserve</div>
+            <div className={styles.summaryLabel}>Available Credits</div>
             <div className={styles.summaryValue} style={{ color: summary.net >= 0 ? 'var(--sl-green)' : 'var(--sl-red)' }}>
               {summary.net >= 0 ? '+' : ''}₹{summary.net.toLocaleString()}
             </div>
@@ -128,13 +133,16 @@ export default function FinancePage() {
 
         <div className={styles.tabHeader}>
           <button className={`${styles.tabBtn} ${activeTab === 'tx' ? styles.tabBtnActive : ''}`} onClick={() => setActiveTab('tx')}>
-            <MdAdd /> Transactions
+            <MdAdd /> Ledger
           </button>
           <button className={`${styles.tabBtn} ${activeTab === 'emi' ? styles.tabBtnActive : ''}`} onClick={() => setActiveTab('emi')}>
             <MdTrendingDown /> EMIs
           </button>
           <button className={`${styles.tabBtn} ${activeTab === 'inv' ? styles.tabBtnActive : ''}`} onClick={() => setActiveTab('inv')}>
-            <MdTrendingUp /> Investments
+            <MdTrendingUp /> Assets
+          </button>
+          <button className={`${styles.tabBtn} ${activeTab === 'ins' ? styles.tabBtnActive : ''}`} onClick={() => setActiveTab('ins')}>
+            <GiHeartBeats /> Insurance
           </button>
         </div>
 
@@ -188,7 +196,7 @@ export default function FinancePage() {
           <div className="sl-panel" style={{ padding: '32px' }}>
             <div className="sl-flex-between" style={{ marginBottom: '24px' }}>
               <h2 className="sl-section-title">
-                {activeTab === 'tx' ? 'Gold Flow' : activeTab === 'emi' ? 'System Deductions' : 'Asset Management'}
+                {activeTab === 'tx' ? 'Credit Ledger' : activeTab === 'emi' ? 'System Deductions' : activeTab === 'inv' ? 'Asset Management' : 'Protection Grid'}
               </h2>
               {activeTab === 'emi' && (
                 <button className="sl-btn sl-btn-secondary" onClick={() => setShowEmiModal(true)} style={{ padding: '8px 16px', fontSize: '0.75rem' }}>
@@ -197,11 +205,15 @@ export default function FinancePage() {
               )}
               {activeTab === 'inv' && (
                 <button className="sl-btn sl-btn-secondary" onClick={() => setShowInvModal(true)} style={{ padding: '8px 16px', fontSize: '0.75rem' }}>
-                  <MdAdd /> New Investment
+                  <MdAdd /> New Asset
+                </button>
+              )}
+              {activeTab === 'ins' && (
+                <button className="sl-btn sl-btn-secondary" onClick={() => setShowInsModal(true)} style={{ padding: '8px 16px', fontSize: '0.75rem' }}>
+                  <MdAdd /> New Policy
                 </button>
               )}
             </div>
-
             {activeTab === 'tx' && (
               <div className={styles.txList}>
                 {transactions.map((t) => (
@@ -249,14 +261,37 @@ export default function FinancePage() {
                         <button className="sl-btn sl-btn-ghost" onClick={async () => { await fetch(`/api/finance/emi?id=${e._id}`, { method: 'DELETE' }); fetchData(); }} style={{ padding: '8px' }}><MdDelete /></button>
                       </div>
                     </div>
-                    <div style={{ width: '100%' }}>
-                      <div className="sl-flex-between" style={{ marginBottom: '6px', fontSize: '0.65rem', fontWeight: 700, color: 'var(--sl-text-ghost)', textTransform: 'uppercase' }}>
-                        <span>Tenure Progress</span>
-                        <span>{e.totalMonths - e.remainingMonths} / {e.totalMonths} Months</span>
+
+                    <div style={{ width: '100%', display: 'flex', gap: '20px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div className="sl-flex-between" style={{ marginBottom: '6px', fontSize: '0.65rem', fontWeight: 700, color: 'var(--sl-text-ghost)', textTransform: 'uppercase' }}>
+                          <span>Tenure Progress</span>
+                          <span>{e.totalMonths - e.remainingMonths} / {e.totalMonths} Months</span>
+                        </div>
+                        <div className="sl-progress sl-progress-gold">
+                          <div className="sl-progress-fill" style={{ width: `${((e.totalMonths - e.remainingMonths) / e.totalMonths) * 100}%` }} />
+                        </div>
                       </div>
-                      <div className="sl-progress sl-progress-gold">
-                        <div className="sl-progress-fill" style={{ width: `${((e.totalMonths - e.remainingMonths) / e.totalMonths) * 100}%` }} />
+                      <div style={{ flex: 1 }}>
+                        <div className="sl-flex-between" style={{ marginBottom: '6px', fontSize: '0.65rem', fontWeight: 700, color: 'var(--sl-text-ghost)', textTransform: 'uppercase' }}>
+                          <span>Principal Status</span>
+                          <span>₹{(e.principalTotal - e.principalPaid).toLocaleString()} Left</span>
+                        </div>
+                        <div className="sl-progress sl-progress-blue">
+                          <div className="sl-progress-fill" style={{ width: `${(e.principalPaid / e.principalTotal) * 100}%` }} />
+                        </div>
                       </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '8px' }}>
+                      <button className="sl-btn sl-btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.7rem' }} onClick={() => {
+                        const paid = prompt('Update total principal paid for ' + e.name, e.principalPaid);
+                        if (paid !== null) fetch('/api/finance/emi', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: e._id, principalPaid: Number(paid) }) }).then(fetchData);
+                      }}>Update Principal Paid</button>
+                      <button className="sl-btn sl-btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.7rem' }} onClick={() => {
+                        const left = prompt('Update months remaining for ' + e.name, e.remainingMonths);
+                        if (left !== null) fetch('/api/finance/emi', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: e._id, remainingMonths: Number(left) }) }).then(fetchData);
+                      }}>Update Months Left</button>
                     </div>
                   </div>
                 ))}
@@ -265,6 +300,35 @@ export default function FinancePage() {
 
             {activeTab === 'inv' && (
               <div className={styles.txList}>
+                {investments.length > 0 && (
+                  <div className={`sl-panel ${styles.aiCard}`} style={{ marginBottom: '24px', border: '1px solid var(--sl-purple-glow)' }}>
+                    <div className="sl-flex-between" style={{ marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--sl-purple)', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        <MdTrendingUp /> [SYSTEM] Shadow Advisor Analysis
+                      </div>
+                      <button 
+                        className="sl-btn sl-btn-secondary" 
+                        style={{ padding: '4px 12px', fontSize: '0.65rem' }}
+                        onClick={async () => {
+                          const res = await fetch('/api/ai/advisor', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ type: 'investment', data: investments })
+                          });
+                          if (res.ok) {
+                            const d = await res.json();
+                            alert(`[TREND] ${d.analysis.trendSummary}\n\n[RISK] ${d.analysis.riskLevel}\n\n[GROWTH] ${d.analysis.projectedGrowth}\n\n[SYSTEM SUGGESTIONS]:\n${d.analysis.suggestions.join('\n')}`);
+                          }
+                        }}
+                      >
+                        Generate Insight
+                      </button>
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--sl-text-dim)' }}>
+                      Request the Shadow Advisor to analyze your asset distribution and project future credit growth.
+                    </p>
+                  </div>
+                )}
                 {investments.map((i) => (
                   <div key={i._id} className={styles.txItem} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
                     <div className="sl-flex-between" style={{ width: '100%' }}>
@@ -292,6 +356,38 @@ export default function FinancePage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {activeTab === 'ins' && (
+              <div className={styles.txList}>
+                {insurances.map((ins) => (
+                  <div key={ins._id} className={styles.txItem}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div className={`${styles.txIcon} styles.txIconIncome`} style={{ color: 'var(--sl-purple)' }}><GiHeartBeats /></div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--sl-text-bright)' }}>{ins.policyName}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)' }}>
+                          {ins.provider} • Due {new Date(ins.nextDueDate).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.125rem', fontWeight: 800, color: 'var(--sl-purple)' }}>
+                          ₹{ins.premiumAmount.toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--sl-text-ghost)', textTransform: 'uppercase' }}>
+                          {ins.frequency} Premium
+                        </div>
+                      </div>
+                      <button className="sl-btn sl-btn-ghost" onClick={async () => { await fetch(`/api/finance/insurance?id=${ins._id}`, { method: 'DELETE' }); fetchData(); }} style={{ padding: '8px' }}><MdDelete /></button>
+                    </div>
+                  </div>
+                ))}
+                {insurances.length === 0 && (
+                  <div className="sl-empty"><div className="sl-empty-text">[SYSTEM] No policies active</div></div>
+                )}
               </div>
             )}
           </div>
@@ -362,7 +458,7 @@ export default function FinancePage() {
                   className="sl-input" 
                   value={form.description} 
                   onChange={(e) => setForm({ ...form, description: e.target.value })} 
-                  placeholder="e.g. Dungeon Loot, Rent, Groceries" 
+                  placeholder="e.g. S-Rank Mission reward, Housing, Transport" 
                 />
               </div>
 
@@ -382,7 +478,7 @@ export default function FinancePage() {
                 onClick={addTransaction} 
                 style={{ width: '100%', marginTop: '8px' }}
               >
-                ⚡ Complete Transaction
+                ⚡ Complete Entry
               </button>
             </div>
           </div>
@@ -398,12 +494,12 @@ export default function FinancePage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label className="sl-label">Loan / EMI Name</label>
-                <input className="sl-input" value={emiForm.name} onChange={(e) => setEmiForm({ ...emiForm, name: e.target.value })} placeholder="e.g. Car Loan, iPhone EMI" />
+                <label className="sl-label">Liability Name</label>
+                <input className="sl-input" value={emiForm.name} onChange={(e) => setEmiForm({ ...emiForm, name: e.target.value })} placeholder="e.g. Citadel Loan, Gear Installment" />
               </div>
               <div className="sl-grid-2">
                 <div>
-                  <label className="sl-label">Monthly Amount (₹)</label>
+                  <label className="sl-label">Monthly Payout (₹)</label>
                   <input className="sl-input" type="number" value={emiForm.amount} onChange={(e) => setEmiForm({ ...emiForm, amount: e.target.value })} placeholder="0" />
                 </div>
                 <div>
@@ -411,12 +507,18 @@ export default function FinancePage() {
                   <input className="sl-input" type="number" min="1" max="31" value={emiForm.dayOfMonth} onChange={(e) => setEmiForm({ ...emiForm, dayOfMonth: e.target.value })} />
                 </div>
               </div>
-              <div>
-                <label className="sl-label">Total Tenure (Months)</label>
-                <input className="sl-input" type="number" value={emiForm.totalMonths} onChange={(e) => setEmiForm({ ...emiForm, totalMonths: e.target.value })} />
+              <div className="sl-grid-2">
+                <div>
+                  <label className="sl-label">Total Principal (₹)</label>
+                  <input className="sl-input" type="number" value={emiForm.principalTotal} onChange={(e) => setEmiForm({ ...emiForm, principalTotal: e.target.value })} placeholder="0" />
+                </div>
+                <div>
+                  <label className="sl-label">Tenure (Months)</label>
+                  <input className="sl-input" type="number" value={emiForm.totalMonths} onChange={(e) => setEmiForm({ ...emiForm, totalMonths: e.target.value })} />
+                </div>
               </div>
               <button className="sl-btn sl-btn-primary" onClick={async () => {
-                await fetch('/api/finance/emi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...emiForm, amount: Number(emiForm.amount), dayOfMonth: Number(emiForm.dayOfMonth), totalMonths: Number(emiForm.totalMonths) }) });
+                await fetch('/api/finance/emi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...emiForm, amount: Number(emiForm.amount), dayOfMonth: Number(emiForm.dayOfMonth), totalMonths: Number(emiForm.totalMonths), principalTotal: Number(emiForm.principalTotal), principalPaid: 0 }) });
                 setShowEmiModal(false); fetchData();
               }} style={{ width: '100%', marginTop: '8px' }}>⚡ Authorize Recurring Deduction</button>
             </div>
@@ -429,13 +531,13 @@ export default function FinancePage() {
         <div className="sl-modal-overlay" onClick={() => setShowInvModal(false)}>
           <div className="sl-modal" onClick={(e) => e.stopPropagation()}>
             <div className="sl-flex-between" style={{ marginBottom: '24px' }}>
-              <h3 className="sl-modal-title">Initialize Investment</h3>
+              <h3 className="sl-modal-title">Initialize Asset</h3>
               <button className="sl-btn sl-btn-ghost" onClick={() => setShowInvModal(false)}><MdClose /></button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label className="sl-label">Fund / Asset Name</label>
-                <input className="sl-input" value={invForm.fundName} onChange={(e) => setInvForm({ ...invForm, fundName: e.target.value })} placeholder="e.g. Nifty 50 Index, Bitcoin" />
+                <label className="sl-label">Asset Name</label>
+                <input className="sl-input" value={invForm.fundName} onChange={(e) => setInvForm({ ...invForm, fundName: e.target.value })} placeholder="e.g. Core Fund, Ether" />
               </div>
               <div className="sl-grid-2">
                 <div>
@@ -443,18 +545,61 @@ export default function FinancePage() {
                   <input className="sl-input" type="number" value={invForm.investedAmount} onChange={(e) => setInvForm({ ...invForm, investedAmount: e.target.value })} placeholder="0" />
                 </div>
                 <div>
-                  <label className="sl-label">Expected Return (%)</label>
+                  <label className="sl-label">Target Return (%)</label>
                   <input className="sl-input" type="number" value={invForm.expectedReturnRate} onChange={(e) => setInvForm({ ...invForm, expectedReturnRate: e.target.value })} />
                 </div>
               </div>
               <div>
-                <label className="sl-label">Current Asset Value (₹)</label>
-                <input className="sl-input" type="number" value={invForm.currentAmount} onChange={(e) => setInvForm({ ...invForm, currentAmount: e.target.value })} placeholder="Initial value" />
+                <label className="sl-label">Current Evaluation (₹)</label>
+                <input className="sl-input" type="number" value={invForm.currentAmount} onChange={(e) => setInvForm({ ...invForm, currentAmount: e.target.value })} placeholder="Current worth" />
               </div>
               <button className="sl-btn sl-btn-primary" onClick={async () => {
                 await fetch('/api/finance/investments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...invForm, investedAmount: Number(invForm.investedAmount), currentAmount: Number(invForm.currentAmount), expectedReturnRate: Number(invForm.expectedReturnRate) }) });
                 setShowInvModal(false); fetchData();
               }} style={{ width: '100%', marginTop: '8px' }}>⚡ Register Asset</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* INSURANCE MODAL */}
+      {showInsModal && (
+        <div className="sl-modal-overlay" onClick={() => setShowInsModal(false)}>
+          <div className="sl-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="sl-flex-between" style={{ marginBottom: '24px' }}>
+              <h3 className="sl-modal-title">Register Policy</h3>
+              <button className="sl-btn sl-btn-ghost" onClick={() => setShowInsModal(false)}><MdClose /></button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <label className="sl-label">Policy Name</label>
+                <input className="sl-input" value={insForm.policyName} onChange={(e) => setInsForm({ ...insForm, policyName: e.target.value })} placeholder="e.g. Life Shield, Medical Cover" />
+              </div>
+              <div className="sl-grid-2">
+                <div>
+                  <label className="sl-label">Premium (₹)</label>
+                  <input className="sl-input" type="number" value={insForm.premiumAmount} onChange={(e) => setInsForm({ ...insForm, premiumAmount: e.target.value })} placeholder="0" />
+                </div>
+                <div>
+                  <label className="sl-label">Frequency</label>
+                  <select className="sl-select" value={insForm.frequency} onChange={(e) => setInsForm({ ...insForm, frequency: e.target.value as any })}>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Yearly">Yearly</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="sl-label">Provider</label>
+                <input className="sl-input" value={insForm.provider} onChange={(e) => setInsForm({ ...insForm, provider: e.target.value })} placeholder="e.g. Star Health, HDFC Ergo" />
+              </div>
+              <div>
+                <label className="sl-label">Next Due Date</label>
+                <input className="sl-input" type="date" value={insForm.nextDueDate} onChange={(e) => setInsForm({ ...insForm, nextDueDate: e.target.value })} />
+              </div>
+              <button className="sl-btn sl-btn-primary" onClick={async () => {
+                await fetch('/api/finance/insurance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...insForm, premiumAmount: Number(insForm.premiumAmount) }) });
+                setShowInsModal(false); fetchData();
+              }} style={{ width: '100%', marginTop: '8px' }}>⚡ Bind Policy</button>
             </div>
           </div>
         </div>

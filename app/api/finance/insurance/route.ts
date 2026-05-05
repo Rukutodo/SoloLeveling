@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import dbConnect from '@/lib/mongodb';
-import EMI from '@/lib/models/EMI';
+import Insurance from '@/lib/models/Insurance';
 
 export async function GET(req: NextRequest) {
   try {
@@ -9,8 +9,8 @@ export async function GET(req: NextRequest) {
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     await dbConnect();
-    const emis = await EMI.find({ userId: session.user.id, active: true });
-    return NextResponse.json({ emis });
+    const insurances = await Insurance.find({ userId: session.user.id, active: true });
+    return NextResponse.json({ insurances });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -24,13 +24,12 @@ export async function POST(req: NextRequest) {
     await dbConnect();
     const body = await req.json();
     
-    const emi = await EMI.create({
+    const insurance = await Insurance.create({
       userId: session.user.id,
       ...body,
-      remainingMonths: body.totalMonths, // Initial state
     });
 
-    return NextResponse.json({ emi }, { status: 201 });
+    return NextResponse.json({ insurance }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
@@ -45,29 +44,8 @@ export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     
-    await EMI.findOneAndDelete({ _id: id, userId: session.user.id });
+    await Insurance.findOneAndDelete({ _id: id, userId: session.user.id });
     return NextResponse.json({ message: 'Deleted' });
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-export async function PUT(req: NextRequest) {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    await dbConnect();
-    const body = await req.json();
-    const { id, ...updates } = body;
-
-    const emi = await EMI.findOneAndUpdate(
-      { _id: id, userId: session.user.id },
-      { $set: updates },
-      { new: true }
-    );
-
-    return NextResponse.json({ emi });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
