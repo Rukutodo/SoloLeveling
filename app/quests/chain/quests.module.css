@@ -1,0 +1,128 @@
+.timelineContainer {
+  position: relative;
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.timelineLine {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--sl-blue), var(--sl-gold), var(--sl-blue));
+  transform: translateX(-50%);
+  opacity: 0.3;
+}
+
+.questNode {
+  position: relative;
+  width: 50%;
+  margin-bottom: 40px;
+  padding: 24px;
+  animation: slideIn 0.5s ease forwards;
+  opacity: 0;
+}
+
+.questNode:nth-child(odd) {
+  left: 0;
+  padding-right: 40px;
+}
+
+.questNode:nth-child(even) {
+  left: 50%;
+  padding-left: 40px;
+}
+
+.nodeDot {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: var(--sl-bg-dark);
+  border: 2px solid var(--sl-blue);
+  border-radius: 50%;
+  top: 32px;
+  z-index: 2;
+  box-shadow: 0 0 10px var(--sl-blue);
+}
+
+.questNode:nth-child(odd) .nodeDot {
+  right: -8px;
+}
+
+.questNode:nth-child(even) .nodeDot {
+  left: -8px;
+}
+
+.nodeContent {
+  background: var(--sl-glass-bg);
+  border: 1px solid var(--sl-glass-border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.nodeContent:hover {
+  border-color: var(--sl-blue);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+  transform: translateY(-5px);
+}
+
+.completedNode .nodeContent {
+  border-color: var(--sl-gold);
+  background: rgba(255, 183, 0, 0.05);
+}
+
+.completedNode .nodeDot {
+  border-color: var(--sl-gold);
+  background: var(--sl-gold);
+  box-shadow: 0 0 15px var(--sl-gold);
+}
+
+.questTitle {
+  font-family: var(--sl-font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--sl-text-bright);
+  margin-bottom: 8px;
+}
+
+.questDesc {
+  font-size: 0.8rem;
+  color: var(--sl-text-dim);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.questMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.7rem;
+  font-family: var(--sl-font-mono);
+  color: var(--sl-text-ghost);
+}
+
+.targetTag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.typeWeight { background: rgba(59, 130, 246, 0.1); color: var(--sl-blue); }
+.typeIncome { background: rgba(255, 183, 0, 0.1); color: var(--sl-gold); }
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .timelineLine { left: 20px; }
+  .questNode { width: 100%; left: 0 !important; padding-left: 40px !important; padding-right: 0 !important; }
+  .nodeDot { left: 12px !important; }
+}

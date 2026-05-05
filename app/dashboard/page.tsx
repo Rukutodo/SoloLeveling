@@ -58,6 +58,7 @@ export default function DashboardPage() {
   const [analyzingSleep, setAnalyzingSleep] = useState(false);
   const [sleepAnalysis, setSleepAnalysis] = useState<any>(null);
   const [syncStatus, setSyncStatus] = useState('');
+  const [activeQuest, setActiveQuest] = useState<any>(null);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -67,9 +68,10 @@ export default function DashboardPage() {
 
   const fetchData = async () => {
     try {
-      const [userRes, dashRes] = await Promise.all([
+      const [userRes, dashRes, questRes] = await Promise.all([
         fetch('/api/user'),
         fetch('/api/dashboard'),
+        fetch('/api/quests/chain'),
       ]);
 
       if (userRes.ok) {
@@ -83,6 +85,11 @@ export default function DashboardPage() {
       if (dashRes.ok) {
         const data = await dashRes.json();
         setDashData((prev) => ({ ...prev, ...data }));
+      }
+
+      if (questRes.ok) {
+        const data = await questRes.json();
+        setActiveQuest(data.quest);
       }
     } catch (error) {
       console.error('Dashboard fetch error:', error);
@@ -220,6 +227,44 @@ export default function DashboardPage() {
               <div className={styles.statSub}>this month</div>
             </div>
           </div>
+
+          {/* Main Quest Widget */}
+          {activeQuest && (
+            <div className={styles.questWidget} style={{ marginBottom: '32px' }}>
+              <div className="sl-panel" style={{ padding: '24px', position: 'relative', overflow: 'hidden', border: '1px solid var(--sl-gold-glow)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <GiTreasureMap style={{ color: 'var(--sl-gold)', fontSize: '1.5rem' }} />
+                    <div>
+                      <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--sl-text-bright)' }}>MAIN QUEST: {activeQuest.title}</h2>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)' }}>DEADLINE: {new Date(activeQuest.deadline).toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                  <Link href="/quests/chain" className="sl-btn sl-btn-secondary" style={{ padding: '6px 12px', fontSize: '0.65rem' }}>View Roadmap</Link>
+                </div>
+
+                <div className="sl-grid-2" style={{ gap: '20px' }}>
+                  <div>
+                    <div className="sl-flex-between" style={{ marginBottom: '8px', fontSize: '0.75rem' }}>
+                      <span>Evolution Progress</span>
+                      <span>{Math.round((activeQuest.milestones.filter((m: any) => m.completed).length / activeQuest.milestones.length) * 100)}%</span>
+                    </div>
+                    <div className="sl-progress sl-progress-gold">
+                      <div className="sl-progress-fill" style={{ width: `${(activeQuest.milestones.filter((m: any) => m.completed).length / activeQuest.milestones.length) * 100}%` }} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="sl-panel" style={{ padding: '10px 16px', background: 'rgba(255,183,0,0.05)', flex: 1 }}>
+                      <div style={{ fontSize: '0.6rem', color: 'var(--sl-gold)', fontWeight: 800 }}>CURRENT OBJECTIVE</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--sl-text-bright)' }}>
+                        {activeQuest.milestones.find((m: any) => !m.completed)?.title || 'Quest Completed'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Quick Actions */}
           <div className={styles.actionsSection}>
