@@ -8,7 +8,6 @@ import Investment from '@/lib/models/Investment';
 import Transaction from '@/lib/models/Transaction';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function GET() {
   try {
@@ -47,7 +46,13 @@ export async function POST(req: NextRequest) {
     const currentWeight = latestMetric?.weight || 75; // Default if not found
 
     // 2. Generate Milestones via AI
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: 'System Error: Advisor core is missing (API Key not found).' }, { status: 500 });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = `
       As the "System Advisor" in a Solo Leveling themed self-improvement app, generate a "Main Quest Chain" (Hunter's Roadmap) for a user.
       
