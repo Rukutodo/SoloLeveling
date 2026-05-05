@@ -13,6 +13,7 @@ import {
   GiGoldBar,
   GiExitDoor,
   GiHamburgerMenu,
+  GiTreasureMap,
 } from 'react-icons/gi';
 import { HiX } from 'react-icons/hi';
 import { MdDashboard, MdTaskAlt, MdBedtime } from 'react-icons/md';
@@ -31,6 +32,7 @@ interface SidebarProps {
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: MdDashboard, section: 'hub' },
   { href: '/todos', label: 'Quest Log', icon: MdTaskAlt, section: 'hub' },
+  { href: '/quests/chain', label: "Hunter's Roadmap", icon: GiTreasureMap, section: 'hub' },
   { href: '/calories', label: 'Calorie Tracker', icon: GiMeal, section: 'fitness' },
   { href: '/bmi', label: 'BMI Tracker', icon: GiHeartBeats, section: 'fitness' },
   { href: '/workouts', label: 'Workouts', icon: GiMuscleUp, section: 'fitness' },
