@@ -228,7 +228,7 @@ export default function WorkoutsPage() {
                       disabled={saving} 
                       style={{ width: '100%', marginTop: '20px' }}
                     >
-                      {saving ? 'TRANSFORMING...' : <><FaBolt /> COMPLETE TRAINING</>}
+                      {saving ? 'ARISE...' : <><FaBolt /> COMPLETE TRAINING</>}
                     </button>
                   </div>
                 </div>

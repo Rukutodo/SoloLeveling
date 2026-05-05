@@ -183,7 +183,7 @@ export default function LoginPage() {
               id="submit-btn"
             >
               {loading
-                ? 'Processing...'
+                ? 'ARISE...'
                 : isSignUp
                   ? '⚔ Awaken'
                   : '⚔ Enter the System'}

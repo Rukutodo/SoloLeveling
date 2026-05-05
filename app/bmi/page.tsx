@@ -184,7 +184,7 @@ export default function BMIPage() {
                 </div>
               )}
               <button type="submit" className="sl-btn sl-btn-primary" disabled={saving} style={{ width: '100%', marginTop: '8px' }}>
-                {saving ? 'SAVING DATA...' : <><FaBolt /> UPDATE SYSTEM</>}
+                {saving ? 'ARISE...' : <><FaBolt /> UPDATE SYSTEM</>}
               </button>
             </form>
           </div>

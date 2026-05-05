@@ -94,7 +94,7 @@ export default function DashboardPage() {
     return (
       <div className={styles.loadingPage}>
         <div className={styles.loadingSpinner} />
-        <div className={styles.loadingText}>Initializing System...</div>
+        <div className={styles.loadingText}>ARISE...</div>
       </div>
     );
   }
