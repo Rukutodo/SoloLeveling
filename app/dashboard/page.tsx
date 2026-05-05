@@ -57,6 +57,7 @@ export default function DashboardPage() {
   const [sleepQuality, setSleepQuality] = useState(3);
   const [analyzingSleep, setAnalyzingSleep] = useState(false);
   const [sleepAnalysis, setSleepAnalysis] = useState<any>(null);
+  const [syncStatus, setSyncStatus] = useState('');
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -287,7 +288,8 @@ export default function DashboardPage() {
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ date: new Date().toISOString().split('T')[0], hours: sleepHours, quality: sleepQuality })
                         });
-                        alert('Recovery data synced.');
+                        setSyncStatus('Recovery synced');
+                        setTimeout(() => setSyncStatus(''), 3000);
                       }}
                     >
                       Sync Recovery

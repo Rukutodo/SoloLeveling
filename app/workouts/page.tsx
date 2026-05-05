@@ -27,6 +27,8 @@ export default function WorkoutsPage() {
   const [notes, setNotes] = useState('');
   const [history, setHistory] = useState<WorkoutLog[]>([]);
   const [saving, setSaving] = useState(false);
+  const [showAdvisorModal, setShowAdvisorModal] = useState(false);
+  const [advisorData, setAdvisorData] = useState<any>(null);
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
 
   const exercises: Exercise[] = exercisesData;
@@ -111,7 +113,8 @@ export default function WorkoutsPage() {
               });
               if (res.ok) {
                 const d = await res.json();
-                alert(`[SYSTEM SUGGESTION: ${d.analysis.routineName}]\nFocus: ${d.analysis.focus}\n\nEXERCISES:\n${d.analysis.exercises.map((e: any) => `- ${e.name} (${e.sets}x${e.reps}): ${e.reason}`).join('\n')}\n\n[ADVISOR TIP]: ${d.analysis.advisorTip}`);
+                setAdvisorData(d.analysis);
+                setShowAdvisorModal(true);
               }
             }}
           >
@@ -286,7 +289,48 @@ export default function WorkoutsPage() {
                 </div>
               </div>
             ))}
+            {/* ADVISOR MODAL */}
+      {showAdvisorModal && advisorData && (
+        <div className="sl-modal-overlay" onClick={() => setShowAdvisorModal(false)}>
+          <div className="sl-modal" style={{ borderColor: 'var(--sl-blue)', maxWidth: '550px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="sl-flex-between" style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--sl-blue)', fontWeight: 800 }}>
+                <MdTrendingUp /> SYSTEM SUGGESTION: {advisorData.routineName}
+              </div>
+              <button className="sl-btn sl-btn-ghost" onClick={() => setShowAdvisorModal(false)}><MdClose /></button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="sl-panel" style={{ padding: '16px', background: 'rgba(0, 212, 255, 0.05)' }}>
+                <div style={{ fontSize: '0.65rem', color: 'var(--sl-blue)', fontWeight: 800, marginBottom: '4px', textTransform: 'uppercase' }}>Focus Area</div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--sl-text-bright)' }}>{advisorData.focus}</div>
+              </div>
+              
+              <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '8px' }}>
+                {advisorData.exercises.map((e: any, idx: number) => (
+                  <div key={idx} style={{ marginBottom: '12px', padding: '12px', borderLeft: '3px solid var(--sl-blue)', background: 'rgba(255, 255, 255, 0.02)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <span style={{ fontWeight: 700, color: 'var(--sl-text-bright)' }}>{e.name}</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--sl-blue)', fontFamily: 'var(--sl-font-mono)' }}>{e.sets} x {e.reps}</span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--sl-text-dim)' }}>{e.reason}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="sl-panel" style={{ padding: '16px', background: 'rgba(255, 183, 0, 0.05)', border: '1px solid var(--sl-gold)' }}>
+                <div style={{ fontSize: '0.65rem', color: 'var(--sl-gold)', fontWeight: 800, marginBottom: '4px', textTransform: 'uppercase' }}>Advisor Tip</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--sl-text-dim)', fontStyle: 'italic' }}>"{advisorData.advisorTip}"</div>
+              </div>
+
+              <button className="sl-btn sl-btn-primary" onClick={() => setShowAdvisorModal(false)}>
+                Accept Routine
+              </button>
+            </div>
           </div>
+        </div>
+      )}
+    </div>
         )}
       </main>
     </div>

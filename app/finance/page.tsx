@@ -29,6 +29,8 @@ export default function FinancePage() {
   const [showEmiModal, setShowEmiModal] = useState(false);
   const [showInvModal, setShowInvModal] = useState(false);
   const [showInsModal, setShowInsModal] = useState(false);
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+  const [analysisData, setAnalysisData] = useState<any>(null);
 
   const [form, setForm] = useState({ amount: '', type: 'expense' as 'income' | 'expense', category: '', description: '', date: new Date().toISOString().split('T')[0] });
   const [emiForm, setEmiForm] = useState({ name: '', amount: '', dayOfMonth: '1', totalMonths: '12', category: 'EMI', principalTotal: '', principalPaid: '' });
@@ -339,7 +341,8 @@ export default function FinancePage() {
                           });
                           if (res.ok) {
                             const d = await res.json();
-                            alert(`[TREND] ${d.analysis.trendSummary}\n\n[RISK] ${d.analysis.riskLevel}\n\n[GROWTH] ${d.analysis.projectedGrowth}\n\n[SYSTEM SUGGESTIONS]:\n${d.analysis.suggestions.join('\n')}`);
+                            setAnalysisData(d.analysis);
+                            setShowAnalysisModal(true);
                           }
                         }}
                       >
@@ -615,7 +618,51 @@ export default function FinancePage() {
                 setShowInvModal(false); fetchData();
               }} style={{ width: '100%', marginTop: '8px' }}><FaBolt /> Register Asset</button>
             </div>
+            {/* AI ANALYSIS MODAL */}
+      {showAnalysisModal && analysisData && (
+        <div className="sl-modal-overlay" onClick={() => setShowAnalysisModal(false)}>
+          <div className="sl-modal" style={{ borderColor: 'var(--sl-purple)', maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="sl-flex-between" style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--sl-purple)', fontWeight: 800 }}>
+                <MdTrendingUp /> SHADOW ADVISOR REPORT
+              </div>
+              <button className="sl-btn sl-btn-ghost" onClick={() => setShowAnalysisModal(false)}><MdClose /></button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="sl-panel" style={{ padding: '16px', background: 'rgba(168, 85, 247, 0.05)' }}>
+                <div style={{ fontSize: '0.65rem', color: 'var(--sl-purple)', fontWeight: 800, marginBottom: '4px', textTransform: 'uppercase' }}>Current Trend</div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--sl-text-bright)' }}>{analysisData.trendSummary}</div>
+              </div>
+              
+              <div className="sl-grid-2">
+                <div className="sl-panel" style={{ padding: '16px' }}>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--sl-red)', fontWeight: 800, marginBottom: '4px', textTransform: 'uppercase' }}>Risk Level</div>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--sl-text-bright)' }}>{analysisData.riskLevel}</div>
+                </div>
+                <div className="sl-panel" style={{ padding: '16px' }}>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--sl-green)', fontWeight: 800, marginBottom: '4px', textTransform: 'uppercase' }}>Projected Growth</div>
+                  <div style={{ fontSize: '0.9rem', color: 'var(--sl-text-bright)' }}>{analysisData.projectedGrowth}</div>
+                </div>
+              </div>
+
+              <div className="sl-panel" style={{ padding: '16px' }}>
+                <div style={{ fontSize: '0.65rem', color: 'var(--sl-blue)', fontWeight: 800, marginBottom: '8px', textTransform: 'uppercase' }}>System Suggestions</div>
+                <ul style={{ paddingLeft: '16px', margin: 0, fontSize: '0.85rem', color: 'var(--sl-text-dim)', lineHeight: 1.6 }}>
+                  {analysisData.suggestions.map((s: string, idx: number) => (
+                    <li key={idx}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <button className="sl-btn sl-btn-primary" style={{ background: 'var(--sl-purple)', boxShadow: '0 0 20px rgba(168, 85, 247, 0.4)' }} onClick={() => setShowAnalysisModal(false)}>
+                Acknowledge Report
+              </button>
+            </div>
           </div>
+        </div>
+      )}
+    </div>
         </div>
       )}
 
