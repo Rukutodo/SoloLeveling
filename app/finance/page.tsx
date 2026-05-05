@@ -32,7 +32,7 @@ export default function FinancePage() {
 
   const [form, setForm] = useState({ amount: '', type: 'expense' as 'income' | 'expense', category: '', description: '', date: new Date().toISOString().split('T')[0] });
   const [emiForm, setEmiForm] = useState({ name: '', amount: '', dayOfMonth: '1', totalMonths: '12', category: 'EMI', principalTotal: '', principalPaid: '' });
-  const [invForm, setInvForm] = useState({ fundName: '', investedAmount: '', currentAmount: '', expectedReturnRate: '12', type: 'Mutual Fund' });
+  const [invForm, setInvForm] = useState({ fundName: '', investedAmount: '', currentAmount: '', expectedReturnRate: '12', type: 'Mutual Fund', subType: 'Mutual Fund', schemeCode: '', units: '' });
   const [insForm, setInsForm] = useState({ policyName: '', premiumAmount: '', frequency: 'Monthly', provider: '', nextDueDate: new Date().toISOString().split('T')[0] });
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -205,9 +205,17 @@ export default function FinancePage() {
                 </button>
               )}
               {activeTab === 'inv' && (
-                <button className="sl-btn sl-btn-secondary" onClick={() => setShowInvModal(true)} style={{ padding: '8px 16px', fontSize: '0.75rem' }}>
-                  <MdAdd /> New Asset
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button className="sl-btn sl-btn-secondary" onClick={async () => {
+                    const res = await fetch('/api/finance/investments/refresh', { method: 'POST' });
+                    if (res.ok) fetchData();
+                  }} style={{ padding: '8px 16px', fontSize: '0.75rem' }}>
+                    <FaBolt /> Refresh Market
+                  </button>
+                  <button className="sl-btn sl-btn-secondary" onClick={() => setShowInvModal(true)} style={{ padding: '8px 16px', fontSize: '0.75rem' }}>
+                    <MdAdd /> New Asset
+                  </button>
+                </div>
               )}
               {activeTab === 'ins' && (
                 <button className="sl-btn sl-btn-secondary" onClick={() => setShowInsModal(true)} style={{ padding: '8px 16px', fontSize: '0.75rem' }}>
@@ -349,8 +357,13 @@ export default function FinancePage() {
                       <div>
                         <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--sl-text-bright)' }}>{i.fundName}</div>
                         <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)' }}>
-                          {i.type} • Est. {i.expectedReturnRate}% Return
+                          {i.subType || i.type} • Est. {i.expectedReturnRate}% Return
                         </div>
+                        {i.lastUpdated && (
+                          <div style={{ fontSize: '0.6rem', color: 'var(--sl-blue)', marginTop: '4px' }}>
+                            Synced: {new Date(i.lastUpdated).toLocaleString()}
+                          </div>
+                        )}
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.25rem', fontWeight: 800, color: 'var(--sl-green)' }}>
@@ -555,17 +568,47 @@ export default function FinancePage() {
               </div>
               <div className="sl-grid-2">
                 <div>
-                  <label className="sl-label">Invested Capital (₹)</label>
-                  <input className="sl-input" type="number" value={invForm.investedAmount} onChange={(e) => setInvForm({ ...invForm, investedAmount: e.target.value })} placeholder="0" />
+                  <label className="sl-label">Asset Type</label>
+                  <select className="sl-select" value={invForm.subType} onChange={(e) => setInvForm({ ...invForm, subType: e.target.value })}>
+                    <option value="Mutual Fund">Mutual Fund</option>
+                    <option value="Index Fund">Index Fund</option>
+                    <option value="Stock">Stock</option>
+                    <option value="Crypto">Crypto</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
                 <div>
                   <label className="sl-label">Target Return (%)</label>
                   <input className="sl-input" type="number" value={invForm.expectedReturnRate} onChange={(e) => setInvForm({ ...invForm, expectedReturnRate: e.target.value })} />
                 </div>
               </div>
-              <div>
-                <label className="sl-label">Current Evaluation (₹)</label>
-                <input className="sl-input" type="number" value={invForm.currentAmount} onChange={(e) => setInvForm({ ...invForm, currentAmount: e.target.value })} placeholder="Current worth" />
+              
+              {(invForm.subType === 'Mutual Fund' || invForm.subType === 'Index Fund') && (
+                <div className="sl-panel" style={{ padding: '16px', background: 'rgba(0, 212, 255, 0.05)', border: '1px dashed var(--sl-blue)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--sl-blue)', fontWeight: 800, marginBottom: '12px' }}>REAL-TIME SYNC SETTINGS</div>
+                  <div className="sl-grid-2">
+                    <div>
+                      <label className="sl-label">Scheme Code</label>
+                      <input className="sl-input" value={invForm.schemeCode} onChange={(e) => setInvForm({ ...invForm, schemeCode: e.target.value })} placeholder="e.g. 120716" />
+                      <div style={{ fontSize: '0.6rem', color: 'var(--sl-text-ghost)', marginTop: '4px' }}>Search on mfapi.in</div>
+                    </div>
+                    <div>
+                      <label className="sl-label">Total Units</label>
+                      <input className="sl-input" type="number" step="0.001" value={invForm.units} onChange={(e) => setInvForm({ ...invForm, units: e.target.value })} placeholder="0.000" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="sl-grid-2">
+                <div>
+                  <label className="sl-label">Invested Capital (₹)</label>
+                  <input className="sl-input" type="number" value={invForm.investedAmount} onChange={(e) => setInvForm({ ...invForm, investedAmount: e.target.value })} placeholder="0" />
+                </div>
+                <div>
+                  <label className="sl-label">Current Evaluation (₹)</label>
+                  <input className="sl-input" type="number" value={invForm.currentAmount} onChange={(e) => setInvForm({ ...invForm, currentAmount: e.target.value })} placeholder="Current worth" />
+                </div>
               </div>
               <button className="sl-btn sl-btn-primary" onClick={async () => {
                 await fetch('/api/finance/investments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...invForm, investedAmount: Number(invForm.investedAmount), currentAmount: Number(invForm.currentAmount), expectedReturnRate: Number(invForm.expectedReturnRate) }) });

@@ -8,6 +8,10 @@ export interface IInvestment extends Document {
   expectedReturnRate: number; // Annual %
   startDate: Date;
   type: string; // Mutual Fund, Stock, Crypto, etc.
+  subType?: string; // Index Fund, Mutual Fund, etc.
+  schemeCode?: string; // For real-time tracking
+  units?: number;
+  lastUpdated?: Date;
 }
 
 const InvestmentSchema: Schema = new Schema({
@@ -18,6 +22,10 @@ const InvestmentSchema: Schema = new Schema({
   expectedReturnRate: { type: Number, default: 12 },
   startDate: { type: Date, default: Date.now },
   type: { type: String, default: 'Mutual Fund' },
+  subType: { type: String },
+  schemeCode: { type: String },
+  units: { type: Number },
+  lastUpdated: { type: Date },
 }, { timestamps: true });
 
 export default mongoose.models.Investment || mongoose.model<IInvestment>('Investment', InvestmentSchema);

@@ -38,7 +38,11 @@ export async function POST(req: NextRequest) {
     
     const investment = await Investment.create({
       userId: session.user.id,
-      ...body
+      ...body,
+      // Ensure numeric fields are correctly typed if they come as strings
+      investedAmount: Number(body.investedAmount),
+      currentAmount: Number(body.currentAmount),
+      units: body.units ? Number(body.units) : undefined
     });
 
     return NextResponse.json({ investment }, { status: 201 });
