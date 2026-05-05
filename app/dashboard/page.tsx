@@ -13,7 +13,8 @@ import {
   GiCrossedSwords,
   GiTreasureMap,
 } from 'react-icons/gi';
-import { MdAddCircle, MdFitnessCenter, MdRestaurant } from 'react-icons/md';
+import { MdAddCircle, MdFitnessCenter, MdRestaurant, MdMonetizationOn } from 'react-icons/md';
+import { FaFire, FaBalanceScale } from 'react-icons/fa';
 import styles from './dashboard.module.css';
 
 interface UserStats {
@@ -52,6 +53,10 @@ export default function DashboardPage() {
     recentActivity: [],
   });
   const [loading, setLoading] = useState(true);
+  const [sleepHours, setSleepHours] = useState(8);
+  const [sleepQuality, setSleepQuality] = useState(3);
+  const [analyzingSleep, setAnalyzingSleep] = useState(false);
+  const [sleepAnalysis, setSleepAnalysis] = useState<any>(null);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -180,19 +185,19 @@ export default function DashboardPage() {
           {/* Quick Stats */}
           <div className={styles.statsGrid}>
             <div className={`sl-panel ${styles.statCard}`}>
-              <div className={styles.statIcon}>🔥</div>
+              <div className={styles.statIcon}><FaFire /></div>
               <div className={styles.statLabel}>Calories Today</div>
               <div className={styles.statValue}>{dashData.todayCalories}</div>
               <div className={styles.statSub}>/ {dashData.calorieGoal} kcal</div>
             </div>
             <div className={`sl-panel ${styles.statCard}`}>
-              <div className={styles.statIcon}>💪</div>
+              <div className={styles.statIcon}><GiMuscleUp /></div>
               <div className={styles.statLabel}>Workout Streak</div>
               <div className={styles.statValue}>{dashData.workoutStreak}</div>
               <div className={styles.statSub}>days</div>
             </div>
             <div className={`sl-panel ${styles.statCard}`}>
-              <div className={styles.statIcon}>⚖️</div>
+              <div className={styles.statIcon}><FaBalanceScale /></div>
               <div className={styles.statLabel}>Current BMI</div>
               <div className={styles.statValue}>
                 {dashData.latestBmi?.toFixed(1) || '—'}
@@ -206,7 +211,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className={`sl-panel ${styles.statCard}`}>
-              <div className={styles.statIcon}>💰</div>
+              <div className={styles.statIcon}><MdMonetizationOn /></div>
               <div className={styles.statLabel}>Monthly Net</div>
               <div className={styles.statValue}>
                 {dashData.monthlyNetWorth >= 0 ? '+' : ''}₹{Math.abs(dashData.monthlyNetWorth).toLocaleString()}
@@ -242,6 +247,102 @@ export default function DashboardPage() {
               </Link>
             </div>
           </div>
+          {/* Recovery System (Sleep) */}
+          <div className={styles.sleepSection} style={{ marginBottom: '32px' }}>
+            <h2 className="sl-section-title">Recovery System</h2>
+            <div className="sl-panel" style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--sl-text-ghost)', marginBottom: '8px' }}>Hours Slept</label>
+                      <input 
+                        type="number" 
+                        value={sleepHours} 
+                        onChange={(e) => setSleepHours(Number(e.target.value))} 
+                        className="sl-input" 
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--sl-text-ghost)', marginBottom: '8px' }}>Quality (1-5)</label>
+                      <input 
+                        type="number" 
+                        min="1" 
+                        max="5" 
+                        value={sleepQuality} 
+                        onChange={(e) => setSleepQuality(Number(e.target.value))} 
+                        className="sl-input" 
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <button 
+                      className="sl-btn sl-btn-primary" 
+                      style={{ flex: 1 }}
+                      onClick={async () => {
+                        await fetch('/api/sleep', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ date: new Date().toISOString().split('T')[0], hours: sleepHours, quality: sleepQuality })
+                        });
+                        alert('Recovery data synced.');
+                      }}
+                    >
+                      Sync Recovery
+                    </button>
+                    <button 
+                      className="sl-btn sl-btn-ghost" 
+                      style={{ flex: 1, color: 'var(--sl-blue)', borderColor: 'var(--sl-blue)' }}
+                      onClick={async () => {
+                        setAnalyzingSleep(true);
+                        const res = await fetch('/api/ai/sleep-analysis', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ hours: sleepHours, quality: sleepQuality })
+                        });
+                        if (res.ok) {
+                          const data = await res.json();
+                          setSleepAnalysis(data.analysis);
+                        }
+                        setAnalyzingSleep(false);
+                      }}
+                      disabled={analyzingSleep}
+                    >
+                      {analyzingSleep ? 'Analyzing...' : 'AI Bio-Scan'}
+                    </button>
+                  </div>
+                </div>
+
+                {sleepAnalysis && (
+                  <div style={{ flex: 1.5, background: 'var(--sl-bg-base)', padding: '20px', borderRadius: '16px', border: '1px solid var(--sl-glass-border)' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sl-blue)', marginBottom: '12px', textTransform: 'uppercase' }}>[SYSTEM] Shadow Analysis</div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--sl-text-bright)', marginBottom: '4px' }}>BODY</div>
+                        <ul style={{ padding: 0, margin: 0, listStyle: 'none', fontSize: '0.75rem' }}>
+                          {sleepAnalysis.bodyEffects.pros.map((p: string, i: number) => <li key={i} style={{ color: 'var(--sl-green)' }}>+ {p}</li>)}
+                          {sleepAnalysis.bodyEffects.cons.map((c: string, i: number) => <li key={i} style={{ color: 'var(--sl-red)' }}>- {c}</li>)}
+                        </ul>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--sl-text-bright)', marginBottom: '4px' }}>MIND</div>
+                        <ul style={{ padding: 0, margin: 0, listStyle: 'none', fontSize: '0.75rem' }}>
+                          {sleepAnalysis.mindEffects.pros.map((p: string, i: number) => <li key={i} style={{ color: 'var(--sl-green)' }}>+ {p}</li>)}
+                          {sleepAnalysis.mindEffects.cons.map((c: string, i: number) => <li key={i} style={{ color: 'var(--sl-red)' }}>- {c}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--sl-glass-border)', fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--sl-text-main)' }}>
+                      "{sleepAnalysis.overallAdvice}"
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Recent Activity */}
           <div className={styles.activitySection}>
@@ -271,7 +372,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className={styles.emptyState}>
-                  <div className={styles.emptyIcon}>⚔️</div>
+                  <div className={styles.emptyIcon}><GiCrossedSwords /></div>
                   <div className={styles.emptyText}>No quests completed yet</div>
                   <div className={styles.emptySubtext}>
                     Start your journey by logging a meal or workout

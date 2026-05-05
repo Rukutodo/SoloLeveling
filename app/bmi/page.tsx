@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { FaBolt, FaBalanceScale } from 'react-icons/fa';
 import styles from './bmi.module.css';
 
 interface BodyMetric {
@@ -111,7 +112,7 @@ export default function BMIPage() {
       <Sidebar {...sidebarData} />
       <main className="sl-main-content">
         <div className="sl-page-header">
-          <h1 className="sl-page-title">⚖️ BMI Tracker</h1>
+          <h1 className="sl-page-title"><FaBalanceScale style={{ verticalAlign: 'middle' }} /> BMI Tracker</h1>
           <p className="sl-page-subtitle">[SYSTEM] Body composition analysis report</p>
         </div>
 
@@ -183,7 +184,7 @@ export default function BMIPage() {
                 </div>
               )}
               <button type="submit" className="sl-btn sl-btn-primary" disabled={saving} style={{ width: '100%', marginTop: '8px' }}>
-                {saving ? 'SAVING DATA...' : '⚡ UPDATE SYSTEM'}
+                {saving ? 'SAVING DATA...' : <><FaBolt /> UPDATE SYSTEM</>}
               </button>
             </form>
           </div>

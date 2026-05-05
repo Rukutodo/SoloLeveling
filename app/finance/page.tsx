@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
-import { MdAdd, MdClose, MdDelete, MdTrendingUp, MdTrendingDown, MdChevronLeft, MdChevronRight } from 'react-icons/md';
+import { MdAdd, MdClose, MdDelete, MdTrendingUp, MdTrendingDown, MdChevronLeft, MdChevronRight, MdAccountBalanceWallet } from 'react-icons/md';
 import { GiHeartBeats } from 'react-icons/gi';
+import { FaBolt } from 'react-icons/fa';
 import styles from './finance.module.css';
 
 interface Transaction { _id: string; date: string; amount: number; type: 'income' | 'expense'; category: string; description: string; }
@@ -75,7 +76,7 @@ export default function FinancePage() {
       <Sidebar {...sidebarData} />
       <main className="sl-main-content">
         <div className="sl-page-header">
-          <h1 className="sl-page-title">💰 Finance Tracker</h1>
+          <h1 className="sl-page-title"><MdAccountBalanceWallet style={{ verticalAlign: 'middle' }} /> Finance Tracker</h1>
           <p className="sl-page-subtitle">[SYSTEM] Credit reserve management</p>
         </div>
 
@@ -491,7 +492,7 @@ export default function FinancePage() {
                 onClick={addTransaction} 
                 style={{ width: '100%', marginTop: '8px' }}
               >
-                ⚡ Complete Entry
+                <FaBolt /> Complete Entry
               </button>
             </div>
           </div>
@@ -533,7 +534,7 @@ export default function FinancePage() {
               <button className="sl-btn sl-btn-primary" onClick={async () => {
                 await fetch('/api/finance/emi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...emiForm, amount: Number(emiForm.amount), dayOfMonth: Number(emiForm.dayOfMonth), totalMonths: Number(emiForm.totalMonths), principalTotal: Number(emiForm.principalTotal), principalPaid: 0 }) });
                 setShowEmiModal(false); fetchData();
-              }} style={{ width: '100%', marginTop: '8px' }}>⚡ Authorize Recurring Deduction</button>
+              }} style={{ width: '100%', marginTop: '8px' }}><FaBolt /> Authorize Recurring Deduction</button>
             </div>
           </div>
         </div>
@@ -569,7 +570,7 @@ export default function FinancePage() {
               <button className="sl-btn sl-btn-primary" onClick={async () => {
                 await fetch('/api/finance/investments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...invForm, investedAmount: Number(invForm.investedAmount), currentAmount: Number(invForm.currentAmount), expectedReturnRate: Number(invForm.expectedReturnRate) }) });
                 setShowInvModal(false); fetchData();
-              }} style={{ width: '100%', marginTop: '8px' }}>⚡ Register Asset</button>
+              }} style={{ width: '100%', marginTop: '8px' }}><FaBolt /> Register Asset</button>
             </div>
           </div>
         </div>
@@ -612,7 +613,7 @@ export default function FinancePage() {
               <button className="sl-btn sl-btn-primary" onClick={async () => {
                 await fetch('/api/finance/insurance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...insForm, premiumAmount: Number(insForm.premiumAmount) }) });
                 setShowInsModal(false); fetchData();
-              }} style={{ width: '100%', marginTop: '8px' }}>⚡ Bind Policy</button>
+              }} style={{ width: '100%', marginTop: '8px' }}><FaBolt /> Bind Policy</button>
             </div>
           </div>
         </div>

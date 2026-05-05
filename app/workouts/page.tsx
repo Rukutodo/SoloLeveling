@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
 import { GiMuscleUp, GiHouse, GiWeightLiftingUp } from 'react-icons/gi';
 import { MdTimer, MdFitnessCenter, MdClose, MdTrendingUp } from 'react-icons/md';
+import { FaBolt } from 'react-icons/fa';
 import exercisesData from '@/lib/data/exercises.json';
 import styles from './workouts.module.css';
 
@@ -78,7 +79,7 @@ export default function WorkoutsPage() {
       <Sidebar {...sidebarData} />
       <main className="sl-main-content">
         <div className="sl-page-header">
-          <h1 className="sl-page-title">💪 Workout System</h1>
+          <h1 className="sl-page-title"><GiMuscleUp style={{ verticalAlign: 'middle' }} /> Workout System</h1>
           <p className="sl-page-subtitle">[SYSTEM] Choose your training ground</p>
         </div>
 
@@ -227,7 +228,7 @@ export default function WorkoutsPage() {
                       disabled={saving} 
                       style={{ width: '100%', marginTop: '20px' }}
                     >
-                      {saving ? 'TRANSFORMING...' : '⚡ COMPLETE TRAINING'}
+                      {saving ? 'TRANSFORMING...' : <><FaBolt /> COMPLETE TRAINING</>}
                     </button>
                   </div>
                 </div>

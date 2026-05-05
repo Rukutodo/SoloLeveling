@@ -13,7 +13,7 @@
 .summaryLabel { font-family: var(--sl-font-display); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--sl-text-ghost); }
 .summaryValue { font-family: var(--sl-font-display); font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; }
 
-.financeLayout { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.financeLayout { display: grid; grid-template-columns: 1fr 2fr; gap: 32px; }
 
 .categoryList { display: flex; flex-direction: column; gap: 20px; }
 .categoryInfo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.875rem; color: var(--sl-text-main); }
@@ -29,11 +29,11 @@
   background: var(--sl-bg-sub); 
   border: 1px solid var(--sl-glass-border);
   border-radius: var(--sl-radius-lg); 
-  transition: all var(--sl-ease-out); 
+  transition: all 0.3s var(--sl-ease-out); 
 }
 .txItem:hover { background: var(--sl-bg-surface); transform: translateX(4px); border-color: var(--sl-glass-border-bright); }
 
-.txIcon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+.txIcon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
 .txIconIncome { background: hsla(150, 100%, 50%, 0.1); color: var(--sl-green); border: 1px solid hsla(150, 100%, 50%, 0.2); }
 .txIconExpense { background: hsla(0, 100%, 60%, 0.1); color: var(--sl-red); border: 1px solid hsla(0, 100%, 60%, 0.2); }
 
@@ -73,30 +73,33 @@
   transform: scale(1.02);
 }
 
-.tabHeader { display: flex; gap: 12px; margin-bottom: 24px; padding: 4px; background: var(--sl-bg-base); border-radius: 16px; border: 1px solid var(--sl-glass-border); width: fit-content; }
+.tabHeader { display: flex; gap: 8px; margin-bottom: 24px; padding: 4px; background: var(--sl-bg-base); border-radius: 16px; border: 1px solid var(--sl-glass-border); width: fit-content; overflow-x: auto; }
 .tabBtn { 
   display: flex; 
   align-items: center; 
-  gap: 10px; 
-  padding: 10px 24px; 
+  gap: 8px; 
+  padding: 10px 20px; 
   font-family: var(--sl-font-display); 
-  font-size: 0.7rem; 
+  font-size: 0.65rem; 
   font-weight: 800; 
   text-transform: uppercase; 
-  letter-spacing: 1.5px; 
+  letter-spacing: 1px; 
   color: var(--sl-text-ghost); 
   background: transparent; 
   border: none; 
   border-radius: 12px; 
-  transition: all var(--sl-ease-out); 
+  transition: all 0.3s var(--sl-ease-out); 
+  white-space: nowrap;
 }
 .tabBtn:hover { color: var(--sl-text-bright); background: hsla(0, 0%, 100%, 0.05); }
 .tabBtnActive { background: var(--sl-bg-sub); color: var(--sl-blue); box-shadow: var(--sl-shadow-sm); }
 
-.invStats { display: flex; gap: 16px; margin-top: 16px; }
-.invStatItem { flex: 1; padding: 16px; background: var(--sl-bg-base); border-radius: 12px; border: 1px solid var(--sl-glass-border); }
+.invStats { display: flex; gap: 16px; margin-top: 16px; overflow-x: auto; }
+.invStatItem { flex: 1; padding: 16px; background: var(--sl-bg-base); border-radius: 12px; border: 1px solid var(--sl-glass-border); min-width: 120px; }
 .invStatLabel { font-size: 0.6rem; font-weight: 700; color: var(--sl-text-ghost); text-transform: uppercase; margin-bottom: 4px; }
 .invStatValue { font-family: var(--sl-font-display); font-size: 1rem; font-weight: 800; color: var(--sl-text-bright); }
 
+.aiCard { padding: 20px; background: linear-gradient(135deg, hsla(270, 90%, 65%, 0.05) 0%, transparent 60%); }
+
 @media (max-width: 1200px) { .financeLayout { grid-template-columns: 1fr; } }
-@media (max-width: 768px) { .summaryGrid { grid-template-columns: 1fr; } .monthLabel { min-width: auto; flex: 1; } .tabHeader { width: 100%; overflow-x: auto; } }
+@media (max-width: 768px) { .summaryGrid { grid-template-columns: 1fr; } .monthLabel { min-width: auto; flex: 1; } .tabHeader { width: 100%; } }

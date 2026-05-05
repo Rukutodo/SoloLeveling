@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
 import { GiMeal } from 'react-icons/gi';
-import { MdCloudUpload, MdDelete, MdFastfood, MdCameraAlt } from 'react-icons/md';
+import { MdCloudUpload, MdDelete, MdFastfood, MdCameraAlt, MdLocalFireDepartment } from 'react-icons/md';
+import { FaBolt } from 'react-icons/fa';
 import styles from './calories.module.css';
 
 interface FoodEntry {
@@ -35,6 +36,8 @@ export default function CaloriesPage() {
   const { status } = useSession();
   const [entries, setEntries] = useState<FoodEntry[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [steps, setSteps] = useState(0);
+  const [mealType, setMealType] = useState('breakfast');
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
@@ -44,7 +47,6 @@ export default function CaloriesPage() {
   const [step, setStep] = useState<'idle' | 'analyzing' | 'result' | 'dish_name' | 'ingredients'>('idle');
   const [dishName, setDishName] = useState('');
   const [ingredients, setIngredients] = useState('');
-  const [mealType, setMealType] = useState('lunch');
   const [showManual, setShowManual] = useState(false);
   const [manualForm, setManualForm] = useState({ foodName: '', calories: '', protein: '', carbs: '', fat: '' });
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
@@ -52,7 +54,7 @@ export default function CaloriesPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      fetchEntries();
+      fetchData();
       fetchUserData();
     }
   }, [status, selectedDate]);
@@ -65,12 +67,20 @@ export default function CaloriesPage() {
     }
   };
 
-  const fetchEntries = async () => {
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`/api/calories?date=${selectedDate}`);
-      if (res.ok) {
-        const data = await res.json();
+      const [cRes, sRes] = await Promise.all([
+        fetch(`/api/calories?date=${selectedDate}`),
+        fetch(`/api/steps?date=${selectedDate}`)
+      ]);
+      if (cRes.ok) {
+        const data = await cRes.json();
         setEntries(data.entries);
+      }
+      if (sRes.ok) {
+        const data = await sRes.json();
+        setSteps(data.stepsData?.steps || 0);
       }
     } catch (error) {
       console.error('Fetch error:', error);
@@ -183,7 +193,7 @@ export default function CaloriesPage() {
       });
       if (res.ok) {
         resetForm();
-        fetchEntries();
+        fetchData();
         fetchUserData();
       }
     } catch (error) {
@@ -194,7 +204,7 @@ export default function CaloriesPage() {
   const deleteEntry = async (id: string) => {
     try {
       await fetch(`/api/calories?id=${id}`, { method: 'DELETE' });
-      fetchEntries();
+      fetchData();
     } catch (error) {
       console.error('Delete error:', error);
     }
@@ -224,7 +234,7 @@ export default function CaloriesPage() {
       <Sidebar {...sidebarData} />
       <main className="sl-main-content">
         <div className="sl-page-header">
-          <h1 className="sl-page-title">🔥 Calorie Tracker</h1>
+          <h1 className="sl-page-title"><MdLocalFireDepartment style={{ verticalAlign: 'middle' }} /> Calorie Tracker</h1>
           <p className="sl-page-subtitle">[SYSTEM] AI-powered nutrition analysis</p>
         </div>
 
@@ -236,6 +246,39 @@ export default function CaloriesPage() {
             <div className={styles.summaryItem}><span className={styles.summaryLabel}>Protein</span><span className={styles.summaryValue}>{totalProtein}g</span></div>
             <div className={styles.summaryItem}><span className={styles.summaryLabel}>Carbs</span><span className={styles.summaryValue}>{totalCarbs}g</span></div>
             <div className={styles.summaryItem}><span className={styles.summaryLabel}>Fat</span><span className={styles.summaryValue}>{totalFat}g</span></div>
+          </div>
+        </div>
+
+        {/* Steps Tracker Section */}
+        <div className="sl-panel" style={{ padding: '24px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '32px' }}>
+          <div style={{ flex: 1 }}>
+            <h2 className="sl-section-title" style={{ marginBottom: '16px' }}>Steps Counter</h2>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <input 
+                type="number" 
+                value={steps} 
+                onChange={(e) => setSteps(Number(e.target.value))} 
+                className="sl-input" 
+                placeholder="Enter steps today..." 
+              />
+              <button 
+                className="sl-btn sl-btn-primary" 
+                onClick={async () => {
+                  await fetch('/api/steps', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: selectedDate, steps })
+                  });
+                  fetchData();
+                }}
+              >
+                Sync
+              </button>
+            </div>
+          </div>
+          <div style={{ padding: '20px', background: 'var(--sl-bg-base)', borderRadius: '16px', border: '1px solid var(--sl-glass-border)', textAlign: 'center', minWidth: '180px' }}>
+            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--sl-text-ghost)', textTransform: 'uppercase', letterSpacing: '1px' }}>Movement Burn</div>
+            <div style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.75rem', fontWeight: 800, color: 'var(--sl-blue)' }}>{Math.round(steps * 0.04)} <span style={{ fontSize: '0.8rem' }}>kcal</span></div>
           </div>
         </div>
 
@@ -258,7 +301,7 @@ export default function CaloriesPage() {
             ) : (
               <div className={styles.previewContainer}>
                 <img src={previewUrl} alt="Food preview" className={styles.previewImage} />
-                {step === 'idle' && <button className="sl-btn sl-btn-primary" onClick={analyzeImage}>⚡ Analyze with AI</button>}
+                {step === 'idle' && <button className="sl-btn sl-btn-primary" onClick={analyzeImage}><FaBolt /> Analyze with AI</button>}
               </div>
             )}
             <input 

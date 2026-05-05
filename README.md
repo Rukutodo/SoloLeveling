@@ -1,4 +1,4 @@
-# ⚔️ Solo Leveling: Personal Development System
+# Solo Leveling: Personal Development System
 
 ![System Status](https://img.shields.io/badge/System-Awakened-00d4ff?style=for-the-badge&logo=shadow)
 ![Hunter Rank](https://img.shields.io/badge/Hunter_Rank-S--Rank-7b2ff7?style=for-the-badge)
@@ -7,39 +7,39 @@ An all-in-one, responsive personal development application inspired by the **Sol
 
 ---
 
-## 🔮 Core Features
+## Core Features
 
-### 🥗 Calorie Tracker (AI Vision)
+### Calorie Tracker (AI Vision)
 - **AI-Powered Analysis**: Upload a photo of your meal and the system (powered by Gemini AI) will identify the food and estimate calories/macros.
 - **3-Step Cascade**: Image Analysis ➔ Dish Identification ➔ Ingredient Breakdown.
 - **Daily Logs**: Keep track of your nutritional intake across breakfast, lunch, dinner, and snacks.
 
-### ⚖️ BMI Tracker
+### BMI Tracker
 - **Status Analysis**: Track your weight and height evolution.
 - **Visual Scale**: RPG-inspired gauges showing your current body composition category.
 - **Trend Charts**: Beautifully rendered charts showing your progress over time.
 
-### 💪 Workout Modes
+### Workout Modes
 - **Home Mode**: 15+ bodyweight exercises for hunters training in the field.
 - **Gym Mode**: Equipment-based exercises for maximum power gain.
 - **Detailed Guides**: Every exercise includes step-by-step instructions, muscle targeting, and hunter tips.
 
-### 📅 Quest Calendar
+### Quest Calendar
 - **Event Tracking**: Log your daily tasks, appointments, and "quests".
 - **RPG UI**: Visual indicators for completed activities.
 
-### 💰 Gold Reserve (Finance)
+### Gold Reserve (Finance)
 - **Financial Ledger**: Track your income and expenses.
 - **Category Breakdown**: Dynamic bars showing exactly where your "gold" is being spent.
 
-### 📈 Gamification Engine
+### Gamification Engine
 - **XP System**: Earn experience points for every productive action.
 - **Hunter Ranks**: Progress from E-Rank to S-Rank as you level up.
 - **Player Stats**: Track your total XP and current Hunter Title.
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Framework**: [Next.js 14+](https://nextjs.org/) (App Router)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
@@ -52,7 +52,7 @@ An all-in-one, responsive personal development application inspired by the **Sol
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 18+
@@ -88,7 +88,7 @@ An all-in-one, responsive personal development application inspired by the **Sol
 
 ---
 
-## 📜 System Rules
+## System Rules
 1. Never miss a Daily Quest.
 2. Every action counts toward your Level Up.
 3. **Become the Strongest Version of Yourself.**

@@ -1,0 +1,81 @@
+.filterRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.todoList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.todoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--sl-bg-sub);
+  border: 1px solid var(--sl-glass-border);
+  border-radius: var(--sl-radius-lg);
+  transition: all 0.3s var(--sl-ease-out);
+}
+
+.todoItem:hover {
+  background: var(--sl-bg-surface);
+  transform: translateX(4px);
+  border-color: var(--sl-glass-border-bright);
+}
+
+.todoLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.checkBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s var(--sl-spring);
+}
+
+.checkBtn:hover {
+  transform: scale(1.1);
+}
+
+.todoContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.todoTitle {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--sl-text-bright);
+  transition: all 0.3s ease;
+}
+
+.completed .todoTitle {
+  color: var(--sl-text-ghost);
+  text-decoration: line-through;
+}
+
+.todoMeta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.completed {
+  opacity: 0.6;
+}

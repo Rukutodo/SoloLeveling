@@ -15,14 +15,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         await dbConnect();
+        const email = (credentials.email as string).toLowerCase();
 
-        const user = await User.findOne({ email: credentials.email });
-        if (!user) return null;
+        const user = await User.findOne({ email });
+        if (!user) {
+          console.log(`[SYSTEM] Login failed: User not found for ${email}`);
+          return null;
+        }
 
         const isValid = await bcrypt.compare(
           credentials.password as string,
           user.password
         );
+
+        console.log(`[SYSTEM] Auth check for ${email}: ${isValid ? 'PASSED' : 'FAILED'}`);
 
         if (!isValid) return null;
 

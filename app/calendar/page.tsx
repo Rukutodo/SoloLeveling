@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
-import { MdChevronLeft, MdChevronRight, MdAdd, MdClose, MdDelete } from 'react-icons/md';
+import { MdChevronLeft, MdChevronRight, MdAdd, MdClose, MdDelete, MdCalendarToday } from 'react-icons/md';
+import { FaBolt } from 'react-icons/fa';
 import styles from './calendar.module.css';
 
 interface CalEvent { _id: string; title: string; date: string; type: string; color: string; notes?: string; completed: boolean; }
@@ -23,6 +24,9 @@ export default function CalendarPage() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', type: 'general', color: '#00d4ff', notes: '' });
+  const [birthdays, setBirthdays] = useState<any[]>([]);
+  const [showAddBirthday, setShowAddBirthday] = useState(false);
+  const [newBday, setNewBday] = useState({ name: '', date: '', relationship: 'Friend' });
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
 
   const year = currentDate.getFullYear();
@@ -32,12 +36,40 @@ export default function CalendarPage() {
   const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   useEffect(() => {
-    if (status === 'authenticated') { fetchEvents(); fetchUser(); }
+    if (status === 'authenticated') { 
+      fetchEvents(); 
+      fetchBirthdays();
+      fetchUser(); 
+    }
   }, [status, month, year]);
 
   const fetchEvents = async () => {
     const res = await fetch(`/api/calendar?month=${month}&year=${year}`);
     if (res.ok) { const d = await res.json(); setEvents(d.events); }
+  };
+
+  const fetchBirthdays = async () => {
+    const res = await fetch('/api/birthdays');
+    if (res.ok) { const d = await res.json(); setBirthdays(d.birthdays); }
+  };
+
+  const addBirthday = async () => {
+    if (!newBday.name || !newBday.date) return;
+    const res = await fetch('/api/birthdays', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newBday),
+    });
+    if (res.ok) {
+      setShowAddBirthday(false);
+      setNewBday({ name: '', date: '', relationship: 'Friend' });
+      fetchBirthdays();
+    }
+  };
+
+  const deleteBirthday = async (id: string) => {
+    const res = await fetch(`/api/birthdays?id=${id}`, { method: 'DELETE' });
+    if (res.ok) fetchBirthdays();
   };
 
   const fetchUser = async () => {
@@ -87,7 +119,7 @@ export default function CalendarPage() {
       <Sidebar {...sidebarData} />
       <main className="sl-main-content">
         <div className="sl-page-header">
-          <h1 className="sl-page-title">📅 Calendar</h1>
+          <h1 className="sl-page-title"><MdCalendarToday style={{ verticalAlign: 'middle' }} /> Calendar</h1>
           <p className="sl-page-subtitle">[SYSTEM] Quest & event tracker</p>
         </div>
 
@@ -171,6 +203,59 @@ export default function CalendarPage() {
             )}
           </div>
         </div>
+        <div className="sl-panel" style={{ padding: '24px', marginTop: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 className="sl-section-title">Birthday Tracker</h2>
+            <button className="sl-btn sl-btn-primary" onClick={() => setShowAddBirthday(true)} style={{ fontSize: '0.7rem' }}>+ Log Birthday</button>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+            {birthdays.length > 0 ? birthdays.map((b) => (
+              <div key={b._id} style={{ background: 'var(--sl-bg-base)', padding: '16px', borderRadius: '12px', border: '1px solid var(--sl-glass-border)', position: 'relative' }}>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--sl-text-bright)' }}>{b.name}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--sl-blue)', textTransform: 'uppercase', fontWeight: 800, marginTop: '4px' }}>
+                  {new Date(b.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                </div>
+                <div style={{ fontSize: '0.6rem', color: 'var(--sl-text-ghost)', marginTop: '2px' }}>{b.relationship}</div>
+                <button 
+                  onClick={() => deleteBirthday(b._id)} 
+                  style={{ position: 'absolute', top: '8px', right: '8px', background: 'none', border: 'none', color: 'var(--sl-red)', cursor: 'pointer', fontSize: '1rem' }}
+                >
+                  <MdDelete />
+                </button>
+              </div>
+            )) : (
+              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '20px', color: 'var(--sl-text-ghost)', fontSize: '0.8rem' }}>
+                [SYSTEM] No birthdays archived yet
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Add Birthday Modal */}
+        {showAddBirthday && (
+          <div className="sl-modal-overlay" onClick={() => setShowAddBirthday(false)}>
+            <div className="sl-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="sl-flex-between" style={{ marginBottom: '16px' }}>
+                <h3 className="sl-modal-title">Log Birthday</h3>
+                <button className="sl-btn sl-btn-ghost" onClick={() => setShowAddBirthday(false)}><MdClose /></button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div><label className="sl-label">Name</label><input className="sl-input" value={newBday.name} onChange={(e) => setNewBday({ ...newBday, name: e.target.value })} placeholder="Enter name" /></div>
+                <div><label className="sl-label">Date</label><input className="sl-input" type="date" value={newBday.date} onChange={(e) => setNewBday({ ...newBday, date: e.target.value })} /></div>
+                <div><label className="sl-label">Relationship</label>
+                  <select className="sl-select" value={newBday.relationship} onChange={(e) => setNewBday({ ...newBday, relationship: e.target.value as any })}>
+                    <option value="Friend">Friend</option>
+                    <option value="Family">Family</option>
+                    <option value="Colleague">Colleague</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <button className="sl-btn sl-btn-primary" onClick={addBirthday} style={{ width: '100%' }}>Archive Birthday</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Add Event Modal */}
         {showAddModal && (
@@ -188,7 +273,7 @@ export default function CalendarPage() {
                   </select>
                 </div>
                 <div><label className="sl-label">Notes</label><input className="sl-input" value={newEvent.notes} onChange={(e) => setNewEvent({ ...newEvent, notes: e.target.value })} placeholder="Optional notes" /></div>
-                <button className="sl-btn sl-btn-primary" onClick={addEvent} style={{ width: '100%' }}>⚡ Add Event</button>
+                <button className="sl-btn sl-btn-primary" onClick={addEvent} style={{ width: '100%' }}><FaBolt /> Add Event</button>
               </div>
             </div>
           </div>
