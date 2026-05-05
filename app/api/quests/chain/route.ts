@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     const currentWeight = latestMetric?.weight || 75; // Default if not found
 
     // 2. Generate Milestones via AI
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
     const prompt = `
       As the "System Advisor" in a Solo Leveling themed self-improvement app, generate a "Main Quest Chain" (Hunter's Roadmap) for a user.
       
