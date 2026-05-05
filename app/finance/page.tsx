@@ -283,15 +283,28 @@ export default function FinancePage() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '8px' }}>
-                      <button className="sl-btn sl-btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.7rem' }} onClick={() => {
-                        const paid = prompt('Update total principal paid for ' + e.name, e.principalPaid);
-                        if (paid !== null) fetch('/api/finance/emi', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: e._id, principalPaid: Number(paid) }) }).then(fetchData);
-                      }}>Update Principal Paid</button>
-                      <button className="sl-btn sl-btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.7rem' }} onClick={() => {
-                        const left = prompt('Update months remaining for ' + e.name, e.remainingMonths);
-                        if (left !== null) fetch('/api/finance/emi', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: e._id, remainingMonths: Number(left) }) }).then(fetchData);
-                      }}>Update Months Left</button>
+                    <div style={{ display: 'flex', gap: '12px', width: '100%', marginTop: '8px', flexWrap: 'wrap' }}>
+                      <button className="sl-btn sl-btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.7rem', minWidth: '140px' }} onClick={async () => {
+                        const val = prompt('Update monthly EMI amount for ' + e.name, String(e.amount));
+                        if (val !== null && val !== '') {
+                          await fetch('/api/finance/emi', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: e._id, amount: Number(val) }) });
+                          fetchData();
+                        }
+                      }}>Edit Amount</button>
+                      <button className="sl-btn sl-btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.7rem', minWidth: '140px' }} onClick={async () => {
+                        const val = prompt('Update total principal paid for ' + e.name, String(e.principalPaid || 0));
+                        if (val !== null && val !== '') {
+                          await fetch('/api/finance/emi', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: e._id, principalPaid: Number(val) }) });
+                          fetchData();
+                        }
+                      }}>Edit Principal Paid</button>
+                      <button className="sl-btn sl-btn-secondary" style={{ flex: 1, padding: '8px', fontSize: '0.7rem', minWidth: '140px' }} onClick={async () => {
+                        const val = prompt('Update months remaining for ' + e.name, String(e.remainingMonths));
+                        if (val !== null && val !== '') {
+                          await fetch('/api/finance/emi', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: e._id, remainingMonths: Number(val) }) });
+                          fetchData();
+                        }
+                      }}>Edit Months Left</button>
                     </div>
                   </div>
                 ))}
