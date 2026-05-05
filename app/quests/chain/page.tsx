@@ -13,6 +13,7 @@ export default function QuestChainPage() {
   const [quest, setQuest] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState('');
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
 
   const [form, setForm] = useState({
@@ -48,8 +49,12 @@ export default function QuestChainPage() {
   };
 
   const handleGenerate = async () => {
-    if (!form.targetWeight || !form.targetSalary || !form.deadline) return;
+    if (!form.targetWeight || !form.targetSalary || !form.deadline) {
+      setError('Please provide all target parameters.');
+      return;
+    }
     setGenerating(true);
+    setError('');
     try {
       const res = await fetch('/api/quests/chain', {
         method: 'POST',
@@ -63,9 +68,13 @@ export default function QuestChainPage() {
       if (res.ok) {
         const d = await res.json();
         setQuest(d.quest);
+      } else {
+        const d = await res.json();
+        setError(d.error || 'The System failed to construct your roadmap. Try again.');
       }
     } catch (error) {
       console.error('Generation error:', error);
+      setError('A system interference occurred. Check your connection.');
     } finally {
       setGenerating(false);
     }
@@ -114,6 +123,13 @@ export default function QuestChainPage() {
                   <input className="sl-input" style={{ paddingLeft: '40px' }} type="date" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
                 </div>
               </div>
+
+              {error && (
+                <div style={{ color: 'var(--sl-red)', fontSize: '0.75rem', textAlign: 'center', background: 'rgba(235, 26, 3, 0.05)', padding: '10px', borderRadius: '8px', border: '1px solid var(--sl-red)' }}>
+                  [ERROR] {error}
+                </div>
+              )}
+
               <button className="sl-btn sl-btn-primary" onClick={handleGenerate} style={{ marginTop: '16px', width: '100%' }}>
                 <FaBolt /> COMMENCE EVOLUTION
               </button>

@@ -72,11 +72,24 @@ export async function POST(req: NextRequest) {
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
-    const cleanJson = text.replace(/```json|```/g, '').trim();
-    const { milestones } = JSON.parse(cleanJson);
+    
+    // Improved JSON extraction
+    let milestones;
+    try {
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      const cleanJson = jsonMatch ? jsonMatch[0] : text;
+      const parsed = JSON.parse(cleanJson);
+      milestones = parsed.milestones;
+    } catch (parseError) {
+      console.error('AI JSON Parse Error:', parseError, 'Raw Text:', text);
+      return NextResponse.json({ error: 'System error: Invalid roadmap format received.' }, { status: 500 });
+    }
+
+    if (!milestones || !Array.isArray(milestones)) {
+      return NextResponse.json({ error: 'System error: Roadmap data is incomplete.' }, { status: 500 });
+    }
 
     // 3. Save Quest Chain
-    // Deactivate previous active quest
     await MainQuest.updateMany({ userId: session.user.id, status: 'active' }, { status: 'failed' });
 
     const newQuest = await MainQuest.create({
@@ -92,8 +105,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ quest: newQuest });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Quest generation error:', error);
-    return NextResponse.json({ error: 'Failed to generate quest chain' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to generate quest chain' }, { status: 500 });
   }
 }
