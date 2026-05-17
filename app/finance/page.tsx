@@ -389,6 +389,11 @@ export default function FinancePage() {
           const csvText = XLSX.utils.sheet_to_csv(sheet);
           console.log('[AI-FRONTEND] CSV text generated. Length:', csvText.length);
 
+          // Get raw base64 for local parser if it fails
+          let binary = '';
+          for (let i = 0; i < data.byteLength; i++) binary += String.fromCharCode(data[i]);
+          const base64Data = window.btoa(binary);
+
           console.log('[AI-FRONTEND] Dispatching fetch request to /api/finance/gmail...');
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
@@ -398,7 +403,7 @@ export default function FinancePage() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               signal: controller.signal,
-              body: JSON.stringify({ rawText: csvText }),
+              body: JSON.stringify({ fileData: base64Data, isExcel: true, rawText: csvText }),
             });
             clearTimeout(timeoutId);
             console.log('[AI-FRONTEND] Fetch request complete. Status:', res.status);
@@ -407,7 +412,7 @@ export default function FinancePage() {
               const parsedData = await res.json();
               setParsedTransactions(parsedData.transactions || []);
               setUploadProgress(100);
-              setLoadingStatus('[SYSTEM] SPREADSHEET MATRIX TRANSLATED.');
+              setLoadingStatus(parsedData.method === 'local_parser' ? '[SYSTEM] INSTANT LOCAL PARSE SUCCESS.' : '[SYSTEM] SPREADSHEET MATRIX TRANSLATED.');
               if ((parsedData.transactions || []).length === 0) {
                 alert('[SYSTEM] Gemini could not extract any transactions from your Excel sheet.');
               }

@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import crypto from 'crypto';
 import { withLogger } from '@/lib/apiLogger';
+import { parseHDFCExcel } from '@/lib/parsers/hdfcParser';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -21,11 +22,34 @@ export const POST = withLogger(async (req: NextRequest) => {
     }
     console.log('[AI-BACKEND] Session verified for user:', session.user.id);
 
-    const { accessToken, rawText, fileData, mimeType } = await req.json();
+    const { accessToken, rawText, fileData, mimeType, isExcel } = await req.json();
 
     if (!accessToken && !rawText && !(fileData && mimeType)) {
       return NextResponse.json({ error: 'Provide a Gmail Access Token, Raw Text, or File Upload to parse' }, { status: 400 });
     }
+
+    // --- LOCAL PARSER FAST PATH ---
+    if (isExcel && fileData) {
+      try {
+        console.log('[AI-BACKEND] Attempting local HDFC Excel parsing...');
+        const buffer = Buffer.from(fileData, 'base64');
+        const localTransactions = await parseHDFCExcel(buffer);
+        if (localTransactions.length > 0) {
+          console.log(`[AI-BACKEND] Local parser success. Found ${localTransactions.length} transactions.`);
+          
+          const finalTransactions = localTransactions.map((tx: any) => {
+            const sigString = `${session.user.id}_${tx.date}_${tx.amount}_${tx.description.toLowerCase()}_${tx.type}`;
+            const signature = crypto.createHash('sha256').update(sigString).digest('hex');
+            return { ...tx, signature };
+          });
+          
+          return NextResponse.json({ transactions: finalTransactions, method: 'local_parser' });
+        }
+      } catch (err) {
+        console.warn('[AI-BACKEND] Local parser failed or format mismatch. Falling back to AI.', err);
+      }
+    }
+    // ------------------------------
 
     let textsToParse: string[] = [];
 
