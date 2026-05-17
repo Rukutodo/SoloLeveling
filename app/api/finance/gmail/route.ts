@@ -13,10 +13,13 @@ interface GmailMessage {
 
 export const POST = withLogger(async (req: NextRequest) => {
   try {
+    console.log('[AI-BACKEND] Request received. Checking session...');
     const session = await auth();
     if (!session?.user?.id) {
+      console.warn('[AI-BACKEND] Unauthorized access attempt.');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    console.log('[AI-BACKEND] Session verified for user:', session.user.id);
 
     const { accessToken, rawText, fileData, mimeType } = await req.json();
 

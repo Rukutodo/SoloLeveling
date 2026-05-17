@@ -390,25 +390,39 @@ export default function FinancePage() {
           console.log('[AI-FRONTEND] CSV text generated. Length:', csvText.length);
 
           console.log('[AI-FRONTEND] Dispatching fetch request to /api/finance/gmail...');
-          const res = await fetch('/api/finance/gmail', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rawText: csvText }),
-          });
-          console.log('[AI-FRONTEND] Fetch request complete. Status:', res.status);
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
-          if (res.ok) {
-            const parsedData = await res.json();
-            setParsedTransactions(parsedData.transactions || []);
-            setUploadProgress(100);
-            setLoadingStatus('[SYSTEM] SPREADSHEET MATRIX TRANSLATED.');
-            if ((parsedData.transactions || []).length === 0) {
-              alert('[SYSTEM] Gemini could not extract any transactions from your Excel sheet.');
+          try {
+            const res = await fetch('/api/finance/gmail', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: controller.signal,
+              body: JSON.stringify({ rawText: csvText }),
+            });
+            clearTimeout(timeoutId);
+            console.log('[AI-FRONTEND] Fetch request complete. Status:', res.status);
+
+            if (res.ok) {
+              const parsedData = await res.json();
+              setParsedTransactions(parsedData.transactions || []);
+              setUploadProgress(100);
+              setLoadingStatus('[SYSTEM] SPREADSHEET MATRIX TRANSLATED.');
+              if ((parsedData.transactions || []).length === 0) {
+                alert('[SYSTEM] Gemini could not extract any transactions from your Excel sheet.');
+              }
+            } else {
+              const err = await res.json();
+              console.error('[AI-FRONTEND] API error:', err);
+              alert('[SYSTEM] Excel AI extraction failed: ' + (err.error || 'Check file and try again.'));
             }
-          } else {
-            const err = await res.json();
-            console.error('[AI-FRONTEND] API error:', err);
-            alert('[SYSTEM] Excel AI extraction failed: ' + (err.error || 'Check file and try again.'));
+          } catch (fetchErr: any) {
+            if (fetchErr.name === 'AbortError') {
+              console.error('[AI-FRONTEND] Request timed out after 60s.');
+              alert('[SYSTEM] The AI is taking too long to respond (60s timeout). Try a smaller file or wait a few minutes.');
+            } else {
+              throw fetchErr;
+            }
           }
         } catch (error) {
           console.error('[AI-FRONTEND] Critical error during Excel parsing:', error);
