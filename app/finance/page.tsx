@@ -40,6 +40,9 @@ export default function FinancePage() {
   const [parsedTransactions, setParsedTransactions] = useState<any[]>([]);
   const [importStats, setImportStats] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [loadingStatus, setLoadingStatus] = useState('[SYSTEM] INITIALIZING UPLOAD...');
 
   const [form, setForm] = useState({ amount: '', type: 'expense' as 'income' | 'expense', category: '', description: '', date: new Date().toISOString().split('T')[0] });
   const [emiForm, setEmiForm] = useState({ name: '', amount: '', dayOfMonth: '1', totalMonths: '12', category: 'EMI', principalTotal: '', principalPaid: '' });
@@ -64,6 +67,38 @@ export default function FinancePage() {
       document.body.appendChild(script);
     }
   }, []);
+
+  useEffect(() => {
+    if (!parsing || !selectedFile) {
+      setUploadProgress(0);
+      return;
+    }
+    
+    // Simulate progression up to 95%
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev < 30) {
+          setLoadingStatus('[SYSTEM] CONVERTING FILE BYTES TO BASE64...');
+          return prev + 12;
+        }
+        if (prev < 65) {
+          setLoadingStatus('[SYSTEM] TRANSMITTING MATRIX TO GEMINI OCR...');
+          return prev + 8;
+        }
+        if (prev < 90) {
+          setLoadingStatus('[SYSTEM] ANALYZING PATTERNS AND INVOICE ENTRIES...');
+          return prev + 4;
+        }
+        if (prev < 95) {
+          setLoadingStatus('[SYSTEM] DEDUPLICATING AND ALIGNING TRANSACTION SCHEMA...');
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 450);
+
+    return () => clearInterval(interval);
+  }, [parsing, selectedFile]);
 
   const fetchData = async () => {
     const [fRes, uRes, eRes, iRes, insRes] = await Promise.all([
@@ -261,7 +296,10 @@ export default function FinancePage() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setSelectedFile(file);
     setParsing(true);
+    setUploadProgress(10);
+    setLoadingStatus('[SYSTEM] READING FILE BYTES...');
     setParsedTransactions([]);
     setImportStats(null);
 
@@ -273,13 +311,19 @@ export default function FinancePage() {
         const text = event.target?.result as string;
         const parsed = parseOFX(text);
         setParsedTransactions(parsed);
-        setParsing(false);
+        setUploadProgress(100);
+        setLoadingStatus('[SYSTEM] OFX STATEMENT PARSED SUCCESSFULLY.');
+        setTimeout(() => {
+          setParsing(false);
+          setSelectedFile(null);
+        }, 800);
         if (parsed.length === 0) {
           alert('[SYSTEM] Could not parse any transactions from the uploaded file. Ensure it is a valid OFX/QFX statement.');
         }
       };
       reader.onerror = () => {
         setParsing(false);
+        setSelectedFile(null);
         alert('[SYSTEM] File reading error.');
       };
       reader.readAsText(file);
@@ -306,6 +350,8 @@ export default function FinancePage() {
           if (res.ok) {
             const data = await res.json();
             setParsedTransactions(data.transactions || []);
+            setUploadProgress(100);
+            setLoadingStatus('[SYSTEM] TRANSACTION SCHEMA EXTRACTION SUCCESS.');
             if ((data.transactions || []).length === 0) {
               alert('[SYSTEM] Gemini could not extract any transactions from your PDF. Ensure it has legible transaction texts.');
             }
@@ -317,11 +363,15 @@ export default function FinancePage() {
           console.error(error);
           alert('[SYSTEM] Connection or file preparation error.');
         } finally {
-          setParsing(false);
+          setTimeout(() => {
+            setParsing(false);
+            setSelectedFile(null);
+          }, 800);
         }
       };
       reader.onerror = () => {
         setParsing(false);
+        setSelectedFile(null);
         alert('[SYSTEM] File reading error.');
       };
       reader.readAsArrayBuffer(file);
@@ -346,6 +396,8 @@ export default function FinancePage() {
           if (res.ok) {
             const parsedData = await res.json();
             setParsedTransactions(parsedData.transactions || []);
+            setUploadProgress(100);
+            setLoadingStatus('[SYSTEM] SPREADSHEET MATRIX TRANSLATED.');
             if ((parsedData.transactions || []).length === 0) {
               alert('[SYSTEM] Gemini could not extract any transactions from your Excel sheet.');
             }
@@ -357,11 +409,15 @@ export default function FinancePage() {
           console.error(error);
           alert('[SYSTEM] Spreadsheet parsing error.');
         } finally {
-          setParsing(false);
+          setTimeout(() => {
+            setParsing(false);
+            setSelectedFile(null);
+          }, 800);
         }
       };
       reader.onerror = () => {
         setParsing(false);
+        setSelectedFile(null);
         alert('[SYSTEM] File reading error.');
       };
       reader.readAsArrayBuffer(file);
@@ -380,6 +436,8 @@ export default function FinancePage() {
           if (res.ok) {
             const parsedData = await res.json();
             setParsedTransactions(parsedData.transactions || []);
+            setUploadProgress(100);
+            setLoadingStatus('[SYSTEM] CSV MATRIX PARSING SUCCESS.');
             if ((parsedData.transactions || []).length === 0) {
               alert('[SYSTEM] Gemini could not extract any transactions from your CSV sheet.');
             }
@@ -391,17 +449,22 @@ export default function FinancePage() {
           console.error(error);
           alert('[SYSTEM] Connection or file preparation error.');
         } finally {
-          setParsing(false);
+          setTimeout(() => {
+            setParsing(false);
+            setSelectedFile(null);
+          }, 800);
         }
       };
       reader.onerror = () => {
         setParsing(false);
+        setSelectedFile(null);
         alert('[SYSTEM] File reading error.');
       };
       reader.readAsText(file);
     }
     else {
       setParsing(false);
+      setSelectedFile(null);
       alert('[SYSTEM] Unsupported file format. Please upload PDF, Excel (.xlsx, .xls), CSV, or OFX/QFX.');
     }
   };
@@ -627,11 +690,53 @@ export default function FinancePage() {
                     <p style={{ fontSize: '0.75rem', color: 'var(--sl-text-dim)', marginBottom: '12px' }}>
                       [SYSTEM] Drop any Bank Statement or Receipt file (PDF, Excel, CSV, or OFX/QFX) to parse transactions instantly.
                     </p>
-                    <div style={{ border: '2px dashed var(--sl-glass-border)', borderRadius: '12px', padding: '24px', textAlign: 'center', cursor: 'pointer' }} onClick={() => fileInputRef.current?.click()}>
-                      <FaCloudUploadAlt style={{ fontSize: '2rem', color: 'var(--sl-blue)', marginBottom: '8px' }} />
-                      <div style={{ fontSize: '0.8rem', color: 'var(--sl-text-bright)' }}>Click to upload PDF, Excel, CSV, or OFX/QFX</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)' }}>Parses local code or feeds to Gemini multimodal OCR</div>
-                    </div>
+                    
+                    {selectedFile ? (
+                      <div className="sl-panel" style={{ padding: '24px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--sl-blue-glow)', borderRadius: '12px', textAlign: 'left', position: 'relative' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                          <div style={{ width: '48px', height: '48px', background: 'var(--sl-blue-dim)', border: '1px solid var(--sl-blue)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--sl-blue)', fontSize: '1.5rem' }}>
+                            <FaFileInvoiceDollar />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--sl-text-bright)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {selectedFile.name}
+                            </div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', marginTop: '2px' }}>
+                              {(selectedFile.size / 1024).toFixed(1)} KB · {selectedFile.type || 'Binary Statement'}
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--sl-blue)', fontFamily: 'var(--sl-font-display)' }}>
+                            {uploadProgress}%
+                          </div>
+                        </div>
+
+                        {/* Premium S-Rank Progress Bar */}
+                        <div className="sl-progress sl-progress-blue" style={{ height: '8px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
+                          <div className="sl-progress-fill" style={{ width: `${uploadProgress}%`, background: 'var(--sl-blue)', boxShadow: 'var(--sl-glow-sm)', height: '100%', borderRadius: '4px', transition: 'width 0.3s ease' }} />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.625rem', color: 'var(--sl-blue)', fontFamily: 'var(--sl-font-mono)', fontWeight: 600, letterSpacing: '0.05em' }}>
+                            {loadingStatus}
+                          </span>
+                          {!parsing && (
+                            <button 
+                              className="sl-btn sl-btn-ghost" 
+                              onClick={() => { setSelectedFile(null); setUploadProgress(0); }}
+                              style={{ padding: '4px 8px', fontSize: '0.65rem', color: 'var(--sl-red)' }}
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ border: '2px dashed var(--sl-glass-border)', borderRadius: '12px', padding: '24px', textAlign: 'center', cursor: 'pointer' }} onClick={() => fileInputRef.current?.click()}>
+                        <FaCloudUploadAlt style={{ fontSize: '2rem', color: 'var(--sl-blue)', marginBottom: '8px' }} />
+                        <div style={{ fontSize: '0.8rem', color: 'var(--sl-text-bright)' }}>Click to upload PDF, Excel, CSV, or OFX/QFX</div>
+                        <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)' }}>Parses local code or feeds to Gemini multimodal OCR</div>
+                      </div>
+                    )}
                     <input ref={fileInputRef} type="file" accept=".pdf,.xlsx,.xls,.csv,.ofx,.qfx" onChange={handleFileUpload} style={{ display: 'none' }} />
                   </div>
                 )}
