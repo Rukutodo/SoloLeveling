@@ -17,6 +17,7 @@ import {
 import {
   FiHome, FiCheckSquare, FiMap, FiFileText, FiBook,
   FiCoffee, FiActivity, FiZap, FiCalendar, FiDollarSign, FiLogOut,
+  FiChevronLeft, FiChevronRight,
 } from 'react-icons/fi';
 import {
   RiDashboardFill, RiTodoFill, RiRoadMapFill, RiStickyNoteFill,
@@ -105,9 +106,28 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const { theme } = useTheme();
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('sl-sidebar-collapsed');
+    if (saved === 'true') {
+      setIsCollapsed(true);
+      document.documentElement.style.setProperty('--sl-sidebar-w', '80px');
+    } else {
+      setIsCollapsed(false);
+      document.documentElement.style.setProperty('--sl-sidebar-w', '280px');
+    }
+  }, []);
+
+  const toggleCollapse = () => {
+    const nextState = !isCollapsed;
+    setIsCollapsed(nextState);
+    localStorage.setItem('sl-sidebar-collapsed', String(nextState));
+    document.documentElement.style.setProperty('--sl-sidebar-w', nextState ? '80px' : '280px');
+  };
 
   const xpPercent = xpToNext > 0 ? Math.min((xp / xpToNext) * 100, 100) : 0;
   const initials = userName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -126,11 +146,18 @@ export default function Sidebar({
       <div className={`${styles.mobileOverlay} ${mobileOpen ? styles.mobileOverlayVisible : ''}`}
         onClick={() => setMobileOpen(false)} />
 
-      <aside className={`${styles.sidebar} ${mobileOpen ? styles.sidebarOpen : ''}`}>
+      <aside className={`${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : ''} ${mobileOpen ? styles.sidebarOpen : ''}`}>
+        <button 
+          className={styles.collapseToggle} 
+          onClick={toggleCollapse}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? <FiChevronRight /> : <FiChevronLeft />}
+        </button>
         <div className={styles.sidebarHeader}>
           <div className={styles.logo}>
             <div className={styles.logoIcon}><LogoIcon /></div>
-            <div>
+            <div className={styles.logoInfo}>
               <div className={styles.logoText}>{brand.name}</div>
               <div className={styles.logoSubtext}>{brand.sub}</div>
             </div>
@@ -179,7 +206,7 @@ export default function Sidebar({
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <ThemeSwitcher />
+          <ThemeSwitcher collapsed={isCollapsed} />
           <div style={{ height: '4px' }} />
           <button className={styles.logoutBtn} onClick={() => signOut({ callbackUrl: '/login' })} id="logout-btn">
             <LogoutIcon className={styles.navIcon} />

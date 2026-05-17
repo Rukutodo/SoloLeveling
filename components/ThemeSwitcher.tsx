@@ -3,7 +3,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTheme, THEMES, ThemeName } from './ThemeProvider';
 
-export default function ThemeSwitcher() {
+interface ThemeSwitcherProps {
+  collapsed?: boolean;
+}
+
+export default function ThemeSwitcher({ collapsed = false }: ThemeSwitcherProps) {
   const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -26,11 +30,14 @@ export default function ThemeSwitcher() {
       <button
         onClick={() => setOpen(!open)}
         style={{
-          width: '100%',
+          width: collapsed ? '48px' : '100%',
+          height: collapsed ? '48px' : 'auto',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
-          padding: '12px 16px',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          gap: collapsed ? '0' : '12px',
+          padding: collapsed ? '12px' : '12px 16px',
+          margin: collapsed ? '4px auto' : '0',
           background: open ? 'hsla(0, 0%, 100%, 0.05)' : 'transparent',
           border: 'none',
           borderRadius: 'var(--sl-radius-md)',
@@ -50,22 +57,24 @@ export default function ThemeSwitcher() {
           <circle cx="6.5" cy="12.5" r="0.5" fill="var(--sl-purple)" stroke="var(--sl-purple)" />
           <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
         </svg>
-        <span style={{ flex: 1, textAlign: 'left' }}>Theme</span>
+        {!collapsed && <span style={{ flex: 1, textAlign: 'left' }}>Theme</span>}
         {/* Mini swatch preview */}
-        <div style={{ display: 'flex', gap: '3px' }}>
-          {current.colors.slice(1, 4).map((c, i) => (
-            <div
-              key={i}
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: c,
-                boxShadow: `0 0 4px ${c}40`,
-              }}
-            />
-          ))}
-        </div>
+        {!collapsed && (
+          <div style={{ display: 'flex', gap: '3px' }}>
+            {current.colors.slice(1, 4).map((c, i) => (
+              <div
+                key={i}
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: c,
+                  boxShadow: `0 0 4px ${c}40`,
+                }}
+              />
+            ))}
+          </div>
+        )}
       </button>
 
       {/* Popover */}
@@ -73,9 +82,10 @@ export default function ThemeSwitcher() {
         <div
           style={{
             position: 'absolute',
-            bottom: 'calc(100% + 8px)',
-            left: '0',
-            right: '0',
+            bottom: collapsed ? '0' : 'calc(100% + 8px)',
+            left: collapsed ? 'calc(100% + 12px)' : '0',
+            right: collapsed ? 'auto' : '0',
+            width: collapsed ? '220px' : 'auto',
             background: 'var(--sl-bg-sub)',
             border: '1px solid var(--sl-glass-border)',
             borderRadius: 'var(--sl-radius-lg)',

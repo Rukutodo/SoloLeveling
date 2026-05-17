@@ -332,14 +332,7 @@ export default function FinancePage() {
       const reader = new FileReader();
       reader.onload = async (event) => {
         try {
-          const arrayBuffer = event.target?.result as ArrayBuffer;
-          const bytes = new Uint8Array(arrayBuffer);
-          let binary = '';
-          const len = bytes.byteLength;
-          for (let i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i]);
-          }
-          const base64Data = window.btoa(binary);
+          const base64Data = (event.target?.result as string).split(',')[1];
           
           const res = await fetch('/api/finance/gmail', {
             method: 'POST',
@@ -374,7 +367,7 @@ export default function FinancePage() {
         setSelectedFile(null);
         alert('[SYSTEM] File reading error.');
       };
-      reader.readAsArrayBuffer(file);
+      reader.readAsDataURL(file);
     }
     else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
       const reader = new FileReader();

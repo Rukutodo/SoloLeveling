@@ -9,7 +9,7 @@
   display: flex;
   flex-direction: column;
   z-index: 100;
-  transition: transform var(--sl-ease-out);
+  transition: transform var(--sl-ease-out), width 0.3s var(--sl-ease-out);
 }
 
 .sidebarHeader {
@@ -208,7 +208,10 @@
 }
 
 @media (max-width: 1024px) {
-  .sidebar { transform: translateX(-100%); }
+  .sidebar {
+    width: 280px !important;
+    transform: translateX(-100%);
+  }
   .sidebarOpen { transform: translateX(0); }
   .mobileToggle { display: flex; }
 }
@@ -227,4 +230,172 @@
 .mobileOverlayVisible {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* ─── Collapsible Sidebar enhancements ────────────────────────────────── */
+.collapseToggle {
+  display: flex;
+  position: absolute;
+  top: 32px;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--sl-bg-elevated);
+  border: 1px solid var(--sl-glass-border-bright);
+  color: var(--sl-blue);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 110;
+  box-shadow: var(--sl-shadow-sm), var(--sl-glow-sm);
+  transition: all 0.3s var(--sl-ease-out);
+}
+
+.collapseToggle:hover {
+  border-color: var(--sl-blue);
+  box-shadow: var(--sl-glow-md);
+  color: var(--sl-text-bright);
+  transform: scale(1.1);
+}
+
+@media (max-width: 1024px) {
+  .collapseToggle {
+    display: none;
+  }
+}
+
+/* Base styles with transitions for elements that collapse */
+.logoInfo {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.25s var(--sl-ease-out), transform 0.25s var(--sl-ease-out);
+  transform-origin: left center;
+}
+
+.playerDetails {
+  transition: opacity 0.25s var(--sl-ease-out), transform 0.25s var(--sl-ease-out);
+  transform-origin: left center;
+}
+
+.xpBarContainer {
+  transition: opacity 0.2s var(--sl-ease-out), max-height 0.2s var(--sl-ease-out), margin 0.2s var(--sl-ease-out);
+  max-height: 50px;
+  overflow: hidden;
+}
+
+.navSectionTitle {
+  transition: opacity 0.2s var(--sl-ease-out), max-height 0.2s var(--sl-ease-out), margin 0.2s var(--sl-ease-out);
+  max-height: 20px;
+}
+
+.navLabel {
+  transition: opacity 0.25s var(--sl-ease-out), transform 0.25s var(--sl-ease-out);
+  transform-origin: left center;
+}
+
+.logoutBtn span {
+  transition: opacity 0.25s var(--sl-ease-out), transform 0.25s var(--sl-ease-out);
+  transform-origin: left center;
+  display: inline-block;
+}
+
+/* Collapsed Overrides */
+
+.sidebarCollapsed .logo {
+  gap: 0;
+  justify-content: center;
+}
+
+.sidebarCollapsed .logoInfo {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.8);
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.sidebarCollapsed .playerInfo {
+  gap: 0;
+  justify-content: center;
+}
+
+.sidebarCollapsed .playerDetails {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.8);
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.sidebarCollapsed .xpBarContainer {
+  opacity: 0;
+  visibility: hidden;
+  max-height: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+
+.sidebarCollapsed .navSectionTitle {
+  opacity: 0;
+  visibility: hidden;
+  max-height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.sidebarCollapsed .navItem {
+  gap: 0;
+  justify-content: center;
+  padding: 12px;
+  margin: 4px auto;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--sl-radius-md);
+}
+
+.sidebarCollapsed .navLabel {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.8);
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+}
+
+.sidebarCollapsed .logoutBtn {
+  gap: 0;
+  justify-content: center;
+  padding: 12px;
+  margin: 4px auto;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--sl-radius-md);
+}
+
+.sidebarCollapsed .logoutBtn span {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.8);
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+}
+
+/* Adjust paddings for perfect centering */
+.sidebarCollapsed .sidebarHeader {
+  padding: 32px 16px;
+}
+
+.sidebarCollapsed .playerProfile {
+  padding: 24px 16px;
 }

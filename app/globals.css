@@ -532,6 +532,7 @@ input, textarea, select {
   z-index: 1;
   min-height: 100vh;
   background-color: var(--sl-bg-base);
+  transition: margin-left 0.3s var(--sl-ease-out);
 }
 
 .sl-page-header {
