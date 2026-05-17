@@ -374,15 +374,20 @@ export default function FinancePage() {
     else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
       const reader = new FileReader();
       reader.onload = async (event) => {
+        console.log('[AI-FRONTEND] Excel Reader onload triggered');
         try {
           const arrayBuffer = event.target?.result as ArrayBuffer;
           const data = new Uint8Array(arrayBuffer);
-          console.log('[AI-FRONTEND] File read complete. Starting XLSX parsing...');
+          console.log('[AI-FRONTEND] File buffer created. Buffer size:', data.length);
+          
+          console.log('[AI-FRONTEND] Starting XLSX parsing...');
           const workbook = XLSX.read(data, { type: 'array' });
-          console.log('[AI-FRONTEND] XLSX parsing complete.');
+          console.log('[AI-FRONTEND] XLSX parsing complete. Sheet count:', workbook.SheetNames.length);
+          
           const sheetName = workbook.SheetNames[0];
           const sheet = workbook.Sheets[sheetName];
           const csvText = XLSX.utils.sheet_to_csv(sheet);
+          console.log('[AI-FRONTEND] CSV text generated. Length:', csvText.length);
 
           console.log('[AI-FRONTEND] Dispatching fetch request to /api/finance/gmail...');
           const res = await fetch('/api/finance/gmail', {
@@ -390,7 +395,7 @@ export default function FinancePage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawText: csvText }),
           });
-          console.log('[AI-FRONTEND] Fetch request complete.');
+          console.log('[AI-FRONTEND] Fetch request complete. Status:', res.status);
 
           if (res.ok) {
             const parsedData = await res.json();
@@ -402,19 +407,22 @@ export default function FinancePage() {
             }
           } else {
             const err = await res.json();
+            console.error('[AI-FRONTEND] API error:', err);
             alert('[SYSTEM] Excel AI extraction failed: ' + (err.error || 'Check file and try again.'));
           }
         } catch (error) {
-          console.error(error);
-          alert('[SYSTEM] Spreadsheet parsing error.');
+          console.error('[AI-FRONTEND] Critical error during Excel parsing:', error);
+          alert('[SYSTEM] Spreadsheet parsing error. Check console for details.');
         } finally {
+          console.log('[AI-FRONTEND] Cleaning up parsing state...');
           setTimeout(() => {
             setParsing(false);
             setSelectedFile(null);
           }, 800);
         }
       };
-      reader.onerror = () => {
+      reader.onerror = (err) => {
+        console.error('[AI-FRONTEND] File reader error:', err);
         setParsing(false);
         setSelectedFile(null);
         alert('[SYSTEM] File reading error.');
