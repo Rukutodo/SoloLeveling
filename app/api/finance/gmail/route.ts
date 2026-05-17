@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import crypto from 'crypto';
 import { withLogger } from '@/lib/apiLogger';
 import { parseHDFCExcel } from '@/lib/parsers/hdfcParser';
+import { parseKotakPDF } from '@/lib/parsers/kotakParser';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -29,24 +30,26 @@ export const POST = withLogger(async (req: NextRequest) => {
     }
 
     // --- LOCAL PARSER FAST PATH ---
-    if (isExcel && fileData) {
-      try {
+    if (fileData) {
+      const buffer = Buffer.from(fileData, 'base64');
+      let localTransactions = [];
+
+      if (isExcel) {
         console.log('[AI-BACKEND] Attempting local HDFC Excel parsing...');
-        const buffer = Buffer.from(fileData, 'base64');
-        const localTransactions = await parseHDFCExcel(buffer);
-        if (localTransactions.length > 0) {
-          console.log(`[AI-BACKEND] Local parser success. Found ${localTransactions.length} transactions.`);
-          
-          const finalTransactions = localTransactions.map((tx: any) => {
-            const sigString = `${session.user.id}_${tx.date}_${tx.amount}_${tx.description.toLowerCase()}_${tx.type}`;
-            const signature = crypto.createHash('sha256').update(sigString).digest('hex');
-            return { ...tx, signature };
-          });
-          
-          return NextResponse.json({ transactions: finalTransactions, method: 'local_parser' });
-        }
-      } catch (err) {
-        console.warn('[AI-BACKEND] Local parser failed or format mismatch. Falling back to AI.', err);
+        try { localTransactions = await parseHDFCExcel(buffer); } catch (e) { console.warn('HDFC Excel parser failed'); }
+      } else if (mimeType === 'application/pdf') {
+        console.log('[AI-BACKEND] Attempting local Kotak PDF parsing...');
+        try { localTransactions = await parseKotakPDF(buffer); } catch (e) { console.warn('Kotak PDF parser failed'); }
+      }
+
+      if (localTransactions.length > 0) {
+        console.log(`[AI-BACKEND] Local parser success. Found ${localTransactions.length} transactions.`);
+        const finalTransactions = localTransactions.map((tx: any) => {
+          const sigString = `${session.user.id}_${tx.date}_${tx.amount}_${tx.description.toLowerCase()}_${tx.type}`;
+          const signature = crypto.createHash('sha256').update(sigString).digest('hex');
+          return { ...tx, signature };
+        });
+        return NextResponse.json({ transactions: finalTransactions, method: 'local_parser' });
       }
     }
     // ------------------------------
