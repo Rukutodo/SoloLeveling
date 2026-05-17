@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import { MdAdd, MdClose, MdDelete, MdTrendingUp, MdTrendingDown, MdChevronLeft, MdChevronRight, MdAccountBalanceWallet, MdOutlineAutorenew } from 'react-icons/md';
 import { GiHeartBeats } from 'react-icons/gi';
 import { FaBolt, FaGoogle, FaFileInvoiceDollar, FaCloudUploadAlt, FaSearchDollar, FaList, FaCheckCircle, FaTrashAlt } from 'react-icons/fa';
+import * as XLSX from 'xlsx';
 import styles from './finance.module.css';
 
 interface Transaction { _id: string; date: string; amount: number; type: 'income' | 'expense'; category: string; description: string; }
@@ -264,21 +265,145 @@ export default function FinancePage() {
     setParsedTransactions([]);
     setImportStats(null);
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      const parsed = parseOFX(text);
-      setParsedTransactions(parsed);
+    const fileName = file.name.toLowerCase();
+
+    if (fileName.endsWith('.ofx') || fileName.endsWith('.qfx')) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        const parsed = parseOFX(text);
+        setParsedTransactions(parsed);
+        setParsing(false);
+        if (parsed.length === 0) {
+          alert('[SYSTEM] Could not parse any transactions from the uploaded file. Ensure it is a valid OFX/QFX statement.');
+        }
+      };
+      reader.onerror = () => {
+        setParsing(false);
+        alert('[SYSTEM] File reading error.');
+      };
+      reader.readAsText(file);
+    } 
+    else if (fileName.endsWith('.pdf')) {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const arrayBuffer = event.target?.result as ArrayBuffer;
+          const bytes = new Uint8Array(arrayBuffer);
+          let binary = '';
+          const len = bytes.byteLength;
+          for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          const base64Data = window.btoa(binary);
+          
+          const res = await fetch('/api/finance/gmail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileData: base64Data, mimeType: 'application/pdf' }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            setParsedTransactions(data.transactions || []);
+            if ((data.transactions || []).length === 0) {
+              alert('[SYSTEM] Gemini could not extract any transactions from your PDF. Ensure it has legible transaction texts.');
+            }
+          } else {
+            const err = await res.json();
+            alert('[SYSTEM] AI extraction failed: ' + (err.error || 'Check file and try again.'));
+          }
+        } catch (error) {
+          console.error(error);
+          alert('[SYSTEM] Connection or file preparation error.');
+        } finally {
+          setParsing(false);
+        }
+      };
+      reader.onerror = () => {
+        setParsing(false);
+        alert('[SYSTEM] File reading error.');
+      };
+      reader.readAsArrayBuffer(file);
+    }
+    else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const arrayBuffer = event.target?.result as ArrayBuffer;
+          const data = new Uint8Array(arrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          const csvText = XLSX.utils.sheet_to_csv(sheet);
+
+          const res = await fetch('/api/finance/gmail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rawText: csvText }),
+          });
+
+          if (res.ok) {
+            const parsedData = await res.json();
+            setParsedTransactions(parsedData.transactions || []);
+            if ((parsedData.transactions || []).length === 0) {
+              alert('[SYSTEM] Gemini could not extract any transactions from your Excel sheet.');
+            }
+          } else {
+            const err = await res.json();
+            alert('[SYSTEM] Excel AI extraction failed: ' + (err.error || 'Check file and try again.'));
+          }
+        } catch (error) {
+          console.error(error);
+          alert('[SYSTEM] Spreadsheet parsing error.');
+        } finally {
+          setParsing(false);
+        }
+      };
+      reader.onerror = () => {
+        setParsing(false);
+        alert('[SYSTEM] File reading error.');
+      };
+      reader.readAsArrayBuffer(file);
+    }
+    else if (fileName.endsWith('.csv')) {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const csvText = event.target?.result as string;
+          const res = await fetch('/api/finance/gmail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rawText: csvText }),
+          });
+
+          if (res.ok) {
+            const parsedData = await res.json();
+            setParsedTransactions(parsedData.transactions || []);
+            if ((parsedData.transactions || []).length === 0) {
+              alert('[SYSTEM] Gemini could not extract any transactions from your CSV sheet.');
+            }
+          } else {
+            const err = await res.json();
+            alert('[SYSTEM] CSV AI extraction failed: ' + (err.error || 'Check file and try again.'));
+          }
+        } catch (error) {
+          console.error(error);
+          alert('[SYSTEM] Connection or file preparation error.');
+        } finally {
+          setParsing(false);
+        }
+      };
+      reader.onerror = () => {
+        setParsing(false);
+        alert('[SYSTEM] File reading error.');
+      };
+      reader.readAsText(file);
+    }
+    else {
       setParsing(false);
-      if (parsed.length === 0) {
-        alert('[SYSTEM] Could not parse any transactions from the uploaded file. Ensure it is a valid OFX/QFX statement.');
-      }
-    };
-    reader.onerror = () => {
-      setParsing(false);
-      alert('[SYSTEM] File reading error.');
-    };
-    reader.readAsText(file);
+      alert('[SYSTEM] Unsupported file format. Please upload PDF, Excel (.xlsx, .xls), CSV, or OFX/QFX.');
+    }
   };
 
   const bulkImportTransactions = async () => {
@@ -479,7 +604,7 @@ export default function FinancePage() {
                     <FaGoogle /> Gmail OCR
                   </button>
                   <button className={`sl-btn ${importTab === 'file' ? 'sl-btn-primary' : 'sl-btn-ghost'}`} onClick={() => setImportTab('file')} style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <FaFileInvoiceDollar /> OFX/QFX Bank File
+                    <FaFileInvoiceDollar /> File Upload (PDF, Excel, OFX)
                   </button>
                   <button className={`sl-btn ${importTab === 'paste' ? 'sl-btn-primary' : 'sl-btn-ghost'}`} onClick={() => setImportTab('paste')} style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <FaList /> Paste Receipt
@@ -500,14 +625,14 @@ export default function FinancePage() {
                 {importTab === 'file' && (
                   <div>
                     <p style={{ fontSize: '0.75rem', color: 'var(--sl-text-dim)', marginBottom: '12px' }}>
-                      [SYSTEM] Drop bank statement file (.OFX or .QFX) below to parse transactions client-side instantly.
+                      [SYSTEM] Drop any Bank Statement or Receipt file (PDF, Excel, CSV, or OFX/QFX) to parse transactions instantly.
                     </p>
                     <div style={{ border: '2px dashed var(--sl-glass-border)', borderRadius: '12px', padding: '24px', textAlign: 'center', cursor: 'pointer' }} onClick={() => fileInputRef.current?.click()}>
                       <FaCloudUploadAlt style={{ fontSize: '2rem', color: 'var(--sl-blue)', marginBottom: '8px' }} />
-                      <div style={{ fontSize: '0.8rem', color: 'var(--sl-text-bright)' }}>Click to upload Statement</div>
-                      <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)' }}>Supports standard bank formats</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--sl-text-bright)' }}>Click to upload PDF, Excel, CSV, or OFX/QFX</div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)' }}>Parses local code or feeds to Gemini multimodal OCR</div>
                     </div>
-                    <input ref={fileInputRef} type="file" accept=".ofx,.qfx" onChange={handleFileUpload} style={{ display: 'none' }} />
+                    <input ref={fileInputRef} type="file" accept=".pdf,.xlsx,.xls,.csv,.ofx,.qfx" onChange={handleFileUpload} style={{ display: 'none' }} />
                   </div>
                 )}
 

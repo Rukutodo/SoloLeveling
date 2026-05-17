@@ -17,10 +17,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { accessToken, rawText } = await req.json();
+    const { accessToken, rawText, fileData, mimeType } = await req.json();
 
-    if (!accessToken && !rawText) {
-      return NextResponse.json({ error: 'Provide either a Gmail Access Token or Raw Text to parse' }, { status: 400 });
+    if (!accessToken && !rawText && !(fileData && mimeType)) {
+      return NextResponse.json({ error: 'Provide a Gmail Access Token, Raw Text, or File Upload to parse' }, { status: 400 });
     }
 
     let textsToParse: string[] = [];
@@ -64,13 +64,13 @@ export async function POST(req: NextRequest) {
       textsToParse = [rawText];
     }
 
-    if (textsToParse.length === 0) {
+    if (textsToParse.length === 0 && !(fileData && mimeType)) {
       return NextResponse.json({ transactions: [] });
     }
 
-    // 2. Feed text snippets to Gemini to extract financial transaction structures
+    // 2. Feed text snippets or file to Gemini to extract financial transaction structures
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    const prompt = `You are a financial parsing engine. Analyze the following receipt email logs/texts and extract structured transaction information.
+    const prompt = `You are a financial parsing engine. Analyze the following receipt email logs/texts or uploaded document and extract structured transaction information.
     For each valid financial transaction found (purchase, refund, bill payment, salary, credit alert):
     - Identify the date (formatted as YYYY-MM-DD). If no clear year is mentioned, assume 2026.
     - Extract the transaction amount as a positive number.
@@ -80,11 +80,6 @@ export async function POST(req: NextRequest) {
       For Income: "Salary", "Freelance", "Investments", "Gifts", "Other Income".
     - Provide a short, clean description (e.g. "Amazon.in", "Uber Ride", "Salary Credit", "Starbucks").
     
-    Email Logs/Texts to parse:
-    """
-    ${textsToParse.join('\n\n--- MESSAGE BLOCK ---\n\n')}
-    """
-
     Return a JSON response with this EXACT structure (no markdown wrapper, just raw JSON array of objects):
     [
       {
@@ -98,8 +93,23 @@ export async function POST(req: NextRequest) {
     
     If no transactions are found, return an empty array. Do not add any text other than the JSON array.`;
 
-    const result = await model.generateContent(prompt);
-    const parsedText = result.response.text().trim();
+    let parsedText = '';
+    if (fileData && mimeType) {
+      const result = await model.generateContent([
+        {
+          inlineData: {
+            data: fileData,
+            mimeType: mimeType
+          }
+        },
+        prompt
+      ]);
+      parsedText = result.response.text().trim();
+    } else {
+      const fullPrompt = `${prompt}\n\nEmail Logs/Texts to parse:\n\"\"\"\n${textsToParse.join('\n\n--- MESSAGE BLOCK ---\n\n')}\n\"\"\"`;
+      const result = await model.generateContent(fullPrompt);
+      parsedText = result.response.text().trim();
+    }
 
     // Remove markdown codeblock wrappers if present
     const cleanJSON = parsedText.replace(/^```json\s*/, '').replace(/```$/, '').trim();
