@@ -29,18 +29,23 @@ export async function POST(req: NextRequest) {
     
     const existingSignatures = new Set(existingTx.map((t) => t.signature));
 
-    // 2. Filter out duplicates
+    // 2. Filter out duplicates and drop 0 amounts
     const uniqueToInsert = [];
     let ignoredCount = 0;
 
     for (const tx of transactions) {
+      const amount = Number(tx.amount) || 0;
+      if (amount === 0) {
+        ignoredCount++;
+        continue;
+      }
       if (tx.signature && existingSignatures.has(tx.signature)) {
         ignoredCount++;
       } else {
         uniqueToInsert.push({
           userId,
           date: tx.date ? new Date(tx.date) : new Date(),
-          amount: Number(tx.amount) || 0,
+          amount: amount,
           type: tx.type === 'income' ? 'income' : 'expense',
           category: tx.category && tx.category !== 'Other' ? tx.category : (tx.description || 'Transaction').split(/[\s\/\-_|]+/).slice(0, 2).join(' ').replace(/[^a-zA-Z0-9 ]/g, '').trim() || tx.description?.slice(0, 20) || 'Transaction',
           description: tx.description || 'Imported Transaction',
@@ -58,17 +63,19 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Construct a detailed breakdown for the frontend report
-    const breakdown = transactions.map((tx) => {
-      const isDuplicate = tx.signature && existingSignatures.has(tx.signature);
-      return {
-        date: tx.date || new Date().toISOString(),
-        amount: Number(tx.amount) || 0,
-        type: tx.type === 'income' ? 'income' : 'expense',
-        category: tx.category && tx.category !== 'Other' ? tx.category : (tx.description || 'Transaction').split(/[\s\/\-_|]+/).slice(0, 2).join(' ').replace(/[^a-zA-Z0-9 ]/g, '').trim() || tx.description?.slice(0, 20) || 'Transaction',
-        description: tx.description || 'Imported Transaction',
-        status: isDuplicate ? 'duplicate' : 'imported',
-      };
-    });
+    const breakdown = transactions
+      .filter(tx => (Number(tx.amount) || 0) > 0)
+      .map((tx) => {
+        const isDuplicate = tx.signature && existingSignatures.has(tx.signature);
+        return {
+          date: tx.date || new Date().toISOString(),
+          amount: Number(tx.amount) || 0,
+          type: tx.type === 'income' ? 'income' : 'expense',
+          category: tx.category && tx.category !== 'Other' ? tx.category : (tx.description || 'Transaction').split(/[\s\/\-_|]+/).slice(0, 2).join(' ').replace(/[^a-zA-Z0-9 ]/g, '').trim() || tx.description?.slice(0, 20) || 'Transaction',
+          description: tx.description || 'Imported Transaction',
+          status: isDuplicate ? 'duplicate' : 'imported',
+        };
+      });
 
     // 5. Award XP for syncing transactions if at least one transaction was imported
     let xpResult = null;
