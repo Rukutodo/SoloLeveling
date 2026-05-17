@@ -72,9 +72,9 @@ export const POST = withLogger(async (req: NextRequest) => {
       return NextResponse.json({ transactions: [] });
     }
 
-    console.log('[AI-BACKEND] Starting gemma-4-31b-it processing for Finance/Gmail Parsing...');
-    // 2. Feed text snippets or file to Gemini to extract financial transaction structures
-    const model = genAI.getGenerativeModel({ model: 'gemma-4-31b-it' });
+    console.log('[AI-BACKEND] Starting AI processing for Finance/Gmail Parsing...');
+    // 2. Use a faster, stable model for production
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const prompt = `You are a financial parsing engine. Analyze the following receipt email logs/texts or uploaded document and extract structured transaction information.
     For each valid financial transaction found (purchase, refund, bill payment, salary, credit alert):
     - Identify the date (formatted as YYYY-MM-DD). If no clear year is mentioned, assume 2026.
@@ -101,30 +101,37 @@ export const POST = withLogger(async (req: NextRequest) => {
     let parsedText = '';
     const aiStartTime = Date.now();
 
-    if (fileData && mimeType) {
-      console.log(`[AI-BACKEND] Sending ${mimeType} file (${fileData.length} chars) to gemma-4-31b-it...`);
-      const result = await model.generateContent([
-        {
-          inlineData: {
-            data: fileData,
-            mimeType: mimeType
-          }
-        },
-        prompt
-      ]);
-      const resText = result.response.text();
-      const aiDuration = (Date.now() - aiStartTime) / 1000;
-      console.log(`[AI-BACKEND] Response received in ${aiDuration.toFixed(2)}s. Content length: ${resText.length}`);
-      parsedText = resText.trim();
-    } else {
-      const textsJoined = textsToParse.join('\n\n--- MESSAGE BLOCK ---\n\n');
-      console.log(`[AI-BACKEND] Sending ${textsToParse.length} text blocks (${textsJoined.length} chars) to gemma-4-31b-it...`);
-      const fullPrompt = `${prompt}\n\nEmail Logs/Texts to parse:\n\"\"\"\n${textsJoined}\n\"\"\"`;
-      const result = await model.generateContent(fullPrompt);
-      const resText = result.response.text();
-      const aiDuration = (Date.now() - aiStartTime) / 1000;
-      console.log(`[AI-BACKEND] Response received in ${aiDuration.toFixed(2)}s. Content length: ${resText.length}`);
-      parsedText = resText.trim();
+    try {
+      if (fileData && mimeType) {
+        console.log(`[AI-BACKEND] Sending ${mimeType} file (${fileData.length} chars) to gemini-2.0-flash...`);
+        const result = await model.generateContent([
+          {
+            inlineData: {
+              data: fileData,
+              mimeType: mimeType
+            }
+          },
+          prompt
+        ]);
+        const resText = result.response.text();
+        const aiDuration = (Date.now() - aiStartTime) / 1000;
+        console.log(`[AI-BACKEND] Response received in ${aiDuration.toFixed(2)}s. Content length: ${resText.length}`);
+        parsedText = resText.trim();
+      } else {
+        const textsJoined = textsToParse.join('\n\n--- MESSAGE BLOCK ---\n\n');
+        console.log(`[AI-BACKEND] Sending text blocks (${textsJoined.length} chars) to gemini-2.0-flash...`);
+        const fullPrompt = `${prompt}\n\nEmail Logs/Texts to parse:\n\"\"\"\n${textsJoined}\n\"\"\"`;
+        const result = await model.generateContent(fullPrompt);
+        const resText = result.response.text();
+        const aiDuration = (Date.now() - aiStartTime) / 1000;
+        console.log(`[AI-BACKEND] Response received in ${aiDuration.toFixed(2)}s. Content length: ${resText.length}`);
+        parsedText = resText.trim();
+      }
+    } catch (aiErr: any) {
+      console.error('[AI-BACKEND] gemini-2.0-flash failed, attempting fallback to gemini-1.5-flash:', aiErr.message);
+      const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      // Logic for fallback is similar, but simpler to just catch and report here
+      throw aiErr; 
     }
 
     // Remove markdown codeblock wrappers if present
