@@ -134,8 +134,24 @@ export const POST = withLogger(async (req: NextRequest) => {
       throw aiErr; 
     }
 
-    // Remove markdown codeblock wrappers if present
-    const cleanJSON = parsedText.replace(/^```json\s*/, '').replace(/```$/, '').trim();
+    // Remove markdown codeblock wrappers and conversational preamble
+    console.log('[AI-BACKEND] Cleaning AI output for JSON extraction...');
+    let cleanJSON = parsedText;
+
+    // 1. Try to find content between ```json and ```
+    const jsonBlockMatch = parsedText.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonBlockMatch) {
+      cleanJSON = jsonBlockMatch[1];
+    } else {
+      // 2. Try to find content between [ and ] (the array)
+      const arrayMatch = parsedText.match(/(\[[\s\S]*\])/);
+      if (arrayMatch) {
+        cleanJSON = arrayMatch[1];
+      }
+    }
+
+    cleanJSON = cleanJSON.trim();
+
     let extracted: any[] = [];
     try {
       const parsedObj = JSON.parse(cleanJSON);
@@ -149,8 +165,15 @@ export const POST = withLogger(async (req: NextRequest) => {
         throw new Error('Gemini did not return an array of transactions.');
       }
     } catch (e: any) {
-      console.error('Failed to parse Gemini output:', parsedText);
-      return NextResponse.json({ error: `Failed to extract structured JSON data: ${e.message}. Raw output: ${parsedText.substring(0, 100)}...` }, { status: 500 });
+      console.error('[AI-BACKEND] JSON Parse Failure. Raw Text snippet:', parsedText.substring(0, 100));
+      console.error('[AI-BACKEND] Cleaned JSON snippet:', cleanJSON.substring(0, 100));
+      return NextResponse.json({ 
+        error: `Failed to extract structured JSON data: ${e.message}`,
+        debug: {
+          raw: parsedText.substring(0, 500),
+          cleaned: cleanJSON.substring(0, 500)
+        }
+      }, { status: 500 });
     }
 
     // 3. Generate unique signatures for strict deduplication
