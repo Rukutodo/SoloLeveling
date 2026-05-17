@@ -34,18 +34,16 @@ export async function GET() {
 
     // 2. Evaluate each incomplete milestone
     let modified = false;
+    
+    // Find the first weight milestone to determine loss or gain direction
+    const firstWeightMilestone = quest.milestones.find((m: any) => m.targetType === 'weight');
+    const finalWeightTarget = quest.targetWeight || 70;
+    const isLoss = firstWeightMilestone ? (finalWeightTarget < firstWeightMilestone.targetValue) : true;
+
     for (let milestone of quest.milestones) {
       if (milestone.completed) continue;
 
       if (milestone.targetType === 'weight' && currentWeight !== undefined) {
-        // If targetWeight was lower than their starting point (assumed 75 or quest.targetWeight + 5), they are losing weight.
-        // Otherwise, they are gaining weight.
-        const finalTarget = quest.targetWeight || 70;
-        // Let's determine direction: if final target is less than this milestone value, it's a downward progression.
-        // Actually, we can check if the user's weight has crossed the target value in the desired direction.
-        // A robust way: complete if we are losing weight and current <= target, or if gaining and current >= target.
-        // Since we don't have initialWeight, we compare finalTarget to currentWeight.
-        const isLoss = finalTarget < 75; // standard assumption
         if (isLoss ? (currentWeight <= milestone.targetValue) : (currentWeight >= milestone.targetValue)) {
           milestone.completed = true;
           modified = true;
@@ -100,7 +98,7 @@ export async function POST(req: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = `
-      As the "System Advisor" in a Solo Leveling themed self-improvement app, generate a highly realistic "Main Quest Chain" (Hunter's Roadmap) for a user.
+      As the "System Advisor" in a Solo Leveling themed self-improvement app, generate a highly realistic and motivating "Main Quest Chain" (Hunter's Roadmap) for a user.
       
       User Status:
       - Current Weight: ${currentWeight}kg
@@ -109,33 +107,38 @@ export async function POST(req: NextRequest) {
       - Target Monthly Income: ₹${targetSalary}
       - Timeframe: Reach targets by ${deadline} (which is roughly ${Math.round((new Date(deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 30))} months from now)
       
-      Generate exactly 6 progressive milestones (Sub-Quests) that alternate between health/fitness (weight) and financial growth (income) in chronological order.
+      Generate exactly 6 milestones (Sub-Quests) arranged in 3 chronological checkpoints (3 sequential Checkpoints with 2 milestones each):
+      
+      The 3 Checkpoints:
+      1. Checkpoint 1 (E/D-Rank trials - roughly 1/3 of the timeframe from now):
+         - Milestone 1 (Weight): E-Rank Directive. A realistic intermediate weight target (roughly 1/3 of the progress from currentWeight to targetWeight).
+         - Milestone 2 (Income): E-Rank Quest. A realistic monthly income target (roughly 1/3 of the progress from currentIncome to targetSalary).
+         - Both Milestone 1 and 2 must have the EXACT SAME deadline (roughly 1/3 of the timeframe).
+         
+      2. Checkpoint 2 (C/B-Rank trials - roughly 2/3 of the timeframe from now):
+         - Milestone 3 (Weight): C-Rank Directive. A realistic intermediate weight target (roughly 2/3 of the progress from currentWeight to targetWeight).
+         - Milestone 4 (Income): C-Rank Quest. A realistic monthly income target (roughly 2/3 of the progress from currentIncome to targetSalary).
+         - Both Milestone 3 and 4 must have the EXACT SAME deadline (roughly 2/3 of the timeframe).
+         
+      3. Checkpoint 3 (A/S-Rank ascension - EXACTLY at the final target deadline):
+         - Milestone 5 (Weight): S-Rank Final Weight Directive. MUST be exactly ${targetWeight}kg!
+         - Milestone 6 (Income): S-Rank Final Income Quest. MUST be exactly ₹${targetSalary}!
+         - Both Milestone 5 and 6 must have the EXACT SAME deadline (EXACTLY equal to ${deadline}).
       
       Strictest Rules for values:
-      1. Milestones MUST be sequential and chronological (Milestone 1 deadline < Milestone 2 < ... < Final Target Deadline).
-      2. Spread the deadlines evenly across the months (e.g. if 6 months total, set one milestone per month).
-      3. For weight milestones (Milestone 1, 3, 5): 
-         - If targetWeight is less than currentWeight (weight loss), the milestone values MUST strictly decrease progressively towards targetWeight (e.g. if 75kg -> 70kg, milestones could be 74kg, 72.5kg, 71kg).
-         - If targetWeight is greater than currentWeight (weight gain), the milestone values MUST strictly increase progressively towards targetWeight.
-         - Do not overshoot the final target weight.
-      4. For income milestones (Milestone 2, 4, 6):
-         - Milestone values MUST strictly increase progressively from current monthly income towards target monthly income (e.g. if ₹0 -> ₹200k, milestones could be ₹30k, ₹90k, ₹150k).
-         - Do not overshoot the final target salary.
+      1. Checkpoint deadlines MUST increase sequentially: Checkpoint 1 Date < Checkpoint 2 Date < Checkpoint 3 Date (${deadline}).
+      2. For weight milestones (Milestone 1, 3, 5): 
+         - If weight loss (targetWeight < currentWeight), target values MUST decrease progressively: currentWeight > Milestone 1 targetValue > Milestone 3 targetValue > Milestone 5 targetValue (which is exactly ${targetWeight}).
+         - If weight gain (targetWeight > currentWeight), target values MUST increase progressively: currentWeight < Milestone 1 targetValue < Milestone 3 targetValue < Milestone 5 targetValue (which is exactly ${targetWeight}).
+      3. For income milestones (Milestone 2, 4, 6):
+         - Target values MUST increase progressively: currentIncome < Milestone 2 targetValue < Milestone 4 targetValue < Milestone 6 targetValue (which is exactly ${targetSalary}).
       
-      Structure:
-      - Milestone 1 (Weight): E-Rank Directive (Initial small weight progress)
-      - Milestone 2 (Income): D-Rank Quest (Initial small financial progress)
-      - Milestone 3 (Weight): C-Rank Directive (Halfway weight progress)
-      - Milestone 4 (Income): B-Rank Quest (Halfway financial progress)
-      - Milestone 5 (Weight): A-Rank Directive (Close to final weight target)
-      - Milestone 6 (Income): S-Rank Quest (Close to final income target)
-
       Each milestone must have:
-      1. title: (Sleek Solo Leveling themed title, e.g. "E-Rank Trials: Body Adaptation")
-      2. description: (Motivational Hunter description reminding them of the specific numeric target)
+      1. title: (Sleek Solo Leveling themed title, e.g. "E-Rank Trials: Body Adaptation" or "C-Rank Evolution: Resource Gathering")
+      2. description: (Motivational Hunter description explaining the target value clearly)
       3. targetType: ('weight' or 'income')
       4. targetValue: (The specific progressive target number)
-      5. deadline: (Chronological ISO date string, e.g. "2026-06-17")
+      5. deadline: (ISO date string, e.g. "2026-06-17")
       
       Format strictly as JSON: { "milestones": [ { "title", "description", "targetType", "targetValue", "deadline" } ] }
     `;
