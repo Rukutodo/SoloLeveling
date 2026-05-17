@@ -11,9 +11,9 @@ function categorize(description: string, type: 'income' | 'expense') {
     if (desc.includes('dividend') || desc.includes('interest')) return 'Investments';
     return 'Other Income';
   } else {
-    if (desc.includes('swiggy') || desc.includes('zomato') || desc.includes('agra sweets')) return 'Food';
+    if (desc.includes('swiggy') || desc.includes('zomato') || desc.includes('agra sweets') || desc.includes('blinkit') || desc.includes('coffee')) return 'Food';
     if (desc.includes('uber') || desc.includes('ola') || desc.includes('fuel')) return 'Transport';
-    if (desc.includes('amazon') || desc.includes('flipkart') || desc.includes('shopping')) return 'Shopping';
+    if (desc.includes('amazon') || desc.includes('flipkart') || desc.includes('shopping') || desc.includes('ratnadeep')) return 'Shopping';
     if (desc.includes('netflix') || desc.includes('spotify') || desc.includes('google play')) return 'Subscriptions';
     if (desc.includes('rent') || desc.includes('pg')) return 'Rent';
     if (desc.includes('hospital') || desc.includes('medical')) return 'Health';
@@ -24,7 +24,6 @@ function categorize(description: string, type: 'income' | 'expense') {
 
 // Clean HDFC Descriptions
 function cleanDescription(narration: string) {
-  // Common UPI cleanup: UPI-NAME-VPA@BANK-REF-REMARK -> NAME
   if (narration.startsWith('UPI-')) {
     const parts = narration.split('-');
     if (parts.length > 1) return parts[1].trim();
@@ -45,39 +44,42 @@ export async function parseHDFCExcel(buffer: Buffer) {
 
   for (const row of rows) {
     if (!headerFound) {
-      // Robust header detection: find the row containing 'Narration'
-      const idx = row.findIndex(cell => String(row[0] || '').includes('Date') && String(cell || '').toLowerCase().includes('narration'));
-      if (idx !== -1) {
+      // Find row containing Date and Narration
+      const idx = row.findIndex(cell => String(cell || '').toLowerCase().includes('narration'));
+      const dateIdx = row.findIndex(cell => String(cell || '').toLowerCase().includes('date'));
+      
+      if (idx !== -1 && dateIdx !== -1) {
         headerFound = true;
         narrationIdx = idx;
         withdrawalIdx = row.findIndex(cell => String(cell || '').toLowerCase().includes('withdrawal'));
         depositIdx = row.findIndex(cell => String(cell || '').toLowerCase().includes('deposit'));
-        console.log(`[LOCAL-PARSER] HDFC Header found. Map: Narration:${narrationIdx}, Dr:${withdrawalIdx}, Cr:${depositIdx}`);
+        console.log(`[LOCAL-PARSER] HDFC Header found at row. Map: Narration:${narrationIdx}, Dr:${withdrawalIdx}, Cr:${depositIdx}`);
       }
       continue;
     }
 
-    // Skip separator lines or empty lines
     const dateCell = String(row[0] || '');
     if (!dateCell || dateCell.includes('***') || dateCell.toLowerCase().includes('date') || dateCell.length < 5) continue;
 
     const dateStr = dateCell;
     const narration = String(row[narrationIdx] || '');
     
-    const withdrawalStr = String(row[withdrawalIdx] || '0').replace(/,/g, '');
-    const depositStr = String(row[depositIdx] || '0').replace(/,/g, '');
-    
-    const withdrawal = parseFloat(withdrawalStr);
-    const deposit = parseFloat(depositStr);
+    // Robust numeric parsing: remove commas and whitespace
+    const parseAmount = (val: any) => {
+        if (val === undefined || val === null || val === '') return 0;
+        const cleaned = String(val).replace(/,/g, '').trim();
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? 0 : num;
+    };
 
-    if (isNaN(withdrawal) && isNaN(deposit)) continue;
+    const withdrawal = parseAmount(row[withdrawalIdx]);
+    const deposit = parseAmount(row[depositIdx]);
+
+    if (withdrawal === 0 && deposit === 0) continue;
 
     const amount = deposit > 0 ? deposit : withdrawal;
     const type = deposit > 0 ? 'income' : 'expense';
 
-    if (amount === 0) continue;
-
-    // Format date: DD/MM/YY -> YYYY-MM-DD
     const parts = dateStr.split('/');
     if (parts.length !== 3) continue;
     
