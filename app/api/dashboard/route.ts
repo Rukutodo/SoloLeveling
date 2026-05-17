@@ -55,16 +55,23 @@ export async function GET() {
     // Latest BMI
     const latestBmi = await BodyMetric.findOne({ userId }).sort({ date: -1 });
 
-    // Monthly net worth
-    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    
-    const monthTransactions = await Transaction.find({
+    // Monthly net worth (Salary-based Cycle)
+    const latestSalary = await Transaction.findOne({
       userId,
-      date: { $gte: monthStart, $lt: monthEnd },
+      category: 'Salary',
+      type: 'income'
+    }).sort({ date: -1 });
+
+    const cycleStart = latestSalary ? latestSalary.date : new Date(today.getFullYear(), today.getMonth(), 1);
+    // End date is far enough in future to capture all recent spending
+    const cycleEnd = new Date(today.getFullYear(), today.getMonth() + 1, 10);
+    
+    const cycleTransactions = await Transaction.find({
+      userId,
+      date: { $gte: cycleStart, $lt: cycleEnd },
     });
     
-    const monthlyNetWorth = monthTransactions.reduce((sum, t) => {
+    const monthlyNetWorth = cycleTransactions.reduce((sum, t) => {
       return sum + (t.type === 'income' ? t.amount : -t.amount);
     }, 0);
 
@@ -116,6 +123,8 @@ export async function GET() {
       latestBmi: latestBmi?.bmi || null,
       monthlyNetWorth,
       recentActivity: recentActivity.slice(0, 8),
+      isSalaryCycle: !!latestSalary,
+      cycleStart: cycleStart.toISOString().split('T')[0],
     });
   } catch (error) {
     console.error('Dashboard error:', error);

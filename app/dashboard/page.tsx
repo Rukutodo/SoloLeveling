@@ -34,6 +34,8 @@ interface DashboardData {
   workoutStreak: number;
   latestBmi: number | null;
   monthlyNetWorth: number;
+  isSalaryCycle?: boolean;
+  cycleStart?: string;
   recentActivity: Array<{
     icon: string;
     text: string;
@@ -224,7 +226,9 @@ export default function DashboardPage() {
               <div className={styles.statValue}>
                 {dashData.monthlyNetWorth >= 0 ? '+' : ''}₹{Math.abs(dashData.monthlyNetWorth).toLocaleString()}
               </div>
-              <div className={styles.statSub}>this month</div>
+              <div className={styles.statSub}>
+                {dashData.isSalaryCycle ? `since ${new Date(dashData.cycleStart!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'this month'}
+              </div>
             </div>
           </div>
 

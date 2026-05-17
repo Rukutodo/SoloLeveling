@@ -13,13 +13,43 @@ export async function GET(req: NextRequest) {
 
     await dbConnect();
     const { searchParams } = new URL(req.url);
-    const month = parseInt(searchParams.get('month') || String(new Date().getMonth()));
-    const year = parseInt(searchParams.get('year') || String(new Date().getFullYear()));
+    const requestedMonth = searchParams.get('month');
+    const requestedYear = searchParams.get('year');
+    
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
 
-    const startDate = new Date(year, month, 1);
-    const endDate = new Date(year, month + 1, 1);
+    let startDate: Date;
+    let endDate: Date;
 
-    // Fetch transactions
+    // Determine Financial Cycle Start
+    if (!requestedMonth && !requestedYear) {
+      // DEFAULT: Count from the latest salary
+      const latestSalary = await Transaction.findOne({
+        userId: session.user.id,
+        category: 'Salary',
+        type: 'income'
+      }).sort({ date: -1 });
+
+      if (latestSalary) {
+        console.log('[FINANCE] Salary-based cycle detected. Start:', latestSalary.date);
+        startDate = new Date(latestSalary.date);
+        // End date is far in the future to capture all recent spending
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 10);
+      } else {
+        startDate = new Date(currentYear, currentMonth, 1);
+        endDate = new Date(currentYear, currentMonth + 1, 1);
+      }
+    } else {
+      // HISTORICAL: Use standard calendar month
+      const m = parseInt(requestedMonth || String(currentMonth));
+      const y = parseInt(requestedYear || String(currentYear));
+      startDate = new Date(y, m, 1);
+      endDate = new Date(y, m + 1, 1);
+    }
+
+    // Fetch transactions for the determined period
     const transactions = await Transaction.find({
       userId: session.user.id,
       date: { $gte: startDate, $lt: endDate },
@@ -68,6 +98,8 @@ export async function GET(req: NextRequest) {
       summary: { income, expenses, net: income - expenses },
       categoryBreakdown,
       emiTotal,
+      isSalaryCycle: !requestedMonth && !requestedYear && !!transactions.find(t => t.category === 'Salary'),
+      cycleStart: startDate.toISOString().split('T')[0],
     });
   } catch (error) {
     console.error('Finance GET error:', error);

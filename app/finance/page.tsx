@@ -22,7 +22,7 @@ export default function FinancePage() {
   const [emis, setEmis] = useState<any[]>([]);
   const [investments, setInvestments] = useState<any[]>([]);
   const [insurances, setInsurances] = useState<any[]>([]);
-  const [summary, setSummary] = useState({ income: 0, expenses: 0, net: 0 });
+  const [summary, setSummary] = useState({ income: 0, expenses: 0, net: 0, isSalaryCycle: false, cycleStart: '' });
   const [categoryBreakdown, setCategoryBreakdown] = useState<Record<string, number>>({});
   const [activeTab, setActiveTab] = useState<'tx' | 'emi' | 'inv' | 'ins'>('tx');
   
@@ -111,7 +111,12 @@ export default function FinancePage() {
       fetch('/api/finance/insurance')
     ]);
 
-    if (fRes.ok) { const d = await fRes.json(); setTransactions(d.transactions); setSummary(d.summary); setCategoryBreakdown(d.categoryBreakdown); }
+    if (fRes.ok) { 
+      const d = await fRes.json(); 
+      setTransactions(d.transactions); 
+      setSummary({ ...d.summary, isSalaryCycle: d.isSalaryCycle, cycleStart: d.cycleStart }); 
+      setCategoryBreakdown(d.categoryBreakdown); 
+    }
     if (uRes.ok) { const d = await uRes.json(); setSidebarData({ userName: d.stats.name, level: d.stats.level, xp: d.stats.xp, xpToNext: d.stats.xpToNext, rank: d.stats.rank, title: d.stats.title, rankColor: d.stats.rankColor }); }
     if (eRes.ok) { const d = await eRes.json(); setEmis(d.emis); }
     if (iRes.ok) { const d = await iRes.json(); setInvestments(d.investments); }
@@ -580,6 +585,7 @@ export default function FinancePage() {
             <div className={styles.summaryValue} style={{ color: 'var(--sl-green)' }}>
               ₹{summary.income.toLocaleString()}
             </div>
+            {summary.isSalaryCycle && <div style={{ fontSize: '0.6rem', color: 'var(--sl-text-ghost)', marginTop: '4px' }}>since {new Date(summary.cycleStart).toLocaleDateString()}</div>}
           </div>
           <div className={`sl-panel ${styles.summaryCard}`}>
             <MdTrendingDown style={{ fontSize: '2rem', color: 'var(--sl-red)', filter: 'drop-shadow(0 0 10px hsla(0, 100%, 60%, 0.3))' }} />
@@ -587,12 +593,14 @@ export default function FinancePage() {
             <div className={styles.summaryValue} style={{ color: 'var(--sl-red)' }}>
               ₹{summary.expenses.toLocaleString()}
             </div>
+            {summary.isSalaryCycle && <div style={{ fontSize: '0.6rem', color: 'var(--sl-text-ghost)', marginTop: '4px' }}>since {new Date(summary.cycleStart).toLocaleDateString()}</div>}
           </div>
           <div className={`sl-panel ${styles.summaryCard}`}>
             <div className={styles.summaryLabel}>Available Credits</div>
             <div className={styles.summaryValue} style={{ color: summary.net >= 0 ? 'var(--sl-green)' : 'var(--sl-red)' }}>
               {summary.net >= 0 ? '+' : ''}₹{summary.net.toLocaleString()}
             </div>
+            {summary.isSalaryCycle && <div style={{ fontSize: '0.6rem', color: 'var(--sl-text-ghost)', marginTop: '4px' }}>Current Salary Cycle</div>}
           </div>
         </div>
 

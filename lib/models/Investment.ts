@@ -5,11 +5,12 @@ export interface IInvestment extends Document {
   fundName: string;
   investedAmount: number;
   currentAmount: number;
-  expectedReturnRate: number; // Annual %
+  expectedReturnRate: number;
   startDate: Date;
-  type: string; // Mutual Fund, Stock, Crypto, etc.
-  subType?: string; // Index Fund, Mutual Fund, etc.
-  schemeCode?: string; // For real-time tracking
+  type: string;
+  subType?: string;
+  schemeCode?: string; // For mfapi.in (Mutual Funds / Index Funds)
+  ticker?: string;     // For Alpha Vantage (Stocks / ETFs)
   units?: number;
   lastUpdated?: Date;
 }
@@ -24,6 +25,7 @@ const InvestmentSchema: Schema = new Schema({
   type: { type: String, default: 'Mutual Fund' },
   subType: { type: String },
   schemeCode: { type: String },
+  ticker: { type: String },
   units: { type: Number },
   lastUpdated: { type: Date },
 }, { timestamps: true });
