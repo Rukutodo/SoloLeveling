@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { image, mimeType, dishName, ingredients, step, quantity, baseFood } = body;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     let prompt = '';
     const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];

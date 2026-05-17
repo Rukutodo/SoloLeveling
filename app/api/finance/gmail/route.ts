@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Feed text snippets or file to Gemini to extract financial transaction structures
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const prompt = `You are a financial parsing engine. Analyze the following receipt email logs/texts or uploaded document and extract structured transaction information.
     For each valid financial transaction found (purchase, refund, bill payment, salary, credit alert):
     - Identify the date (formatted as YYYY-MM-DD). If no clear year is mentioned, assume 2026.
