@@ -1,0 +1,203 @@
+.notesLayout {
+  display: flex;
+  height: calc(100vh - 80px);
+  background: var(--sl-bg-sub);
+  border: 1px solid var(--sl-glass-border);
+  border-radius: var(--sl-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--sl-shadow-lg);
+}
+
+.sectionsPane {
+  width: 250px;
+  background: rgba(10, 10, 10, 0.4);
+  border-right: 1px solid var(--sl-glass-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.pagesPane {
+  width: 300px;
+  background: rgba(15, 15, 15, 0.3);
+  border-right: 1px solid var(--sl-glass-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.editorPane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--sl-bg-surface);
+}
+
+.paneHeader {
+  padding: 16px;
+  font-family: var(--sl-font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--sl-glass-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.paneList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.listItem {
+  padding: 12px 16px;
+  margin-bottom: 4px;
+  border-radius: var(--sl-radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--sl-text-dim);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.listItem:hover {
+  background: var(--sl-bg-hover);
+  color: var(--sl-text-bright);
+}
+
+.listItemSelected {
+  background: var(--sl-blue-dim);
+  color: var(--sl-blue);
+  border-left: 3px solid var(--sl-blue);
+}
+
+.editorToolbar {
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--sl-glass-border);
+  display: flex;
+  gap: 8px;
+  background: rgba(0,0,0,0.2);
+}
+
+.toolbarBtn {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--sl-text-dim);
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.toolbarBtn:hover {
+  background: var(--sl-bg-hover);
+  color: var(--sl-text-bright);
+}
+
+.editorContent {
+  padding: 20px 40px 40px;
+  outline: none;
+  color: var(--sl-text-primary);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  min-height: 500px;
+}
+
+.editorContent:empty:before {
+  content: attr(data-placeholder);
+  color: var(--sl-text-ghost);
+  pointer-events: none;
+}
+
+.editorTitle {
+  padding: 24px 40px 0;
+  background: transparent;
+  border: none;
+  font-family: var(--sl-font-display);
+  font-size: 2.5rem;
+  color: var(--sl-text-bright);
+  outline: none;
+  width: 100%;
+}
+
+.addBtn {
+  background: none;
+  border: none;
+  color: var(--sl-text-ghost);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.addBtn:hover {
+  color: var(--sl-green);
+  background: rgba(39, 174, 96, 0.1);
+}
+
+.editorAreaWrapper {
+  flex: 1;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: auto;
+  background-color: var(--sl-bg-sub);
+}
+
+.zoomContainer {
+  position: relative;
+  min-height: 100%;
+  min-width: 100%;
+  transform-origin: top left;
+}
+
+.canvasOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 100%;
+  z-index: 10;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.penCursor, .penCursor:active {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Ccircle cx='4' cy='4' r='4' fill='%232c3e50'/%3E%3C/svg%3E") 4 4, crosshair !important;
+}
+
+.eraserCursor, .eraserCursor:active {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Crect x='1' y='1' width='28' height='28' fill='none' stroke='gold' stroke-width='2'/%3E%3C/svg%3E") 15 15, crosshair !important;
+}
+
+.bgRule {
+  background-image: linear-gradient(rgba(128, 128, 128, 0.2) 1px, transparent 1px);
+  background-size: 100% 28px;
+  background-position: 0 8px;
+}
+
+.bgGrid {
+  background-image: 
+    linear-gradient(rgba(128, 128, 128, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(128, 128, 128, 0.2) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+}
+
+.bgPlain {
+  background-image: none;
+}
+
+.colorPicker {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+}

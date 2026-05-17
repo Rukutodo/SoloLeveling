@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
-import { MdAdd, MdDelete, MdCheckCircle, MdRadioButtonUnchecked, MdFlag } from 'react-icons/md';
+import { MdAdd, MdDelete, MdCheckCircle, MdFlag, MdLightbulbOutline, MdRadioButtonUnchecked } from 'react-icons/md';
 import styles from './todos.module.css';
 
 interface Todo {
@@ -12,22 +12,24 @@ interface Todo {
   completed: boolean;
   priority: 'Low' | 'Medium' | 'High';
   dueDate?: string;
+  status: 'Idea' | 'Todo' | 'In Progress' | 'Done';
 }
 
 export default function TodosPage() {
-  const { status } = useSession();
+  const { status: sessionStatus } = useSession();
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [newTodo, setNewTodo] = useState('');
-  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High'>('Medium');
-  const [filter, setFilter] = useState<'All' | 'Active' | 'Completed'>('All');
+  
+  // State for inline column inputs
+  const [columnInputs, setColumnInputs] = useState<Record<string, string>>({ Idea: '', Todo: '', 'In Progress': '', Done: '' });
+  
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (sessionStatus === 'authenticated') {
       fetchTodos();
       fetchUserData();
     }
-  }, [status]);
+  }, [sessionStatus]);
 
   const fetchUserData = async () => {
     const res = await fetch('/api/user');
@@ -41,32 +43,28 @@ export default function TodosPage() {
     const res = await fetch('/api/todos');
     if (res.ok) {
       const data = await res.json();
-      setTodos(data.todos);
+      const mapped = data.todos.map((t: any) => ({
+        ...t,
+        status: t.status || (t.completed ? 'Done' : 'Todo')
+      }));
+      setTodos(mapped);
     }
   };
 
-  const addTodo = async (e: React.FormEvent) => {
+  const handleInlineAdd = async (e: React.FormEvent, status: string) => {
     e.preventDefault();
-    if (!newTodo.trim()) return;
+    const text = columnInputs[status];
+    if (!text || !text.trim()) return;
+    
     const res = await fetch('/api/todos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newTodo, priority }),
+      body: JSON.stringify({ title: text, priority: 'Medium', status }),
     });
     if (res.ok) {
-      setNewTodo('');
-      setPriority('Medium');
+      setColumnInputs({ ...columnInputs, [status]: '' });
       fetchTodos();
     }
-  };
-
-  const toggleTodo = async (id: string, completed: boolean) => {
-    const res = await fetch('/api/todos', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, completed: !completed }),
-    });
-    if (res.ok) fetchTodos();
   };
 
   const deleteTodo = async (id: string) => {
@@ -74,11 +72,31 @@ export default function TodosPage() {
     if (res.ok) fetchTodos();
   };
 
-  const filteredTodos = todos.filter(t => {
-    if (filter === 'Active') return !t.completed;
-    if (filter === 'Completed') return t.completed;
-    return true;
-  });
+  const updateTodoStatus = async (id: string, newStatus: string) => {
+    setTodos(todos.map(t => t._id === id ? { ...t, status: newStatus as any, completed: newStatus === 'Done' } : t));
+    const res = await fetch('/api/todos', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status: newStatus, completed: newStatus === 'Done' }),
+    });
+    if (!res.ok) fetchTodos();
+  };
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    e.dataTransfer.setData('todoId', id);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, status: string) => {
+    e.preventDefault();
+    const todoId = e.dataTransfer.getData('todoId');
+    if (todoId) {
+      updateTodoStatus(todoId, status);
+    }
+  };
 
   const getPriorityColor = (p: string) => {
     if (p === 'High') return 'var(--sl-red)';
@@ -86,83 +104,132 @@ export default function TodosPage() {
     return 'var(--sl-blue)';
   };
 
-  if (status === 'loading') return null;
+  const renderColumn = (col: string) => (
+    <div 
+      key={col} 
+      className={styles.kanbanColumn}
+      onDragOver={handleDragOver}
+      onDrop={(e) => handleDrop(e, col)}
+      style={{ minHeight: col === 'Idea' ? '200px' : '400px' }}
+    >
+      <div className={styles.columnHeader}>
+        {col.toUpperCase()}
+        <span style={{ float: 'right', background: 'var(--sl-bg-dark)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem' }}>
+          {todos.filter(t => t.status === col).length}
+        </span>
+      </div>
+      <div className={styles.columnContent}>
+        {todos.filter(t => t.status === col).map(todo => (
+          <div 
+            key={todo._id} 
+            className={styles.todoCard}
+            draggable
+            onDragStart={(e) => handleDragStart(e, todo._id)}
+          >
+            <div className={styles.todoContent}>
+              <div className={styles.todoTitle} style={{ textDecoration: todo.status === 'Done' ? 'line-through' : 'none', opacity: todo.status === 'Done' ? 0.6 : 1 }}>
+                {todo.title}
+              </div>
+              <div className={styles.todoMeta} style={{ color: getPriorityColor(todo.priority) }}>
+                <MdFlag style={{ fontSize: '0.7rem' }} /> {todo.priority} Rank
+              </div>
+            </div>
+            <button className={styles.deleteBtn} onClick={() => deleteTodo(todo._id)}>
+              <MdDelete />
+            </button>
+          </div>
+        ))}
+      </div>
+      {['Idea', 'Todo'].includes(col) && (
+        <div style={{ padding: '0 16px 16px 16px' }}>
+          <form onSubmit={(e) => handleInlineAdd(e, col)} style={{ display: 'flex', gap: '8px' }}>
+            <input 
+              className="sl-input" 
+              value={columnInputs[col] || ''} 
+              onChange={(e) => setColumnInputs({ ...columnInputs, [col]: e.target.value })} 
+              placeholder="Add item..." 
+              style={{ flex: 1, padding: '8px 12px', fontSize: '0.85rem' }}
+            />
+            <button className="sl-btn sl-btn-ghost" type="submit" style={{ padding: '8px' }}>
+              <MdAdd />
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+
+  if (sessionStatus === 'loading') return null;
 
   return (
     <div className="sl-page-wrapper">
       <Sidebar {...sidebarData} />
       <main className="sl-main-content">
         <div className="sl-page-header">
-          <h1 className="sl-page-title"><MdCheckCircle style={{ verticalAlign: 'middle' }} /> Quest Log</h1>
-          <p className="sl-page-subtitle">[SYSTEM] Daily missions and objectives</p>
+          <h1 className="sl-page-title"><MdCheckCircle style={{ verticalAlign: 'middle' }} /> Quest Board</h1>
+          <p className="sl-page-subtitle">[SYSTEM] Drag and drop your objectives</p>
         </div>
 
-        <div className="sl-panel" style={{ padding: '24px', marginBottom: '24px' }}>
-          <form onSubmit={addTodo} style={{ display: 'flex', gap: '16px' }}>
-            <input 
-              className="sl-input" 
-              value={newTodo} 
-              onChange={(e) => setNewTodo(e.target.value)} 
-              placeholder="Enter new quest objective..." 
-              style={{ flex: 1 }}
-            />
-            <select 
-              className="sl-select" 
-              value={priority} 
-              onChange={(e) => setPriority(e.target.value as any)}
-              style={{ width: '140px' }}
-            >
-              <option value="Low">Low Priority</option>
-              <option value="Medium">Medium Rank</option>
-              <option value="High">S-Rank Focus</option>
-            </select>
-            <button className="sl-btn sl-btn-primary" type="submit">
-              <MdAdd /> Accept Quest
-            </button>
-          </form>
-        </div>
-
-        <div className={styles.filterRow}>
-          {['All', 'Active', 'Completed'].map((f) => (
-            <button 
-              key={f} 
-              className={`sl-btn ${filter === f ? 'sl-btn-primary' : 'sl-btn-ghost'}`} 
-              onClick={() => setFilter(f as any)}
-              style={{ fontSize: '0.75rem' }}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        <div className={styles.todoList}>
-          {filteredTodos.map((todo) => (
-            <div key={todo._id} className={`${styles.todoItem} ${todo.completed ? styles.completed : ''}`}>
-              <div className={styles.todoLeft}>
-                <button 
-                  className={styles.checkBtn} 
-                  onClick={() => toggleTodo(todo._id, todo.completed)}
-                  style={{ color: todo.completed ? 'var(--sl-green)' : 'var(--sl-text-ghost)' }}
-                >
-                  {todo.completed ? <MdCheckCircle /> : <MdRadioButtonUnchecked />}
-                </button>
-                <div className={styles.todoContent}>
-                  <div className={styles.todoTitle}>{todo.title}</div>
-                  <div className={styles.todoMeta} style={{ color: getPriorityColor(todo.priority) }}>
-                    <MdFlag style={{ fontSize: '0.7rem' }} /> {todo.priority} Rank
+        <div style={{ marginBottom: '40px' }}>
+          <h2 style={{ fontSize: '1rem', color: 'var(--sl-text-bright)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MdCheckCircle style={{ color: 'var(--sl-green)' }} /> Todo List / Tracker
+          </h2>
+          <div 
+            className={styles.todoList}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, 'Todo')}
+            style={{ minHeight: '100px', paddingBottom: '20px' }}
+          >
+            {todos.filter(t => t.status === 'Todo').map(todo => (
+              <div 
+                key={todo._id} 
+                className={styles.todoItem}
+                draggable
+                onDragStart={(e) => handleDragStart(e, todo._id)}
+              >
+                <div className={styles.todoLeft}>
+                  <button 
+                    className={styles.checkBtn} 
+                    onClick={() => updateTodoStatus(todo._id, 'Done')}
+                    style={{ color: 'var(--sl-text-ghost)' }}
+                  >
+                    <MdRadioButtonUnchecked />
+                  </button>
+                  <div className={styles.todoContent}>
+                    <div className={styles.todoTitle}>{todo.title}</div>
+                    <div className={styles.todoMeta} style={{ color: getPriorityColor(todo.priority) }}>
+                      <MdFlag style={{ fontSize: '0.7rem' }} /> {todo.priority} Rank
+                    </div>
                   </div>
                 </div>
+                <button className={styles.deleteBtn} onClick={() => deleteTodo(todo._id)}>
+                  <MdDelete />
+                </button>
               </div>
-              <button className="sl-btn sl-btn-ghost" onClick={() => deleteTodo(todo._id)} style={{ padding: '8px', color: 'var(--sl-red)' }}>
-                <MdDelete />
+            ))}
+            
+            <form onSubmit={(e) => handleInlineAdd(e, 'Todo')} style={{ display: 'flex', gap: '16px', marginTop: '12px' }}>
+              <input 
+                className="sl-input" 
+                value={columnInputs['Todo'] || ''} 
+                onChange={(e) => setColumnInputs({ ...columnInputs, 'Todo': e.target.value })} 
+                placeholder="Add new daily tracker item..." 
+                style={{ flex: 1 }}
+              />
+              <button className="sl-btn sl-btn-primary" type="submit">
+                <MdAdd /> Add Tracker
               </button>
-            </div>
-          ))}
-          {filteredTodos.length === 0 && (
-            <div className="sl-empty">
-              <div className="sl-empty-text">[SYSTEM] No active missions in this category</div>
-            </div>
-          )}
+            </form>
+          </div>
+        </div>
+
+        <div>
+          <h2 style={{ fontSize: '1rem', color: 'var(--sl-text-bright)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MdLightbulbOutline style={{ color: 'var(--sl-gold)' }} /> Kanban Board
+          </h2>
+          <div className={styles.kanbanBoard} style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+            {['Idea', 'In Progress', 'Done'].map(renderColumn)}
+          </div>
         </div>
       </main>
     </div>
