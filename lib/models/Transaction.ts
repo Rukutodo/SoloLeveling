@@ -8,6 +8,7 @@ export interface ITransaction extends Document {
   category: string;
   description: string;
   recurring: boolean;
+  source?: string; // Origin of the transaction (e.g., filename)
   signature?: string; // Unique signature for deduplication
   createdAt: Date;
 }
@@ -25,6 +26,7 @@ const TransactionSchema = new Schema<ITransaction>(
     category: { type: String, required: true },
     description: { type: String, required: true },
     recurring: { type: Boolean, default: false },
+    source: { type: String },
     signature: { type: String, sparse: true, index: true },
   },
   { timestamps: true }

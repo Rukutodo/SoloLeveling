@@ -70,38 +70,6 @@ export default function FinancePage() {
     }
   }, []);
 
-  useEffect(() => {
-    if (!parsing || !selectedFile) {
-      setUploadProgress(0);
-      return;
-    }
-    
-    // Simulate progression up to 95%
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev < 30) {
-          setLoadingStatus('[SYSTEM] CONVERTING FILE BYTES TO BASE64...');
-          return prev + 12;
-        }
-        if (prev < 65) {
-          setLoadingStatus('[SYSTEM] TRANSMITTING MATRIX TO GEMINI OCR...');
-          return prev + 8;
-        }
-        if (prev < 90) {
-          setLoadingStatus('[SYSTEM] ANALYZING PATTERNS AND INVOICE ENTRIES...');
-          return prev + 4;
-        }
-        if (prev < 95) {
-          setLoadingStatus('[SYSTEM] DEDUPLICATING AND ALIGNING TRANSACTION SCHEMA...');
-          return prev + 1;
-        }
-        return prev;
-      });
-    }, 450);
-
-    return () => clearInterval(interval);
-  }, [parsing, selectedFile]);
-
   const fetchData = async () => {
     const [fRes, uRes, eRes, iRes, insRes] = await Promise.all([
       fetch(`/api/finance?month=${month}&year=${year}`),
@@ -314,209 +282,146 @@ export default function FinancePage() {
     return transactionsList;
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSelectedFile(file);
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
     setParsing(true);
-    setUploadProgress(10);
-    setLoadingStatus('[SYSTEM] READING FILE BYTES...');
+    setUploadProgress(0);
     setParsedTransactions([]);
     setImportStats(null);
     setImportBreakdown([]);
+    
+    const allTransactions: any[] = [];
+    const fileCount = files.length;
+    
+    for (let i = 0; i < fileCount; i++) {
+      const file = files[i];
+      const fileName = file.name;
+      const progressBase = (i / fileCount) * 100;
+      const progressStep = 100 / fileCount;
 
-    const fileName = file.name.toLowerCase();
+      setSelectedFile(file);
+      setLoadingStatus(`[SYSTEM] PROCESSING FILE ${i+1}/${fileCount}: ${fileName}`);
+      setUploadProgress(Math.round(progressBase + 10));
 
-    if (fileName.endsWith('.ofx') || fileName.endsWith('.qfx')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        const parsed = parseOFX(text);
-        setParsedTransactions(parsed);
-        setUploadProgress(100);
-        setLoadingStatus('[SYSTEM] OFX STATEMENT PARSED SUCCESSFULLY.');
-        setTimeout(() => {
-          setParsing(false);
-          setSelectedFile(null);
-        }, 800);
-        if (parsed.length === 0) {
-          alert('[SYSTEM] Could not parse any transactions from the uploaded file. Ensure it is a valid OFX/QFX statement.');
-        }
-      };
-      reader.onerror = () => {
-        setParsing(false);
-        setSelectedFile(null);
-        alert('[SYSTEM] File reading error.');
-      };
-      reader.readAsText(file);
-    } 
-    else if (fileName.endsWith('.pdf')) {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        try {
-          const base64Data = (event.target?.result as string).split(',')[1];
-          
-          console.log('[AI-FRONTEND] Dispatching fetch request to /api/finance/gmail...');
-          const res = await fetch('/api/finance/gmail', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fileData: base64Data, mimeType: 'application/pdf' }),
-          });
-          console.log('[AI-FRONTEND] Fetch request complete.');
-
-          if (res.ok) {
-            const data = await res.json();
-            setParsedTransactions(data.transactions || []);
-            setUploadProgress(100);
-            setLoadingStatus('[SYSTEM] TRANSACTION SCHEMA EXTRACTION SUCCESS.');
-            if ((data.transactions || []).length === 0) {
-              alert('[SYSTEM] Gemini could not extract any transactions from your PDF. Ensure it has legible transaction texts.');
-            }
-          } else {
-            const err = await res.json();
-            alert('[SYSTEM] AI extraction failed: ' + (err.error || 'Check file and try again.'));
-          }
-        } catch (error) {
-          console.error(error);
-          alert('[SYSTEM] Connection or file preparation error.');
-        } finally {
-          setTimeout(() => {
-            setParsing(false);
-            setSelectedFile(null);
-          }, 800);
-        }
-      };
-      reader.onerror = () => {
-        setParsing(false);
-        setSelectedFile(null);
-        alert('[SYSTEM] File reading error.');
-      };
-      reader.readAsDataURL(file);
+      try {
+        const transactions = await processFile(file);
+        allTransactions.push(...transactions.map(tx => ({ ...tx, source: fileName })));
+      } catch (err: any) {
+        console.error(`Failed to process ${fileName}:`, err);
+        alert(`[SYSTEM] Error processing ${fileName}: ${err.message || 'Unknown error'}`);
+      }
+      
+      setUploadProgress(Math.round(progressBase + progressStep));
     }
-    else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+
+    setParsedTransactions(allTransactions);
+    setLoadingStatus(`[SYSTEM] SYNTHESIS COMPLETE. ${allTransactions.length} RECORDS EXTRACTED.`);
+    
+    setTimeout(() => {
+      setParsing(false);
+      setSelectedFile(null);
+      setUploadProgress(0);
+    }, 1500);
+  };
+
+  const processFile = (file: File): Promise<any[]> => {
+    return new Promise((resolve, reject) => {
+      const fileName = file.name.toLowerCase();
       const reader = new FileReader();
-      reader.onload = async (event) => {
-        console.log('[AI-FRONTEND] Excel Reader onload triggered');
-        try {
-          const arrayBuffer = event.target?.result as ArrayBuffer;
-          const data = new Uint8Array(arrayBuffer);
-          console.log('[AI-FRONTEND] File buffer created. Buffer size:', data.length);
-          
-          console.log('[AI-FRONTEND] Starting XLSX parsing...');
-          const workbook = XLSX.read(data, { type: 'array' });
-          console.log('[AI-FRONTEND] XLSX parsing complete. Sheet count:', workbook.SheetNames.length);
-          
-          const sheetName = workbook.SheetNames[0];
-          const sheet = workbook.Sheets[sheetName];
-          const csvText = XLSX.utils.sheet_to_csv(sheet);
-          console.log('[AI-FRONTEND] CSV text generated. Length:', csvText.length);
 
-          // Get raw base64 for local parser if it fails
-          let binary = '';
-          for (let i = 0; i < data.byteLength; i++) binary += String.fromCharCode(data[i]);
-          const base64Data = window.btoa(binary);
-
-          console.log('[AI-FRONTEND] Dispatching fetch request to /api/finance/gmail...');
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
-
+      if (fileName.endsWith('.ofx') || fileName.endsWith('.qfx')) {
+        reader.onload = (event) => {
+          const text = event.target?.result as string;
+          resolve(parseOFX(text));
+        };
+        reader.onerror = () => reject(new Error('File reading error.'));
+        reader.readAsText(file);
+      } 
+      else if (fileName.endsWith('.pdf')) {
+        reader.onload = async (event) => {
           try {
+            const base64Data = (event.target?.result as string).split(',')[1];
             const res = await fetch('/api/finance/gmail', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              signal: controller.signal,
-              body: JSON.stringify({ fileData: base64Data, isExcel: true, rawText: csvText }),
+              body: JSON.stringify({ fileData: base64Data, mimeType: 'application/pdf', source: file.name }),
             });
-            clearTimeout(timeoutId);
-            console.log('[AI-FRONTEND] Fetch request complete. Status:', res.status);
+            if (res.ok) {
+              const data = await res.json();
+              resolve(data.transactions || []);
+            } else {
+              const err = await res.json();
+              reject(new Error(err.error || 'AI extraction failed.'));
+            }
+          } catch (error) {
+            reject(error);
+          }
+        };
+        reader.onerror = () => reject(new Error('File reading error.'));
+        reader.readAsDataURL(file);
+      }
+      else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+        reader.onload = async (event) => {
+          try {
+            const arrayBuffer = event.target?.result as ArrayBuffer;
+            const data = new Uint8Array(arrayBuffer);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const csvText = XLSX.utils.sheet_to_csv(sheet);
+            
+            let binary = '';
+            for (let i = 0; i < data.byteLength; i++) binary += String.fromCharCode(data[i]);
+            const base64Data = window.btoa(binary);
+
+            const res = await fetch('/api/finance/gmail', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fileData: base64Data, isExcel: true, rawText: csvText, source: file.name }),
+            });
 
             if (res.ok) {
               const parsedData = await res.json();
-              setParsedTransactions(parsedData.transactions || []);
-              setUploadProgress(100);
-              setLoadingStatus(parsedData.method === 'local_parser' ? '[SYSTEM] INSTANT LOCAL PARSE SUCCESS.' : '[SYSTEM] SPREADSHEET MATRIX TRANSLATED.');
-              if ((parsedData.transactions || []).length === 0) {
-                alert('[SYSTEM] Gemini could not extract any transactions from your Excel sheet.');
-              }
+              resolve(parsedData.transactions || []);
             } else {
               const err = await res.json();
-              console.error('[AI-FRONTEND] API error:', err);
-              alert('[SYSTEM] Excel AI extraction failed: ' + (err.error || 'Check file and try again.'));
+              reject(new Error(err.error || 'Excel extraction failed.'));
             }
-          } catch (fetchErr: any) {
-            if (fetchErr.name === 'AbortError') {
-              console.error('[AI-FRONTEND] Request timed out after 60s.');
-              alert('[SYSTEM] The AI is taking too long to respond (60s timeout). Try a smaller file or wait a few minutes.');
+          } catch (error) {
+            reject(error);
+          }
+        };
+        reader.onerror = () => reject(new Error('File reading error.'));
+        reader.readAsArrayBuffer(file);
+      }
+      else if (fileName.endsWith('.csv')) {
+        reader.onload = async (event) => {
+          try {
+            const csvText = event.target?.result as string;
+            const res = await fetch('/api/finance/gmail', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ rawText: csvText, source: file.name }),
+            });
+            if (res.ok) {
+              const parsedData = await res.json();
+              resolve(parsedData.transactions || []);
             } else {
-              throw fetchErr;
+              const err = await res.json();
+              reject(new Error(err.error || 'CSV extraction failed.'));
             }
+          } catch (error) {
+            reject(error);
           }
-        } catch (error) {
-          console.error('[AI-FRONTEND] Critical error during Excel parsing:', error);
-          alert('[SYSTEM] Spreadsheet parsing error. Check console for details.');
-        } finally {
-          console.log('[AI-FRONTEND] Cleaning up parsing state...');
-          setTimeout(() => {
-            setParsing(false);
-            setSelectedFile(null);
-          }, 800);
-        }
-      };
-      reader.onerror = (err) => {
-        console.error('[AI-FRONTEND] File reader error:', err);
-        setParsing(false);
-        setSelectedFile(null);
-        alert('[SYSTEM] File reading error.');
-      };
-      reader.readAsArrayBuffer(file);
-    }
-    else if (fileName.endsWith('.csv')) {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        try {
-          const csvText = event.target?.result as string;
-          console.log('[AI-FRONTEND] Dispatching fetch request to /api/finance/gmail...');
-          const res = await fetch('/api/finance/gmail', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rawText: csvText }),
-          });
-          console.log('[AI-FRONTEND] Fetch request complete.');
-
-          if (res.ok) {
-            const parsedData = await res.json();
-            setParsedTransactions(parsedData.transactions || []);
-            setUploadProgress(100);
-            setLoadingStatus('[SYSTEM] CSV MATRIX PARSING SUCCESS.');
-            if ((parsedData.transactions || []).length === 0) {
-              alert('[SYSTEM] Gemini could not extract any transactions from your CSV sheet.');
-            }
-          } else {
-            const err = await res.json();
-            alert('[SYSTEM] CSV AI extraction failed: ' + (err.error || 'Check file and try again.'));
-          }
-        } catch (error) {
-          console.error(error);
-          alert('[SYSTEM] Connection or file preparation error.');
-        } finally {
-          setTimeout(() => {
-            setParsing(false);
-            setSelectedFile(null);
-          }, 800);
-        }
-      };
-      reader.onerror = () => {
-        setParsing(false);
-        setSelectedFile(null);
-        alert('[SYSTEM] File reading error.');
-      };
-      reader.readAsText(file);
-    }
-    else {
-      setParsing(false);
-      setSelectedFile(null);
-      alert('[SYSTEM] Unsupported file format. Please upload PDF, Excel (.xlsx, .xls), CSV, or OFX/QFX.');
-    }
+        };
+        reader.onerror = () => reject(new Error('File reading error.'));
+        reader.readAsText(file);
+      }
+      else {
+        reject(new Error('Unsupported file format.'));
+      }
+    });
   };
 
   const bulkImportTransactions = async () => {
@@ -795,7 +700,7 @@ export default function FinancePage() {
                         <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)' }}>Parses local code or feeds to Gemini multimodal OCR</div>
                       </div>
                     )}
-                    <input ref={fileInputRef} type="file" accept=".pdf,.xlsx,.xls,.csv,.ofx,.qfx" onChange={handleFileUpload} style={{ display: 'none' }} />
+                    <input ref={fileInputRef} type="file" multiple accept=".pdf,.xlsx,.xls,.csv,.ofx,.qfx" onChange={handleFileUpload} style={{ display: 'none' }} />
                   </div>
                 )}
 
@@ -1039,7 +944,7 @@ export default function FinancePage() {
                                     </span>
                                   </div>
                                   <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', marginTop: '4px' }}>
-                                    {new Date(tx.date).toLocaleDateString()} • {tx.category}
+                                    {new Date(tx.date).toLocaleDateString()} • {tx.category} • <span style={{ color: 'var(--sl-blue)', fontStyle: 'italic' }}>{tx.source}</span>
                                   </div>
                                 </div>
                                 <div style={{ fontSize: '0.9rem', fontWeight: 800, color: tx.type === 'income' ? 'var(--sl-green)' : 'var(--sl-red)' }}>
@@ -1089,11 +994,13 @@ export default function FinancePage() {
                     <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       {parsedTransactions.map((tx, idx) => (
                         <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--sl-glass-border)', padding: '10px', borderRadius: '8px' }}>
-                          <div>
-                            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--sl-text-bright)' }}>{tx.description}</div>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)' }}>{tx.date} • {tx.category}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--sl-text-bright)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.description}</div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', marginTop: '2px' }}>
+                              {tx.date} • {tx.category} • <span style={{ color: 'var(--sl-blue)', fontStyle: 'italic' }}>{tx.source}</span>
+                            </div>
                           </div>
-                          <div style={{ fontSize: '0.9rem', fontWeight: 800, color: tx.type === 'income' ? 'var(--sl-green)' : 'var(--sl-red)' }}>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 800, color: tx.type === 'income' ? 'var(--sl-green)' : 'var(--sl-red)', marginLeft: '12px' }}>
                             {tx.type === 'income' ? '+' : '-'}₹{tx.amount}
                           </div>
                         </div>
@@ -1115,7 +1022,7 @@ export default function FinancePage() {
                       <div>
                         <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--sl-text-bright)' }}>{t.description}</div>
                         <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', textTransform: 'uppercase' }}>
-                          {t.category} • {new Date(t.date).toLocaleDateString()}
+                          {t.category} • {new Date(t.date).toLocaleDateString()} {(t as any).source && <span style={{ color: 'var(--sl-blue-glow)', marginLeft: '4px', textTransform: 'none' }}>[{ (t as any).source }]</span>}
                         </div>
                       </div>
                     </div>

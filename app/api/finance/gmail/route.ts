@@ -15,7 +15,7 @@ export const POST = withLogger(async (req: NextRequest) => {
     }
     console.log('[AI-BACKEND] Session verified for user:', session.user.id);
 
-    const { rawText, fileData, mimeType, isExcel } = await req.json();
+    const { rawText, fileData, mimeType, isExcel, source } = await req.json();
 
     // --- LOCAL PARSER ONLY ---
     if (fileData) {
@@ -41,12 +41,12 @@ export const POST = withLogger(async (req: NextRequest) => {
       }
 
       if (localTransactions && localTransactions.length > 0) {
-        console.log(`[AI-BACKEND] Local parser success. Found ${localTransactions.length} transactions.`);
+        console.log(`[AI-BACKEND] Local parser success. Found ${localTransactions.length} transactions from ${source}.`);
         
         const finalTransactions = localTransactions.map((tx: any) => {
           const sigString = `${session.user.id}_${tx.date}_${tx.amount}_${tx.description.toLowerCase()}_${tx.type}`;
           const signature = crypto.createHash('sha256').update(sigString).digest('hex');
-          return { ...tx, signature };
+          return { ...tx, signature, source: source || 'Local Parser' };
         });
         
         return NextResponse.json({ transactions: finalTransactions, method: 'local_parser' });
