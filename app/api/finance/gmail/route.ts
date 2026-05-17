@@ -32,7 +32,7 @@ export const POST = withLogger(async (req: NextRequest) => {
     // --- LOCAL PARSER FAST PATH ---
     if (fileData) {
       const buffer = Buffer.from(fileData, 'base64');
-      let localTransactions = [];
+      let localTransactions: any[] = [];
 
       if (isExcel) {
         console.log('[AI-BACKEND] Attempting local HDFC Excel parsing...');
