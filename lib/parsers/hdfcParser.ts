@@ -39,30 +39,49 @@ export async function parseHDFCExcel(buffer: Buffer) {
 
   const transactions = [];
   let headerFound = false;
+  let narrationIdx = 1;
+  let withdrawalIdx = 4;
+  let depositIdx = 5;
 
   for (const row of rows) {
     if (!headerFound) {
-      if (row[0] === 'Date' && row[1] === 'Narration') {
+      // Robust header detection: find the row containing 'Narration'
+      const idx = row.findIndex(cell => String(row[0] || '').includes('Date') && String(cell || '').toLowerCase().includes('narration'));
+      if (idx !== -1) {
         headerFound = true;
+        narrationIdx = idx;
+        withdrawalIdx = row.findIndex(cell => String(cell || '').toLowerCase().includes('withdrawal'));
+        depositIdx = row.findIndex(cell => String(cell || '').toLowerCase().includes('deposit'));
+        console.log(`[LOCAL-PARSER] HDFC Header found. Map: Narration:${narrationIdx}, Dr:${withdrawalIdx}, Cr:${depositIdx}`);
       }
       continue;
     }
 
     // Skip separator lines or empty lines
-    if (!row[0] || String(row[0]).includes('****') || row[0] === 'Date') continue;
+    const dateCell = String(row[0] || '');
+    if (!dateCell || dateCell.includes('***') || dateCell.toLowerCase().includes('date') || dateCell.length < 5) continue;
 
-    const dateStr = String(row[0]);
-    const narration = String(row[1]);
-    const withdrawal = parseFloat(String(row[4] || '0'));
-    const deposit = parseFloat(String(row[5] || '0'));
+    const dateStr = dateCell;
+    const narration = String(row[narrationIdx] || '');
+    
+    const withdrawalStr = String(row[withdrawalIdx] || '0').replace(/,/g, '');
+    const depositStr = String(row[depositIdx] || '0').replace(/,/g, '');
+    
+    const withdrawal = parseFloat(withdrawalStr);
+    const deposit = parseFloat(depositStr);
 
     if (isNaN(withdrawal) && isNaN(deposit)) continue;
 
-    const amount = withdrawal > 0 ? withdrawal : deposit;
-    const type = withdrawal > 0 ? 'expense' : 'income';
+    const amount = deposit > 0 ? deposit : withdrawal;
+    const type = deposit > 0 ? 'income' : 'expense';
+
+    if (amount === 0) continue;
 
     // Format date: DD/MM/YY -> YYYY-MM-DD
-    const [d, m, y] = dateStr.split('/');
+    const parts = dateStr.split('/');
+    if (parts.length !== 3) continue;
+    
+    const [d, m, y] = parts;
     const fullYear = parseInt(y) < 50 ? `20${y}` : `19${y}`;
     const formattedDate = `${fullYear}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
 
