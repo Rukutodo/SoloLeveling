@@ -110,20 +110,32 @@ export async function POST(req: NextRequest) {
       
       Generate exactly 6 milestones (Sub-Quests) arranged in 3 chronological checkpoints (3 sequential Checkpoints with 2 milestones each):
       
+      Strictest Rules for the Financial/Career curve (Non-Linear Growth Curve):
+      Financial growth in real-life career transitions is NEVER linear. The user is starting out focusing on building skills, portfolios, or MVPs, and cannot make a high income instantly. Therefore, you MUST enforce a highly realistic, progressive "hockey-stick" growth curve for the monthly income targets:
+      1. Checkpoint 1 (E-Rank Quest - Month 2 - Foundation Phase):
+         - Target Value: MUST be highly modest, representing roughly 5% to 15% of the targetSalary (e.g. ₹5,000 to ₹15,000 if target is ₹200,000).
+         - Focus: Gaining foundational skills, simple certifications, and basic portfolios for a ${targetProfession || 'Software Engineer'} rather than generating high income. Explain this realistic focus clearly in the description.
+      2. Checkpoint 2 (B-Rank Quest - Month 4 - Market Entry Phase):
+         - Target Value: An intermediate step representing roughly 25% to 40% of the targetSalary (e.g. ₹50,000 to ₹80,000 if target is ₹200,000).
+         - Focus: Landing an entry-level/junior full-time job, securing a couple of freelance clients, or launching an MVP with initial subscribers.
+      3. Checkpoint 3 (S-Rank Quest - Month 6 - Ascension Phase):
+         - Target Value: MUST be exactly ₹${targetSalary}!
+         - Focus: Command senior-level pay, high-ticket consulting contracts, advanced production architectures, or scaling SaaS subscriptions to reach full target.
+      
       The 3 Checkpoints:
       1. Checkpoint 1 (E/D-Rank trials - roughly 1/3 of the timeframe from now):
          - Milestone 1 (Weight): E-Rank Directive. A realistic intermediate weight target (roughly 1/3 of the progress from currentWeight to targetWeight).
-         - Milestone 2 (Income/Career): E-Rank Quest. A realistic intermediate monthly income target (roughly 1/3 of the progress from currentIncome to targetSalary) tailored SPECIFICALLY to gaining foundational skills/credentials for a ${targetProfession || 'Software Engineer'} (e.g. entry-level courses, simple git repos, or certifications).
+         - Milestone 2 (Income/Career): E-Rank Quest. The foundation monthly income target (5% to 15% of targetSalary) tailored SPECIFICALLY to gaining foundational skills/credentials for a ${targetProfession || 'Software Engineer'}.
          - Both Milestone 1 and 2 must have the EXACT SAME deadline (roughly 1/3 of the timeframe).
          
       2. Checkpoint 2 (C/B-Rank trials - roughly 2/3 of the timeframe from now):
          - Milestone 3 (Weight): C-Rank Directive. A realistic intermediate weight target (roughly 2/3 of the progress from currentWeight to targetWeight).
-         - Milestone 4 (Income/Career): B-Rank Quest. A realistic intermediate monthly income target (roughly 2/3 of the progress from currentIncome to targetSalary) tailored SPECIFICALLY to professional progression in ${targetProfession || 'Software Engineer'} (e.g. building a complex portfolio project, applying for junior/mid positions, or client acquisition).
+         - Milestone 4 (Income/Career): B-Rank Quest. The market entry monthly income target (25% to 40% of targetSalary) tailored SPECIFICALLY to professional progression in ${targetProfession || 'Software Engineer'}.
          - Both Milestone 3 and 4 must have the EXACT SAME deadline (roughly 2/3 of the timeframe).
          
       3. Checkpoint 3 (A/S-Rank ascension - EXACTLY at the final target deadline):
          - Milestone 5 (Weight): S-Rank Final Weight Directive. MUST be exactly ${targetWeight}kg!
-         - Milestone 6 (Income/Career): S-Rank Final Income Quest. MUST be exactly ₹${targetSalary}! Tailored SPECIFICALLY to high-tier professional ascension in ${targetProfession || 'Software Engineer'} (e.g. high-ticket contracts, senior roles, or advanced production architectures) that secure this top earning benchmark.
+         - Milestone 6 (Income/Career): S-Rank Final Income Quest. MUST be exactly ₹${targetSalary}! Tailored SPECIFICALLY to high-tier professional ascension in ${targetProfession || 'Software Engineer'}.
          - Both Milestone 5 and 6 must have the EXACT SAME deadline (EXACTLY equal to ${deadline}).
       
       Strictest Rules for values and relevance:
@@ -133,7 +145,7 @@ export async function POST(req: NextRequest) {
          - If weight loss (targetWeight < currentWeight), target values MUST decrease progressively: currentWeight > Milestone 1 targetValue > Milestone 3 targetValue > Milestone 5 targetValue (which is exactly ${targetWeight}).
          - If weight gain (targetWeight > currentWeight), target values MUST increase progressively: currentWeight < Milestone 1 targetValue < Milestone 3 targetValue < Milestone 5 targetValue (which is exactly ${targetWeight}).
       4. For income milestones (Milestone 2, 4, 6):
-         - Target values MUST increase progressively: currentIncome < Milestone 2 targetValue < Milestone 4 targetValue < Milestone 6 targetValue (which is exactly ${targetSalary}).
+         - Target values MUST increase progressively according to the hockey-stick curve: currentIncome < Milestone 2 targetValue < Milestone 4 targetValue < Milestone 6 targetValue (which is exactly ${targetSalary}).
       
       Each milestone must have:
       1. title: (Sleek Solo Leveling themed title, e.g. "E-Rank Trials: Body Adaptation" or "C-Rank Evolution: Resource Gathering")
