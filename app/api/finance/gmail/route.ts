@@ -69,6 +69,7 @@ export const POST = withLogger(async (req: NextRequest) => {
       return NextResponse.json({ transactions: [] });
     }
 
+    console.log('[AI-BACKEND] Starting gemma-4-31b-it processing for Finance/Gmail Parsing...');
     // 2. Feed text snippets or file to Gemini to extract financial transaction structures
     const model = genAI.getGenerativeModel({ model: 'gemma-4-31b-it' });
     const prompt = `You are a financial parsing engine. Analyze the following receipt email logs/texts or uploaded document and extract structured transaction information.
@@ -96,6 +97,7 @@ export const POST = withLogger(async (req: NextRequest) => {
 
     let parsedText = '';
     if (fileData && mimeType) {
+      console.log('[AI-BACKEND] Sending payload to model...');
       const result = await model.generateContent([
         {
           inlineData: {
@@ -105,10 +107,13 @@ export const POST = withLogger(async (req: NextRequest) => {
         },
         prompt
       ]);
+      console.log('[AI-BACKEND] Response received. Content length:', result.response.text().length);
       parsedText = result.response.text().trim();
     } else {
       const fullPrompt = `${prompt}\n\nEmail Logs/Texts to parse:\n\"\"\"\n${textsToParse.join('\n\n--- MESSAGE BLOCK ---\n\n')}\n\"\"\"`;
+      console.log('[AI-BACKEND] Sending payload to model...');
       const result = await model.generateContent(fullPrompt);
+      console.log('[AI-BACKEND] Response received. Content length:', result.response.text().length);
       parsedText = result.response.text().trim();
     }
 
@@ -153,7 +158,7 @@ export const POST = withLogger(async (req: NextRequest) => {
 
     return NextResponse.json({ transactions });
   } catch (error: any) {
-    console.error('Gmail API parsing error:', error);
+    console.error('[AI-BACKEND] Error:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }, { enforceAiRateLimit: true });

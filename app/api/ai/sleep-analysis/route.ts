@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { hours, quality } = body;
 
+    console.log('[AI-BACKEND] Starting gemma-4-31b-it processing for Sleep Analysis...');
     const model = genAI.getGenerativeModel({ model: 'gemma-4-31b-it' });
 
     const prompt = `Analyze the effects of ${hours} hours of sleep with a quality rating of ${quality}/5 on a person's body and mind. 
@@ -29,7 +30,9 @@ export async function POST(req: NextRequest) {
     }
     Only return the raw JSON.`;
 
+    console.log('[AI-BACKEND] Sending payload to model...');
     const result = await model.generateContent(prompt);
+    console.log('[AI-BACKEND] Response received. Content length:', result.response.text().length);
     const responseText = result.response.text();
 
     let jsonStr = responseText;
@@ -39,7 +42,7 @@ export async function POST(req: NextRequest) {
     const analysis = JSON.parse(jsonStr);
     return NextResponse.json({ analysis });
   } catch (error) {
-    console.error('Sleep analysis error:', error);
+    console.error('[AI-BACKEND] Error:', error);
     return NextResponse.json({ error: 'Failed to generate analysis' }, { status: 500 });
   }
 }

@@ -334,11 +334,13 @@ export default function FinancePage() {
         try {
           const base64Data = (event.target?.result as string).split(',')[1];
           
+          console.log('[AI-FRONTEND] Dispatching fetch request to /api/finance/gmail...');
           const res = await fetch('/api/finance/gmail', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fileData: base64Data, mimeType: 'application/pdf' }),
           });
+          console.log('[AI-FRONTEND] Fetch request complete.');
 
           if (res.ok) {
             const data = await res.json();
@@ -375,16 +377,20 @@ export default function FinancePage() {
         try {
           const arrayBuffer = event.target?.result as ArrayBuffer;
           const data = new Uint8Array(arrayBuffer);
+          console.log('[AI-FRONTEND] File read complete. Starting XLSX parsing...');
           const workbook = XLSX.read(data, { type: 'array' });
+          console.log('[AI-FRONTEND] XLSX parsing complete.');
           const sheetName = workbook.SheetNames[0];
           const sheet = workbook.Sheets[sheetName];
           const csvText = XLSX.utils.sheet_to_csv(sheet);
 
+          console.log('[AI-FRONTEND] Dispatching fetch request to /api/finance/gmail...');
           const res = await fetch('/api/finance/gmail', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawText: csvText }),
           });
+          console.log('[AI-FRONTEND] Fetch request complete.');
 
           if (res.ok) {
             const parsedData = await res.json();
@@ -420,11 +426,13 @@ export default function FinancePage() {
       reader.onload = async (event) => {
         try {
           const csvText = event.target?.result as string;
+          console.log('[AI-FRONTEND] Dispatching fetch request to /api/finance/gmail...');
           const res = await fetch('/api/finance/gmail', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rawText: csvText }),
           });
+          console.log('[AI-FRONTEND] Fetch request complete.');
 
           if (res.ok) {
             const parsedData = await res.json();

@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
+    console.log('[AI-BACKEND] Starting gemma-4-31b-it processing for Main Quest Generation...');
     const model = genAI.getGenerativeModel({ model: 'gemma-4-31b-it' });
     const prompt = `
       As the "System Advisor" in a Solo Leveling themed self-improvement app, generate a highly realistic and motivating "Main Quest Chain" (Hunter's Roadmap) for a user.
@@ -157,7 +158,9 @@ export async function POST(req: NextRequest) {
       Format strictly as JSON: { "milestones": [ { "title", "description", "targetType", "targetValue", "deadline" } ] }
     `;
 
+    console.log('[AI-BACKEND] Sending payload to model...');
     const result = await model.generateContent(prompt);
+    console.log('[AI-BACKEND] Response received. Content length:', result.response.text().length);
     const response = await result.response;
     const text = response.text();
     
@@ -168,7 +171,7 @@ export async function POST(req: NextRequest) {
       const parsed = JSON.parse(cleanJson);
       milestones = parsed.milestones;
     } catch (parseError) {
-      console.error('AI JSON Parse Error:', parseError, 'Raw Text:', text);
+      console.error('[AI-BACKEND] Error:', parseError);
       return NextResponse.json({ error: 'System error: Invalid roadmap format received.' }, { status: 500 });
     }
 
@@ -194,7 +197,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ quest: newQuest });
   } catch (error: any) {
-    console.error('Quest generation error:', error);
+    console.error('[AI-BACKEND] Error:', error);
     return NextResponse.json({ error: error.message || 'Failed to generate quest chain' }, { status: 500 });
   }
 }

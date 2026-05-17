@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { image, mimeType, dishName, ingredients, step, quantity, baseFood } = body;
 
+    console.log('[AI-BACKEND] Starting gemma-4-31b-it processing for Calorie Analysis...');
     const model = genAI.getGenerativeModel({ model: 'gemma-4-31b-it' });
 
     let prompt = '';
@@ -146,7 +147,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
+    console.log('[AI-BACKEND] Sending payload to model...');
     const result = await model.generateContent(parts);
+    console.log('[AI-BACKEND] Response received. Content length:', result.response.text().length);
     const responseText = result.response.text();
 
     // Parse JSON from response (handle markdown code blocks)
@@ -160,7 +163,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ analysis });
   } catch (error) {
-    console.error('Calorie analysis error:', error);
+    console.error('[AI-BACKEND] Error:', error);
     return NextResponse.json(
       { error: 'Failed to analyze food. Please try again.' },
       { status: 500 }
