@@ -46,12 +46,16 @@ export async function GET(req: NextRequest) {
     const emiTotal = activeEmis.reduce((sum, e) => sum + e.amount, 0);
     expenses += emiTotal;
 
-    // Category breakdown
+    // Category breakdown — use description-derived name for uncategorized ('Other') transactions
     const categoryBreakdown: Record<string, number> = {};
     transactions
       .filter((t) => t.type === 'expense')
       .forEach((t) => {
-        categoryBreakdown[t.category] = (categoryBreakdown[t.category] || 0) + t.amount;
+        const isGeneric = !t.category || t.category === 'Other' || t.category === 'Other Income';
+        const label = isGeneric
+          ? (t.description || 'Transaction').split(/[\s\/\-_|]+/).slice(0, 2).join(' ').replace(/[^a-zA-Z0-9 ]/g, '').trim() || t.description?.slice(0, 20) || 'Transaction'
+          : t.category;
+        categoryBreakdown[label] = (categoryBreakdown[label] || 0) + t.amount;
       });
 
     // Add EMI category
