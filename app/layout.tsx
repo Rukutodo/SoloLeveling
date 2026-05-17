@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './themes.css';
 import SessionProvider from '@/components/SessionProvider';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
   title: 'SoloLeveling — Personal Development System',
@@ -19,10 +21,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('sl-theme');if(t&&t!=='sololeveling'){document.documentElement.setAttribute('data-theme',t)}}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body>
         <SessionProvider>
-          {children}
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
         </SessionProvider>
       </body>
     </html>

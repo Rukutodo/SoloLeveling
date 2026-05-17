@@ -10,6 +10,8 @@ export interface IFoodEntry extends Document {
   carbs: number;
   fat: number;
   fiber?: number;
+  sugar?: number;
+  caffeine?: number;
   source: 'ai' | 'manual';
   confidence?: number;
   createdAt: Date;
@@ -30,6 +32,8 @@ const FoodEntrySchema = new Schema<IFoodEntry>(
     carbs: { type: Number, default: 0 },
     fat: { type: Number, default: 0 },
     fiber: { type: Number, default: 0 },
+    sugar: { type: Number, default: 0 },
+    caffeine: { type: Number, default: 0 },
     source: { type: String, enum: ['ai', 'manual'], default: 'manual' },
     confidence: { type: Number },
   },

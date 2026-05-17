@@ -53,6 +53,8 @@ export async function POST(req: NextRequest) {
       carbs: body.carbs || 0,
       fat: body.fat || 0,
       fiber: body.fiber || 0,
+      sugar: body.sugar || 0,
+      caffeine: body.caffeine || 0,
       source: body.source || 'manual',
       confidence: body.confidence,
     });

@@ -1,0 +1,505 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ONE DARK — Flat, Code-Editor, Matte, Green accents, Left-border panels
+   ═══════════════════════════════════════════════════════════════════════ */
+[data-theme="onedark"] {
+  --sl-bg-base: hsl(220, 13%, 18%);
+  --sl-bg-sub: hsl(220, 13%, 14%);
+  --sl-bg-surface: hsl(220, 13%, 21%);
+  --sl-bg-glass: hsl(220, 13%, 24%);
+  --sl-bg-elevated: hsl(220, 13%, 24%);
+  --sl-blue: hsl(207, 82%, 66%);
+  --sl-blue-glow: hsla(207, 82%, 66%, 0.25);
+  --sl-blue-dim: hsla(207, 82%, 66%, 0.1);
+  --sl-purple: hsl(286, 60%, 67%);
+  --sl-purple-glow: hsla(286, 60%, 67%, 0.25);
+  --sl-purple-dim: hsla(286, 60%, 67%, 0.1);
+  --sl-gold: hsl(39, 67%, 69%);
+  --sl-gold-glow: hsla(39, 67%, 69%, 0.2);
+  --sl-gold-dim: hsla(39, 67%, 69%, 0.08);
+  --sl-red: hsl(355, 65%, 65%);
+  --sl-red-glow: hsla(355, 65%, 65%, 0.2);
+  --sl-red-dim: hsla(355, 65%, 65%, 0.08);
+  --sl-green: hsl(95, 38%, 62%);
+  --sl-green-glow: hsla(95, 38%, 62%, 0.25);
+  --sl-green-dim: hsla(95, 38%, 62%, 0.1);
+  --sl-text-bright: hsl(219, 14%, 92%);
+  --sl-text-main: hsl(219, 10%, 75%);
+  --sl-text-dim: hsl(219, 7%, 55%);
+  --sl-text-ghost: hsl(219, 7%, 38%);
+  --sl-glass-border: hsla(0, 0%, 100%, 0.06);
+  --sl-glass-border-bright: hsla(207, 82%, 66%, 0.2);
+  --sl-shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --sl-shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+  --sl-shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+  --sl-glow-sm: none; --sl-glow-md: none;
+  --sl-radius-sm: 4px; --sl-radius-md: 6px; --sl-radius-lg: 8px; --sl-radius-xl: 12px;
+  --sl-ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --sl-spring: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+[data-theme="onedark"] body::before {
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 39px,
+    hsla(207, 82%, 66%, 0.015) 39px, hsla(207, 82%, 66%, 0.015) 40px
+  ) !important;
+  animation: none !important;
+}
+[data-theme="onedark"] .sl-panel {
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  background: hsl(220, 13%, 21%) !important;
+  border: 1px solid hsla(0,0%,100%,0.05) !important;
+  border-left: 3px solid var(--sl-green) !important;
+  border-radius: 4px !important;
+}
+[data-theme="onedark"] .sl-panel::after { display: none !important; }
+[data-theme="onedark"] .sl-panel:hover {
+  transform: none !important;
+  border-left-color: var(--sl-blue) !important;
+  box-shadow: inset 0 0 30px hsla(207,82%,66%,0.03) !important;
+}
+[data-theme="onedark"] .sl-stat-card {
+  backdrop-filter: none !important;
+  background: hsl(220, 13%, 21%);
+  border-left: 3px solid var(--sl-blue);
+  border-radius: 4px;
+}
+[data-theme="onedark"] .sl-stat-card:hover { transform: none; box-shadow: var(--sl-shadow-md); }
+[data-theme="onedark"] .sl-btn { border-radius: 4px; }
+[data-theme="onedark"] .sl-btn-primary { box-shadow: none; background: var(--sl-green); color: hsl(220,13%,14%); }
+[data-theme="onedark"] .sl-btn-primary:hover { background: hsl(95, 38%, 55%); box-shadow: none; transform: none; }
+[data-theme="onedark"] .sl-btn-secondary { border-color: var(--sl-green); color: var(--sl-green); }
+[data-theme="onedark"] .sl-section-title { color: var(--sl-green); }
+[data-theme="onedark"] .sl-section-title::before {
+  background: var(--sl-green); box-shadow: none; width: 2px; border-radius: 0;
+}
+[data-theme="onedark"] .sl-input, [data-theme="onedark"] .sl-select {
+  border-radius: 4px; backdrop-filter: none;
+}
+[data-theme="onedark"] .sl-input:focus, [data-theme="onedark"] .sl-select:focus {
+  border-color: var(--sl-green); box-shadow: 0 0 0 2px hsla(95,38%,62%,0.15);
+}
+[data-theme="onedark"] .sl-badge { border-radius: 3px; }
+[data-theme="onedark"] .sl-modal { border-radius: 8px; backdrop-filter: none; background: hsl(220,13%,18%); border-left: 3px solid var(--sl-blue); }
+[data-theme="onedark"] .sl-progress { border-radius: 2px; }
+[data-theme="onedark"] .sl-progress-fill { border-radius: 2px; box-shadow: none !important; }
+[data-theme="onedark"] ::-webkit-scrollbar-thumb { background: hsla(95,38%,62%,0.15); border-radius: 0; }
+[data-theme="onedark"] ::-webkit-scrollbar-thumb:hover { background: hsla(95,38%,62%,0.3); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ROSÉ PINE — Dreamy, Aurora, Heavy Glass, Animated gradient borders
+   ═══════════════════════════════════════════════════════════════════════ */
+[data-theme="rosepine"] {
+  --sl-bg-base: hsl(249, 22%, 12%);
+  --sl-bg-sub: hsl(247, 23%, 15%);
+  --sl-bg-surface: hsla(248, 25%, 18%, 0.45);
+  --sl-bg-glass: hsla(248, 25%, 22%, 0.3);
+  --sl-bg-elevated: hsl(248, 25%, 20%);
+  --sl-blue: hsl(189, 43%, 73%);
+  --sl-blue-glow: hsla(189, 43%, 73%, 0.3);
+  --sl-blue-dim: hsla(189, 43%, 73%, 0.1);
+  --sl-purple: hsl(267, 57%, 78%);
+  --sl-purple-glow: hsla(267, 57%, 78%, 0.3);
+  --sl-purple-dim: hsla(267, 57%, 78%, 0.1);
+  --sl-gold: hsl(35, 88%, 72%);
+  --sl-gold-glow: hsla(35, 88%, 72%, 0.2);
+  --sl-gold-dim: hsla(35, 88%, 72%, 0.08);
+  --sl-red: hsl(343, 76%, 68%);
+  --sl-red-glow: hsla(343, 76%, 68%, 0.25);
+  --sl-red-dim: hsla(343, 76%, 68%, 0.1);
+  --sl-green: hsl(197, 49%, 50%);
+  --sl-green-glow: hsla(197, 49%, 50%, 0.2);
+  --sl-green-dim: hsla(197, 49%, 50%, 0.08);
+  --sl-text-bright: hsl(245, 50%, 91%);
+  --sl-text-main: hsl(249, 21%, 69%);
+  --sl-text-dim: hsl(249, 12%, 52%);
+  --sl-text-ghost: hsl(249, 15%, 35%);
+  --sl-glass-border: hsla(267, 30%, 80%, 0.08);
+  --sl-glass-border-bright: hsla(267, 57%, 78%, 0.2);
+  --sl-shadow-sm: 0 4px 16px rgba(20,10,40,0.4);
+  --sl-shadow-md: 0 8px 40px rgba(20,10,40,0.5);
+  --sl-shadow-lg: 0 20px 60px rgba(20,10,40,0.6);
+  --sl-glow-sm: 0 0 25px hsla(267,57%,78%,0.08);
+  --sl-glow-md: 0 0 50px hsla(267,57%,78%,0.1);
+  --sl-radius-sm: 14px; --sl-radius-md: 18px; --sl-radius-lg: 26px; --sl-radius-xl: 36px;
+  --sl-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --sl-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+[data-theme="rosepine"] body::before {
+  background:
+    radial-gradient(circle at 15% 30%, hsla(343,76%,68%,0.07) 0%, transparent 40%),
+    radial-gradient(circle at 85% 70%, hsla(267,57%,78%,0.06) 0%, transparent 40%),
+    radial-gradient(circle at 50% 90%, hsla(189,43%,73%,0.05) 0%, transparent 35%),
+    radial-gradient(circle at 70% 10%, hsla(35,88%,72%,0.04) 0%, transparent 30%) !important;
+  animation: rp-drift 30s ease-in-out infinite alternate !important;
+}
+@keyframes rp-drift {
+  0% { filter: blur(0px) hue-rotate(0deg); }
+  50% { filter: blur(2px) hue-rotate(8deg); }
+  100% { filter: blur(0px) hue-rotate(-5deg); }
+}
+[data-theme="rosepine"] .sl-panel {
+  backdrop-filter: blur(30px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(1.4) !important;
+  background: hsla(248,25%,18%,0.4) !important;
+  border: 1px solid transparent !important;
+  background-clip: padding-box !important;
+  box-shadow: 0 8px 40px rgba(20,10,40,0.35), inset 0 1px 0 hsla(0,0%,100%,0.06), inset 0 -1px 0 hsla(0,0%,0%,0.1) !important;
+  position: relative;
+}
+[data-theme="rosepine"] .sl-panel::before {
+  content: '' !important; position: absolute !important; inset: -1px !important;
+  border-radius: inherit !important; padding: 1px !important; z-index: -1 !important;
+  background: linear-gradient(135deg, hsla(343,76%,68%,0.3), hsla(267,57%,78%,0.2), hsla(189,43%,73%,0.15), hsla(343,76%,68%,0.1)) !important;
+  background-size: 300% 300% !important;
+  animation: rp-border 8s ease infinite !important;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
+  -webkit-mask-composite: xor !important; mask-composite: exclude !important;
+}
+@keyframes rp-border {
+  0%,100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+[data-theme="rosepine"] .sl-panel::after {
+  background: linear-gradient(145deg, hsla(267,57%,78%,0.06) 0%, hsla(343,76%,68%,0.03) 30%, transparent 60%) !important;
+}
+[data-theme="rosepine"] .sl-panel:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 16px 60px rgba(20,10,40,0.5), 0 0 40px hsla(267,57%,78%,0.1), inset 0 1px 0 hsla(0,0%,100%,0.08) !important;
+}
+[data-theme="rosepine"] .sl-stat-card {
+  backdrop-filter: blur(24px) saturate(1.3);
+  background: hsla(248,25%,18%,0.35);
+  border: 1px solid hsla(267,30%,80%,0.1);
+}
+[data-theme="rosepine"] .sl-stat-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 20px 50px rgba(20,10,40,0.45), 0 0 30px hsla(267,57%,78%,0.08);
+}
+[data-theme="rosepine"] .sl-btn { border-radius: 18px; }
+[data-theme="rosepine"] .sl-btn-primary {
+  background: linear-gradient(135deg, var(--sl-purple), var(--sl-red));
+  box-shadow: 0 4px 20px hsla(343,76%,68%,0.25);
+}
+[data-theme="rosepine"] .sl-btn-primary:hover {
+  box-shadow: 0 6px 30px hsla(343,76%,68%,0.35); transform: translateY(-2px);
+}
+[data-theme="rosepine"] .sl-btn-secondary { border-radius: 18px; border-color: hsla(267,57%,78%,0.25); color: var(--sl-purple); }
+[data-theme="rosepine"] .sl-section-title { color: var(--sl-purple); }
+[data-theme="rosepine"] .sl-section-title::before {
+  background: linear-gradient(180deg, var(--sl-red), var(--sl-purple));
+  box-shadow: 0 0 12px var(--sl-purple-glow); width: 4px; border-radius: 4px;
+}
+[data-theme="rosepine"] .sl-input, [data-theme="rosepine"] .sl-select {
+  border-radius: 16px; backdrop-filter: blur(10px); background: hsla(248,25%,15%,0.5);
+}
+[data-theme="rosepine"] .sl-input:focus, [data-theme="rosepine"] .sl-select:focus {
+  border-color: var(--sl-purple); box-shadow: 0 0 0 4px hsla(267,57%,78%,0.12), 0 0 25px hsla(267,57%,78%,0.08);
+}
+[data-theme="rosepine"] .sl-badge { border-radius: 14px; }
+[data-theme="rosepine"] .sl-modal {
+  backdrop-filter: blur(40px) saturate(1.5); background: hsla(248,25%,16%,0.6);
+  border: 1px solid hsla(267,30%,80%,0.12); border-radius: 28px;
+  box-shadow: 0 30px 80px rgba(15,5,35,0.7), 0 0 50px hsla(267,57%,78%,0.08);
+}
+[data-theme="rosepine"] .sl-progress-blue .sl-progress-fill {
+  background: linear-gradient(90deg, var(--sl-purple), var(--sl-red));
+  box-shadow: 0 0 16px hsla(343,76%,68%,0.3);
+}
+[data-theme="rosepine"] ::-webkit-scrollbar-thumb { background: hsla(267,57%,78%,0.12); border-radius: 6px; }
+[data-theme="rosepine"] ::-webkit-scrollbar-thumb:hover { background: hsla(267,57%,78%,0.25); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CATPPUCCIN — Bubbly, Gradient panels, Neon borders, Bouncy everything
+   ═══════════════════════════════════════════════════════════════════════ */
+[data-theme="catppuccin"] {
+  --sl-bg-base: hsl(240, 21%, 15%);
+  --sl-bg-sub: hsl(240, 21%, 12%);
+  --sl-bg-surface: hsla(240, 23%, 19%, 0.6);
+  --sl-bg-glass: hsla(240, 23%, 23%, 0.4);
+  --sl-bg-elevated: hsl(240, 23%, 21%);
+  --sl-blue: hsl(217, 92%, 76%);
+  --sl-blue-glow: hsla(217, 92%, 76%, 0.3);
+  --sl-blue-dim: hsla(217, 92%, 76%, 0.1);
+  --sl-purple: hsl(267, 84%, 81%);
+  --sl-purple-glow: hsla(267, 84%, 81%, 0.3);
+  --sl-purple-dim: hsla(267, 84%, 81%, 0.1);
+  --sl-gold: hsl(41, 86%, 83%);
+  --sl-gold-glow: hsla(41, 86%, 83%, 0.2);
+  --sl-gold-dim: hsla(41, 86%, 83%, 0.08);
+  --sl-red: hsl(343, 81%, 75%);
+  --sl-red-glow: hsla(343, 81%, 75%, 0.25);
+  --sl-red-dim: hsla(343, 81%, 75%, 0.1);
+  --sl-green: hsl(115, 54%, 76%);
+  --sl-green-glow: hsla(115, 54%, 76%, 0.25);
+  --sl-green-dim: hsla(115, 54%, 76%, 0.1);
+  --sl-text-bright: hsl(226, 64%, 88%);
+  --sl-text-main: hsl(227, 35%, 72%);
+  --sl-text-dim: hsl(228, 17%, 55%);
+  --sl-text-ghost: hsl(229, 16%, 37%);
+  --sl-glass-border: hsla(226, 64%, 88%, 0.07);
+  --sl-glass-border-bright: hsla(217, 92%, 76%, 0.2);
+  --sl-shadow-sm: 0 2px 10px rgba(15,10,35,0.3);
+  --sl-shadow-md: 0 8px 32px rgba(15,10,35,0.4);
+  --sl-shadow-lg: 0 16px 48px rgba(15,10,35,0.5);
+  --sl-glow-sm: 0 0 20px hsla(217,92%,76%,0.1);
+  --sl-glow-md: 0 0 35px hsla(217,92%,76%,0.12);
+  --sl-radius-sm: 14px; --sl-radius-md: 18px; --sl-radius-lg: 24px; --sl-radius-xl: 32px;
+  --sl-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --sl-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+[data-theme="catppuccin"] body::before {
+  background:
+    radial-gradient(circle 600px at 20% 35%, hsla(267,84%,81%,0.06) 0%, transparent 100%),
+    radial-gradient(circle 500px at 80% 65%, hsla(217,92%,76%,0.05) 0%, transparent 100%),
+    radial-gradient(circle 400px at 50% 15%, hsla(343,81%,75%,0.04) 0%, transparent 100%),
+    radial-gradient(circle 450px at 65% 90%, hsla(115,54%,76%,0.03) 0%, transparent 100%) !important;
+  animation: ctp-pulse 15s ease-in-out infinite alternate !important;
+}
+@keyframes ctp-pulse {
+  0% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 0.8; transform: scale(1.01); }
+}
+[data-theme="catppuccin"] .sl-panel {
+  backdrop-filter: blur(24px) saturate(1.3) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.3) !important;
+  background: linear-gradient(145deg, hsla(240,23%,20%,0.6), hsla(240,23%,17%,0.5)) !important;
+  border: 1px solid hsla(217,92%,76%,0.08) !important;
+  box-shadow: 0 8px 32px rgba(15,10,35,0.3), inset 0 1px 0 hsla(0,0%,100%,0.06) !important;
+  transition: all 0.4s var(--sl-spring) !important;
+}
+[data-theme="catppuccin"] .sl-panel::after {
+  background: linear-gradient(145deg, hsla(217,92%,76%,0.04) 0%, hsla(267,84%,81%,0.025) 30%, transparent 55%) !important;
+}
+[data-theme="catppuccin"] .sl-panel:hover {
+  transform: translateY(-4px) scale(1.008) !important;
+  border-color: hsla(217,92%,76%,0.18) !important;
+  box-shadow: 0 14px 44px rgba(15,10,35,0.45), 0 0 25px hsla(217,92%,76%,0.07), inset 0 1px 0 hsla(0,0%,100%,0.08) !important;
+}
+[data-theme="catppuccin"] .sl-stat-card {
+  backdrop-filter: blur(20px) saturate(1.2);
+  background: linear-gradient(145deg, hsla(240,23%,20%,0.5), hsla(240,23%,17%,0.4));
+  border: 1px solid hsla(217,92%,76%,0.06);
+  transition: all 0.4s var(--sl-spring);
+}
+[data-theme="catppuccin"] .sl-stat-card:hover {
+  transform: translateY(-6px) scale(1.015);
+  box-shadow: 0 16px 40px rgba(15,10,35,0.4), 0 0 20px hsla(217,92%,76%,0.06);
+  border-color: hsla(217,92%,76%,0.15);
+}
+[data-theme="catppuccin"] .sl-btn { border-radius: 16px; transition: all 0.35s var(--sl-spring); }
+[data-theme="catppuccin"] .sl-btn-primary {
+  background: linear-gradient(135deg, var(--sl-blue), var(--sl-purple));
+  box-shadow: 0 4px 18px hsla(217,92%,76%,0.2);
+}
+[data-theme="catppuccin"] .sl-btn-primary:hover {
+  transform: translateY(-3px) scale(1.03); box-shadow: 0 6px 28px hsla(217,92%,76%,0.3);
+}
+[data-theme="catppuccin"] .sl-btn-primary:active { transform: translateY(1px) scale(0.97); }
+[data-theme="catppuccin"] .sl-section-title { color: var(--sl-blue); }
+[data-theme="catppuccin"] .sl-section-title::before {
+  background: linear-gradient(180deg, var(--sl-blue), var(--sl-purple)); width: 4px; border-radius: 4px;
+  box-shadow: 0 0 12px hsla(217,92%,76%,0.2);
+}
+[data-theme="catppuccin"] .sl-input, [data-theme="catppuccin"] .sl-select {
+  border-radius: 16px; backdrop-filter: blur(8px);
+  background: hsla(240,21%,14%,0.6);
+}
+[data-theme="catppuccin"] .sl-input:focus, [data-theme="catppuccin"] .sl-select:focus {
+  border-color: var(--sl-blue);
+  box-shadow: 0 0 0 4px hsla(217,92%,76%,0.12), 0 0 20px hsla(217,92%,76%,0.08);
+}
+[data-theme="catppuccin"] .sl-badge { border-radius: 14px; padding: 5px 14px; }
+[data-theme="catppuccin"] .sl-modal {
+  backdrop-filter: blur(32px) saturate(1.4); background: hsla(240,21%,14%,0.65);
+  border: 1px solid hsla(217,92%,76%,0.1); border-radius: 28px;
+  box-shadow: 0 24px 70px rgba(10,5,30,0.65), 0 0 35px hsla(217,92%,76%,0.06);
+}
+[data-theme="catppuccin"] .sl-progress-blue .sl-progress-fill {
+  background: linear-gradient(90deg, var(--sl-blue), var(--sl-purple));
+  box-shadow: 0 0 14px hsla(217,92%,76%,0.25);
+}
+[data-theme="catppuccin"] ::-webkit-scrollbar-thumb { background: hsla(267,84%,81%,0.1); border-radius: 6px; }
+[data-theme="catppuccin"] ::-webkit-scrollbar-thumb:hover { background: hsla(267,84%,81%,0.22); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SIDEBAR OVERRIDES — Drastically different sidebar per theme
+   Using global selectors since CSS modules can't use data-theme
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* One Dark sidebar — flat, green top accent line */
+[data-theme="onedark"] aside {
+  background: hsl(220, 13%, 14%) !important;
+  border-right: 1px solid hsla(0,0%,100%,0.04) !important;
+  border-top: 2px solid hsl(95, 38%, 62%) !important;
+}
+
+/* Rosé Pine sidebar — gradient background with iris tint */
+[data-theme="rosepine"] aside {
+  background: linear-gradient(
+    180deg,
+    hsl(247, 23%, 16%) 0%,
+    hsl(249, 22%, 13%) 50%,
+    hsla(343, 30%, 15%, 0.8) 100%
+  ) !important;
+  border-right: 1px solid hsla(267, 57%, 78%, 0.08) !important;
+  box-shadow: 4px 0 30px rgba(20, 10, 40, 0.4) !important;
+}
+
+/* Catppuccin sidebar — subtle gradient header, pastel top accent */
+[data-theme="catppuccin"] aside {
+  background: linear-gradient(
+    180deg,
+    hsl(240, 21%, 14%) 0%,
+    hsl(240, 21%, 12%) 100%
+  ) !important;
+  border-right: 1px solid hsla(217, 92%, 76%, 0.06) !important;
+  border-top: 3px solid transparent !important;
+  border-image: linear-gradient(90deg, hsl(217, 92%, 76%), hsl(267, 84%, 81%), hsl(343, 81%, 75%)) 1 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LAYOUT OVERRIDES — Different spacing/structure per theme
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* One Dark — compact, dense, code-editor feel */
+[data-theme="onedark"] { --sl-sidebar-w: 250px; }
+[data-theme="onedark"] .sl-main-content { padding: 28px 32px; }
+[data-theme="onedark"] .sl-page-header { margin-bottom: 24px; }
+[data-theme="onedark"] .sl-page-title { font-size: 1.4rem; letter-spacing: 0; }
+[data-theme="onedark"] .sl-page-subtitle { letter-spacing: 1px; }
+[data-theme="onedark"] .sl-grid-2 { gap: 16px; }
+[data-theme="onedark"] .sl-table th { font-size: 0.6rem; padding: 12px; }
+[data-theme="onedark"] .sl-table td { padding: 12px; font-size: 0.8125rem; }
+
+/* Rosé Pine — airy, wide spacing, breathing room */
+[data-theme="rosepine"] { --sl-sidebar-w: 300px; }
+[data-theme="rosepine"] .sl-main-content { padding: 48px 52px; }
+[data-theme="rosepine"] .sl-page-header { margin-bottom: 48px; }
+[data-theme="rosepine"] .sl-page-title { font-size: 1.9rem; letter-spacing: -1px; }
+[data-theme="rosepine"] .sl-grid-2 { gap: 28px; }
+[data-theme="rosepine"] .sl-table th { padding: 20px; }
+[data-theme="rosepine"] .sl-table td { padding: 20px; }
+
+/* Catppuccin — bubbly, generous padding, card-heavy */
+[data-theme="catppuccin"] { --sl-sidebar-w: 280px; }
+[data-theme="catppuccin"] .sl-main-content { padding: 40px 44px; }
+[data-theme="catppuccin"] .sl-page-header { margin-bottom: 36px; }
+[data-theme="catppuccin"] .sl-page-title { font-size: 1.65rem; }
+[data-theme="catppuccin"] .sl-grid-2 { gap: 24px; }
+[data-theme="catppuccin"] .sl-stat-label { font-size: 0.7rem; letter-spacing: 1.5px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GRUVBOX — Warm, Retro, Earthy, Textured, Orange/Amber accents
+   ═══════════════════════════════════════════════════════════════════════ */
+[data-theme="gruvbox"] {
+  --sl-bg-base: hsl(0, 0%, 16%);
+  --sl-bg-sub: hsl(20, 5%, 12%);
+  --sl-bg-surface: hsl(20, 5%, 20%);
+  --sl-bg-glass: hsl(20, 5%, 23%);
+  --sl-bg-elevated: hsl(20, 5%, 24%);
+  --sl-blue: hsl(157, 29%, 52%);
+  --sl-blue-glow: hsla(157, 29%, 52%, 0.25);
+  --sl-blue-dim: hsla(157, 29%, 52%, 0.1);
+  --sl-purple: hsl(333, 34%, 65%);
+  --sl-purple-glow: hsla(333, 34%, 65%, 0.25);
+  --sl-purple-dim: hsla(333, 34%, 65%, 0.1);
+  --sl-gold: hsl(40, 73%, 49%);
+  --sl-gold-glow: hsla(40, 73%, 49%, 0.3);
+  --sl-gold-dim: hsla(40, 73%, 49%, 0.1);
+  --sl-red: hsl(1, 55%, 55%);
+  --sl-red-glow: hsla(1, 55%, 55%, 0.25);
+  --sl-red-dim: hsla(1, 55%, 55%, 0.1);
+  --sl-green: hsl(61, 66%, 44%);
+  --sl-green-glow: hsla(61, 66%, 44%, 0.25);
+  --sl-green-dim: hsla(61, 66%, 44%, 0.1);
+  --sl-text-bright: hsl(45, 36%, 80%);
+  --sl-text-main: hsl(40, 20%, 65%);
+  --sl-text-dim: hsl(30, 12%, 48%);
+  --sl-text-ghost: hsl(30, 8%, 33%);
+  --sl-glass-border: hsla(40, 20%, 65%, 0.1);
+  --sl-glass-border-bright: hsla(27, 83%, 53%, 0.25);
+  --sl-shadow-sm: 0 2px 6px rgba(0,0,0,0.4);
+  --sl-shadow-md: 0 4px 16px rgba(0,0,0,0.45);
+  --sl-shadow-lg: 0 8px 28px rgba(0,0,0,0.5);
+  --sl-glow-sm: none; --sl-glow-md: none;
+  --sl-radius-sm: 4px; --sl-radius-md: 8px; --sl-radius-lg: 10px; --sl-radius-xl: 14px;
+  --sl-ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+  --sl-spring: cubic-bezier(0.33, 1, 0.68, 1);
+}
+[data-theme="gruvbox"] body::before {
+  background:
+    radial-gradient(ellipse at 30% 50%, hsla(27, 83%, 53%, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 30%, hsla(61, 66%, 44%, 0.03) 0%, transparent 50%) !important;
+  animation: none !important;
+}
+[data-theme="gruvbox"] .sl-panel {
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  background: hsl(20, 5%, 20%) !important;
+  border: 2px solid hsla(40, 20%, 65%, 0.08) !important;
+  border-top: 3px solid hsl(27, 83%, 53%) !important;
+  border-radius: 6px !important;
+}
+[data-theme="gruvbox"] .sl-panel::after { display: none !important; }
+[data-theme="gruvbox"] .sl-panel:hover {
+  transform: none !important;
+  border-top-color: hsl(40, 73%, 49%) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+}
+[data-theme="gruvbox"] .sl-stat-card {
+  backdrop-filter: none !important; background: hsl(20, 5%, 20%);
+  border: 2px solid hsla(40, 20%, 65%, 0.08); border-top: 3px solid hsl(27, 83%, 53%);
+  border-radius: 6px;
+}
+[data-theme="gruvbox"] .sl-stat-card:hover { transform: none; border-top-color: hsl(40, 73%, 49%); }
+[data-theme="gruvbox"] .sl-btn { border-radius: 6px; }
+[data-theme="gruvbox"] .sl-btn-primary {
+  background: hsl(27, 83%, 53%); color: hsl(0, 0%, 16%); font-weight: 800;
+  box-shadow: 0 3px 0 hsl(27, 83%, 40%);
+}
+[data-theme="gruvbox"] .sl-btn-primary:hover {
+  background: hsl(40, 73%, 49%); box-shadow: 0 4px 0 hsl(40, 73%, 36%); transform: translateY(-1px);
+}
+[data-theme="gruvbox"] .sl-btn-secondary { border-color: hsl(27, 83%, 53%); color: hsl(27, 83%, 53%); }
+[data-theme="gruvbox"] .sl-section-title { color: hsl(27, 83%, 53%); }
+[data-theme="gruvbox"] .sl-section-title::before {
+  background: hsl(27, 83%, 53%); box-shadow: none; width: 3px; border-radius: 1px;
+}
+[data-theme="gruvbox"] .sl-input, [data-theme="gruvbox"] .sl-select {
+  border-radius: 6px; backdrop-filter: none; background: hsl(20, 5%, 15%);
+  border: 2px solid hsla(40, 20%, 65%, 0.1);
+}
+[data-theme="gruvbox"] .sl-input:focus, [data-theme="gruvbox"] .sl-select:focus {
+  border-color: hsl(27, 83%, 53%); box-shadow: 0 0 0 2px hsla(27, 83%, 53%, 0.15);
+}
+[data-theme="gruvbox"] .sl-badge { border-radius: 4px; }
+[data-theme="gruvbox"] .sl-modal {
+  border-radius: 10px; backdrop-filter: none; background: hsl(20, 5%, 14%);
+  border: 2px solid hsla(40, 20%, 65%, 0.1); border-top: 3px solid hsl(27, 83%, 53%);
+}
+[data-theme="gruvbox"] .sl-progress { border-radius: 3px; }
+[data-theme="gruvbox"] .sl-progress-fill { border-radius: 3px; box-shadow: none !important; }
+[data-theme="gruvbox"] .sl-progress-blue .sl-progress-fill { background: hsl(27, 83%, 53%); }
+[data-theme="gruvbox"] ::-webkit-scrollbar-thumb { background: hsla(27, 83%, 53%, 0.15); border-radius: 2px; }
+[data-theme="gruvbox"] ::-webkit-scrollbar-thumb:hover { background: hsla(27, 83%, 53%, 0.3); }
+
+/* Gruvbox sidebar — warm dark with orange top accent */
+[data-theme="gruvbox"] aside {
+  background: hsl(20, 5%, 12%) !important;
+  border-right: 2px solid hsla(40, 20%, 65%, 0.06) !important;
+  border-top: 3px solid hsl(27, 83%, 53%) !important;
+}
+
+/* Gruvbox layout — snug, utilitarian */
+[data-theme="gruvbox"] { --sl-sidebar-w: 260px; }
+[data-theme="gruvbox"] .sl-main-content { padding: 32px 36px; }
+[data-theme="gruvbox"] .sl-page-header { margin-bottom: 28px; }
+[data-theme="gruvbox"] .sl-page-title { font-size: 1.5rem; letter-spacing: 0; }
+[data-theme="gruvbox"] .sl-grid-2 { gap: 18px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SHARED TRANSITIONS
+   ═══════════════════════════════════════════════════════════════════════ */
+html[data-theme] body, html[data-theme] body::before {
+  transition: background-color 0.5s ease, color 0.5s ease;
+}

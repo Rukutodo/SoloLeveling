@@ -8,6 +8,7 @@ export interface ITransaction extends Document {
   category: string;
   description: string;
   recurring: boolean;
+  signature?: string; // Unique signature for deduplication
   createdAt: Date;
 }
 
@@ -24,14 +25,17 @@ const TransactionSchema = new Schema<ITransaction>(
     category: { type: String, required: true },
     description: { type: String, required: true },
     recurring: { type: Boolean, default: false },
+    signature: { type: String, sparse: true, index: true },
   },
   { timestamps: true }
 );
 
 TransactionSchema.index({ userId: 1, date: -1 });
 TransactionSchema.index({ userId: 1, type: 1 });
+TransactionSchema.index({ userId: 1, signature: 1 }, { unique: true, sparse: true });
 
 const Transaction: Model<ITransaction> =
   mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', TransactionSchema);
 
 export default Transaction;
+

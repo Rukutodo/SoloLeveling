@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
-import { MdAdd, MdClose, MdDelete, MdTrendingUp, MdTrendingDown, MdChevronLeft, MdChevronRight, MdAccountBalanceWallet } from 'react-icons/md';
+import { MdAdd, MdClose, MdDelete, MdTrendingUp, MdTrendingDown, MdChevronLeft, MdChevronRight, MdAccountBalanceWallet, MdOutlineAutorenew } from 'react-icons/md';
 import { GiHeartBeats } from 'react-icons/gi';
-import { FaBolt } from 'react-icons/fa';
+import { FaBolt, FaGoogle, FaFileInvoiceDollar, FaCloudUploadAlt, FaSearchDollar, FaList, FaCheckCircle, FaTrashAlt } from 'react-icons/fa';
 import styles from './finance.module.css';
 
 interface Transaction { _id: string; date: string; amount: number; type: 'income' | 'expense'; category: string; description: string; }
@@ -32,6 +32,14 @@ export default function FinancePage() {
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [analysisData, setAnalysisData] = useState<any>(null);
 
+  const [showImportPortal, setShowImportPortal] = useState(false);
+  const [importTab, setImportTab] = useState<'gmail' | 'file' | 'paste'>('gmail');
+  const [pastedReceipt, setPastedReceipt] = useState('');
+  const [parsing, setParsing] = useState(false);
+  const [parsedTransactions, setParsedTransactions] = useState<any[]>([]);
+  const [importStats, setImportStats] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [form, setForm] = useState({ amount: '', type: 'expense' as 'income' | 'expense', category: '', description: '', date: new Date().toISOString().split('T')[0] });
   const [emiForm, setEmiForm] = useState({ name: '', amount: '', dayOfMonth: '1', totalMonths: '12', category: 'EMI', principalTotal: '', principalPaid: '' });
   const [invForm, setInvForm] = useState({ fundName: '', investedAmount: '', currentAmount: '', expectedReturnRate: '12', type: 'Mutual Fund', subType: 'Mutual Fund', schemeCode: '', units: '' });
@@ -45,6 +53,16 @@ export default function FinancePage() {
   const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   useEffect(() => { if (status === 'authenticated') fetchData(); }, [status, month, year]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !(window as any).google) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
   const fetchData = async () => {
     const [fRes, uRes, eRes, iRes, insRes] = await Promise.all([
@@ -69,6 +87,226 @@ export default function FinancePage() {
   };
 
   const deleteTransaction = async (id: string) => { await fetch(`/api/finance?id=${id}`, { method: 'DELETE' }); fetchData(); };
+
+  const syncGmailDirectly = () => {
+    const googleObj = (window as any).google;
+    if (!googleObj) {
+      alert('[SYSTEM] Google Identity Services loading. Please try again in a moment...');
+      return;
+    }
+    
+    setParsing(true);
+    setParsedTransactions([]);
+    setImportStats(null);
+    
+    try {
+      const client = googleObj.accounts.oauth2.initTokenClient({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/gmail.readonly',
+        callback: async (tokenResponse: any) => {
+          if (tokenResponse.error) {
+            console.error('[SYSTEM] OAuth error:', tokenResponse.error);
+            setParsing(false);
+            alert('[SYSTEM] Google authentication failed.');
+            return;
+          }
+          
+          const accessToken = tokenResponse.access_token;
+          if (accessToken) {
+            await parseGmailReceipts(accessToken);
+          } else {
+            setParsing(false);
+          }
+        },
+        error_callback: (err: any) => {
+          console.error('[SYSTEM] GIS error:', err);
+          setParsing(false);
+        }
+      });
+      client.requestAccessToken();
+    } catch (err) {
+      console.error('[SYSTEM] Direct sync initialization failed:', err);
+      setParsing(false);
+    }
+  };
+
+  const parseGmailReceipts = async (accessToken: string) => {
+    try {
+      const res = await fetch('/api/finance/gmail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setParsedTransactions(data.transactions || []);
+        if ((data.transactions || []).length === 0) {
+          alert('[SYSTEM] No recent receipt/payment emails identified in your Gmail inbox.');
+        }
+      } else {
+        const err = await res.json();
+        alert('[SYSTEM] Error: ' + (err.error || 'Failed to scan inbox.'));
+      }
+    } catch (e) {
+      console.error(e);
+      alert('[SYSTEM] Connection failure during inbox extraction.');
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  const parsePastedReceipt = async () => {
+    if (!pastedReceipt.trim()) return;
+    setParsing(true);
+    setParsedTransactions([]);
+    setImportStats(null);
+    try {
+      const res = await fetch('/api/finance/gmail', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rawText: pastedReceipt }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setParsedTransactions(data.transactions || []);
+        if ((data.transactions || []).length === 0) {
+          alert('[SYSTEM] AI could not identify any transaction inside the pasted text.');
+        }
+      } else {
+        const err = await res.json();
+        alert('[SYSTEM] Error: ' + (err.error || 'Failed to parse text.'));
+      }
+    } catch (e) {
+      console.error(e);
+      alert('[SYSTEM] Connection failure during raw receipt extraction.');
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  const parseOFX = (text: string) => {
+    const transactionsList: any[] = [];
+    const matches = text.match(/<STMTTRN>([\s\S]*?)<\/STMTTRN>/g);
+    if (!matches) return [];
+
+    for (const m of matches) {
+      const amtMatch = m.match(/<TRNAMT>([\d\.-]+)/);
+      const nameMatch = m.match(/<NAME>([^<\r\n]+)/);
+      const memoMatch = m.match(/<MEMO>([^<\r\n]+)/);
+      const dateMatch = m.match(/<DTPOSTED>(\d{8})/);
+
+      if (amtMatch && (nameMatch || memoMatch)) {
+        const rawAmount = parseFloat(amtMatch[1]);
+        const amount = Math.abs(rawAmount);
+        const type = rawAmount >= 0 ? 'income' : 'expense';
+        const description = (nameMatch ? nameMatch[1] : memoMatch ? memoMatch[1] : 'Bank Transaction').trim();
+        
+        let dateStr = new Date().toISOString().split('T')[0];
+        if (dateMatch) {
+          const y = dateMatch[1].slice(0, 4);
+          const m = dateMatch[1].slice(4, 6);
+          const d = dateMatch[1].slice(6, 8);
+          dateStr = `${y}-${m}-${d}`;
+        }
+
+        let category = type === 'income' ? 'Other Income' : 'Other';
+        const descLower = description.toLowerCase();
+        if (type === 'expense') {
+          if (descLower.includes('uber') || descLower.includes('lyft') || descLower.includes('cab') || descLower.includes('metro') || descLower.includes('fuel') || descLower.includes('petrol')) {
+            category = 'Transport';
+          } else if (descLower.includes('swiggy') || descLower.includes('zomato') || descLower.includes('rest') || descLower.includes('food') || descLower.includes('cafe') || descLower.includes('starbucks') || descLower.includes('dining')) {
+            category = 'Food';
+          } else if (descLower.includes('netflix') || descLower.includes('spotify') || descLower.includes('prime') || descLower.includes('youtube') || descLower.includes('sub')) {
+            category = 'Subscriptions';
+          } else if (descLower.includes('amazon') || descLower.includes('flipkart') || descLower.includes('grocer') || descLower.includes('shopping') || descLower.includes('store') || descLower.includes('mall')) {
+            category = 'Shopping';
+          } else if (descLower.includes('hospital') || descLower.includes('pharmacy') || descLower.includes('medical') || descLower.includes('health') || descLower.includes('doc')) {
+            category = 'Health';
+          } else if (descLower.includes('electricity') || descLower.includes('water') || descLower.includes('bill') || descLower.includes('gas') || descLower.includes('utilities')) {
+            category = 'Utilities';
+          } else if (descLower.includes('rent') || descLower.includes('pg') || descLower.includes('house')) {
+            category = 'Rent';
+          }
+        } else {
+          if (descLower.includes('salary') || descLower.includes('payout') || descLower.includes('corp') || descLower.includes('emp')) {
+            category = 'Salary';
+          } else if (descLower.includes('dividend') || descLower.includes('interest') || descLower.includes('stock')) {
+            category = 'Investments';
+          }
+        }
+
+        const sigString = `temp_${dateStr}_${amount}_${description.toLowerCase()}_${type}`;
+        let hash = 0;
+        for (let i = 0; i < sigString.length; i++) {
+          const chr = sigString.charCodeAt(i);
+          hash = ((hash << 5) - hash) + chr;
+          hash |= 0;
+        }
+        const signature = 'ofx_' + Math.abs(hash).toString(16);
+
+        transactionsList.push({
+          date: dateStr,
+          amount,
+          type,
+          category,
+          description,
+          signature,
+        });
+      }
+    }
+    return transactionsList;
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setParsing(true);
+    setParsedTransactions([]);
+    setImportStats(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const parsed = parseOFX(text);
+      setParsedTransactions(parsed);
+      setParsing(false);
+      if (parsed.length === 0) {
+        alert('[SYSTEM] Could not parse any transactions from the uploaded file. Ensure it is a valid OFX/QFX statement.');
+      }
+    };
+    reader.onerror = () => {
+      setParsing(false);
+      alert('[SYSTEM] File reading error.');
+    };
+    reader.readAsText(file);
+  };
+
+  const bulkImportTransactions = async () => {
+    if (parsedTransactions.length === 0) return;
+    setParsing(true);
+    try {
+      const res = await fetch('/api/finance/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transactions: parsedTransactions }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setImportStats(data);
+        setParsedTransactions([]);
+        fetchData();
+      } else {
+        const err = await res.json();
+        alert('[SYSTEM] Import failed: ' + (err.error || 'Unknown error'));
+      }
+    } catch (e) {
+      console.error(e);
+      alert('[SYSTEM] Connection error during import.');
+    } finally {
+      setParsing(false);
+    }
+  };
+
   const maxCat = Math.max(...Object.values(categoryBreakdown), 1);
 
   if (status === 'loading') return null;
@@ -201,6 +439,15 @@ export default function FinancePage() {
               <h2 className="sl-section-title">
                 {activeTab === 'tx' ? 'Credit Ledger' : activeTab === 'emi' ? 'System Deductions' : activeTab === 'inv' ? 'Asset Management' : 'Protection Grid'}
               </h2>
+              {activeTab === 'tx' && (
+                <button 
+                  className="sl-btn sl-btn-secondary" 
+                  onClick={() => setShowImportPortal(!showImportPortal)} 
+                  style={{ padding: '8px 16px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                  <FaCloudUploadAlt /> {showImportPortal ? 'Hide Import Sector' : 'Import / Sync Hub'}
+                </button>
+              )}
               {activeTab === 'emi' && (
                 <button className="sl-btn sl-btn-secondary" onClick={() => setShowEmiModal(true)} style={{ padding: '8px 16px', fontSize: '0.75rem' }}>
                   <MdAdd /> New EMI
@@ -225,6 +472,107 @@ export default function FinancePage() {
                 </button>
               )}
             </div>
+            {activeTab === 'tx' && showImportPortal && (
+              <div className="sl-panel" style={{ padding: '20px', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--sl-glass-border)', borderRadius: '16px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--sl-glass-border)', paddingBottom: '12px', marginBottom: '16px' }}>
+                  <button className={`sl-btn ${importTab === 'gmail' ? 'sl-btn-primary' : 'sl-btn-ghost'}`} onClick={() => setImportTab('gmail')} style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <FaGoogle /> Gmail OCR
+                  </button>
+                  <button className={`sl-btn ${importTab === 'file' ? 'sl-btn-primary' : 'sl-btn-ghost'}`} onClick={() => setImportTab('file')} style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <FaFileInvoiceDollar /> OFX/QFX Bank File
+                  </button>
+                  <button className={`sl-btn ${importTab === 'paste' ? 'sl-btn-primary' : 'sl-btn-ghost'}`} onClick={() => setImportTab('paste')} style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <FaList /> Paste Receipt
+                  </button>
+                </div>
+
+                {importTab === 'gmail' && (
+                  <div>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--sl-text-dim)', marginBottom: '12px' }}>
+                      [SYSTEM] Authorize on-demand scan of order/invoice emails to extract credit updates via Gemini Flash.
+                    </p>
+                    <button className="sl-btn sl-btn-primary" onClick={syncGmailDirectly} disabled={parsing} style={{ background: 'linear-gradient(135deg, #ea4335, #4285f4)', border: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {parsing ? 'Scanning Inbox Sector...' : 'Scan Inbox via Google Auth'}
+                    </button>
+                  </div>
+                )}
+
+                {importTab === 'file' && (
+                  <div>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--sl-text-dim)', marginBottom: '12px' }}>
+                      [SYSTEM] Drop bank statement file (.OFX or .QFX) below to parse transactions client-side instantly.
+                    </p>
+                    <div style={{ border: '2px dashed var(--sl-glass-border)', borderRadius: '12px', padding: '24px', textAlign: 'center', cursor: 'pointer' }} onClick={() => fileInputRef.current?.click()}>
+                      <FaCloudUploadAlt style={{ fontSize: '2rem', color: 'var(--sl-blue)', marginBottom: '8px' }} />
+                      <div style={{ fontSize: '0.8rem', color: 'var(--sl-text-bright)' }}>Click to upload Statement</div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)' }}>Supports standard bank formats</div>
+                    </div>
+                    <input ref={fileInputRef} type="file" accept=".ofx,.qfx" onChange={handleFileUpload} style={{ display: 'none' }} />
+                  </div>
+                )}
+
+                {importTab === 'paste' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <textarea 
+                      className="sl-input" 
+                      style={{ height: '100px', fontSize: '0.8rem', resize: 'vertical' }} 
+                      placeholder="Paste receipt email details, SMS debit notifications, or transaction logs here..." 
+                      value={pastedReceipt} 
+                      onChange={(e) => setPastedReceipt(e.target.value)} 
+                    />
+                    <button className="sl-btn sl-btn-primary" onClick={parsePastedReceipt} disabled={parsing || !pastedReceipt.trim()}>
+                      {parsing ? 'Extracting via Gemini Flash...' : 'Extract Transaction'}
+                    </button>
+                  </div>
+                )}
+
+                {parsing && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '16px', color: 'var(--sl-blue)', fontFamily: 'var(--sl-font-mono)', fontSize: '0.7rem' }}>
+                    <MdOutlineAutorenew className="sl-spin" style={{ fontSize: '1.2rem' }} /> [SYSTEM] PARSING TRANSMISSIONS...
+                  </div>
+                )}
+
+                {importStats && (
+                  <div className="sl-panel" style={{ marginTop: '16px', padding: '16px', background: 'rgba(0, 212, 255, 0.03)', border: '1px solid var(--sl-blue)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--sl-blue)', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '8px' }}>
+                      <FaCheckCircle /> Synchronization Complete
+                    </div>
+                    <div style={{ display: 'flex', gap: '20px', fontSize: '0.8rem', color: 'var(--sl-text-bright)' }}>
+                      <div>Saved: <span style={{ color: 'var(--sl-green)', fontWeight: 800 }}>{importStats.savedCount}</span></div>
+                      <div>Duplicates Skipped: <span style={{ color: 'var(--sl-text-ghost)' }}>{importStats.ignoredCount}</span></div>
+                      {importStats.xp && (
+                        <div style={{ color: 'var(--sl-purple)', fontWeight: 800 }}>+{importStats.xp.xpGained} XP Level Up!</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {parsedTransactions.length > 0 && (
+                  <div style={{ marginTop: '20px' }}>
+                    <div className="sl-flex-between" style={{ marginBottom: '12px', borderBottom: '1px solid var(--sl-glass-border)', paddingBottom: '8px' }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sl-text-bright)' }}>Parsed Transactions ({parsedTransactions.length})</div>
+                      <button className="sl-btn sl-btn-primary" onClick={bulkImportTransactions} disabled={parsing} style={{ padding: '6px 12px', fontSize: '0.7rem' }}>
+                        Import All Unique Entries
+                      </button>
+                    </div>
+                    <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {parsedTransactions.map((tx, idx) => (
+                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--sl-glass-border)', padding: '10px', borderRadius: '8px' }}>
+                          <div>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--sl-text-bright)' }}>{tx.description}</div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)' }}>{tx.date} • {tx.category}</div>
+                          </div>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 800, color: tx.type === 'income' ? 'var(--sl-green)' : 'var(--sl-red)' }}>
+                            {tx.type === 'income' ? '+' : '-'}₹{tx.amount}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {activeTab === 'tx' && (
               <div className={styles.txList}>
                 {transactions.map((t) => (
