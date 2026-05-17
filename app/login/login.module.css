@@ -120,5 +120,31 @@
 
 .systemNote { text-align: center; margin-top: 32px; font-family: var(--sl-font-mono); font-size: 0.625rem; color: var(--sl-text-ghost); text-transform: uppercase; letter-spacing: 2px; }
 
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+  color: var(--sl-text-ghost);
+  font-family: var(--sl-font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: var(--sl-glass-border);
+}
+
+.dividerText {
+  padding: 0 16px;
+}
+
+.googleBtnContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
 @keyframes pulse { 0%, 100% { box-shadow: 0 0 15px var(--sl-blue-glow); } 50% { box-shadow: 0 0 30px var(--sl-blue-glow); } }
 @keyframes slide-in-up { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

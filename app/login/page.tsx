@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { GiSwordWound } from 'react-icons/gi';
@@ -18,6 +18,85 @@ export default function LoginPage() {
     email: '',
     password: '',
   });
+
+  const handleGoogleSignInResponse = async (response: any) => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const res = await signIn('google-one-tap', {
+        credential: response.credential,
+        redirect: false,
+      });
+
+      if (res?.error) {
+        console.error('[SYSTEM] Google auth error response:', res);
+        setError('Google authentication failed. Please try again.');
+      } else {
+        setSuccess('Authentication success! Transitioning...');
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      console.error('[SYSTEM] Google auth caught exception:', err);
+      setError('An error occurred during Google sign-in.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // 1. Load Google Identity Services SDK
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        console.warn('[SYSTEM] Google One Tap: NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing.');
+        return;
+      }
+
+      try {
+        const { google } = window as any;
+        if (google) {
+          // Initialize One Tap & Button
+          google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleGoogleSignInResponse,
+            auto_select: false,
+          });
+
+          // Trigger One Tap prompt
+          google.accounts.id.prompt((notification: any) => {
+            console.log('[SYSTEM] Google One Tap notification:', notification);
+          });
+
+          // Render explicit button to div if present
+          const btnDiv = document.getElementById('google-signin-btn');
+          if (btnDiv) {
+            google.accounts.id.renderButton(btnDiv, {
+              theme: 'filled_black',
+              size: 'large',
+              width: 320,
+              text: 'signin_with',
+            });
+          }
+        }
+      } catch (err) {
+        console.error('[SYSTEM] Google Sign-In init failed:', err);
+      }
+    };
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -189,6 +268,15 @@ export default function LoginPage() {
                   : '⚔ Enter the System'}
             </button>
           </form>
+
+          {/* Google SSO Divider & Button */}
+          <div className={styles.divider}>
+            <span className={styles.dividerLine}></span>
+            <span className={styles.dividerText}>OR</span>
+            <span className={styles.dividerLine}></span>
+          </div>
+
+          <div id="google-signin-btn" className={styles.googleBtnContainer}></div>
 
           <p className={styles.systemNote}>
             {isSignUp
