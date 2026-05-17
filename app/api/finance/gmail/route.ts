@@ -115,10 +115,19 @@ export async function POST(req: NextRequest) {
     const cleanJSON = parsedText.replace(/^```json\s*/, '').replace(/```$/, '').trim();
     let extracted: any[] = [];
     try {
-      extracted = JSON.parse(cleanJSON);
-    } catch (e) {
+      const parsedObj = JSON.parse(cleanJSON);
+      if (Array.isArray(parsedObj)) {
+        extracted = parsedObj;
+      } else if (parsedObj && typeof parsedObj === 'object' && Array.isArray(parsedObj.transactions)) {
+        extracted = parsedObj.transactions;
+      } else if (parsedObj && typeof parsedObj === 'object' && Array.isArray(parsedObj.data)) {
+        extracted = parsedObj.data;
+      } else {
+        throw new Error('Gemini did not return an array of transactions.');
+      }
+    } catch (e: any) {
       console.error('Failed to parse Gemini output:', parsedText);
-      return NextResponse.json({ error: 'Failed to extract structured data from Gemini parsing.' }, { status: 500 });
+      return NextResponse.json({ error: `Failed to extract structured JSON data: ${e.message}. Raw output: ${parsedText.substring(0, 100)}...` }, { status: 500 });
     }
 
     // 3. Generate unique signatures for strict deduplication
@@ -142,8 +151,8 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ transactions });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Gmail API parsing error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }
