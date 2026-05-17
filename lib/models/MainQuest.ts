@@ -14,6 +14,7 @@ export interface IMainQuest extends Document {
   title: string;
   targetWeight?: number;
   targetSalary?: number;
+  targetProfession?: string;
   deadline: Date;
   status: 'active' | 'completed' | 'failed';
   milestones: IMilestone[];
@@ -33,6 +34,7 @@ const MainQuestSchema: Schema = new Schema({
   title: { type: String, required: true, default: 'Road to S-Rank' },
   targetWeight: { type: Number },
   targetSalary: { type: Number },
+  targetProfession: { type: String },
   deadline: { type: Date, required: true },
   status: { type: String, enum: ['active', 'completed', 'failed'], default: 'active' },
   milestones: [MilestoneSchema],

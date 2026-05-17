@@ -19,6 +19,8 @@ export default function QuestChainPage() {
   const [form, setForm] = useState({
     targetWeight: '',
     targetSalary: '',
+    targetProfession: 'Software Engineer',
+    customProfession: '',
     deadline: new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString().split('T')[0]
   });
 
@@ -34,7 +36,7 @@ export default function QuestChainPage() {
       ]);
       
       if (qRes.ok) {
-        const d = await qRes.ok ? await qRes.json() : { quest: null };
+        const d = await qRes.json();
         setQuest(d.quest);
       }
       if (uRes.ok) {
@@ -49,7 +51,8 @@ export default function QuestChainPage() {
   };
 
   const handleGenerate = async () => {
-    if (!form.targetWeight || !form.targetSalary || !form.deadline) {
+    const finalProfession = form.targetProfession === 'Custom' ? form.customProfession : form.targetProfession;
+    if (!form.targetWeight || !form.targetSalary || !finalProfession || !form.deadline) {
       setError('Please provide all target parameters.');
       return;
     }
@@ -62,6 +65,7 @@ export default function QuestChainPage() {
         body: JSON.stringify({
           targetWeight: Number(form.targetWeight),
           targetSalary: Number(form.targetSalary),
+          targetProfession: finalProfession,
           deadline: form.deadline
         })
       });
@@ -109,6 +113,7 @@ export default function QuestChainPage() {
                   <input className="sl-input" style={{ paddingLeft: '40px' }} type="number" value={form.targetWeight} onChange={(e) => setForm({ ...form, targetWeight: e.target.value })} placeholder="e.g. 70" />
                 </div>
               </div>
+              
               <div>
                 <label className="sl-label">Target Monthly Income (₹)</label>
                 <div style={{ position: 'relative' }}>
@@ -116,6 +121,41 @@ export default function QuestChainPage() {
                   <input className="sl-input" style={{ paddingLeft: '40px' }} type="number" value={form.targetSalary} onChange={(e) => setForm({ ...form, targetSalary: e.target.value })} placeholder="e.g. 200000" />
                 </div>
               </div>
+
+              <div>
+                <label className="sl-label">Hunter Class / Career Path</label>
+                <div style={{ position: 'relative' }}>
+                  <select 
+                    className="sl-input" 
+                    value={form.targetProfession} 
+                    onChange={(e) => setForm({ ...form, targetProfession: e.target.value })}
+                    style={{ background: 'var(--sl-bg-dark)', color: 'var(--sl-text-bright)' }}
+                  >
+                    <option value="Software Engineer">Software Engineer</option>
+                    <option value="UI/UX Designer">UI/UX Designer</option>
+                    <option value="Data Scientist & AI Researcher">Data Scientist & AI Researcher</option>
+                    <option value="Full-Stack SaaS Creator">Full-Stack SaaS Creator</option>
+                    <option value="Freelance Consultant">Freelance Consultant</option>
+                    <option value="Content Creator & Digital Architect">Content Creator & Digital Architect</option>
+                    <option value="Cybersecurity Special Agent">Cybersecurity Special Agent</option>
+                    <option value="Custom">Other / Custom Profession...</option>
+                  </select>
+                </div>
+              </div>
+
+              {form.targetProfession === 'Custom' && (
+                <div>
+                  <label className="sl-label">Enter Custom Profession</label>
+                  <input 
+                    className="sl-input" 
+                    type="text" 
+                    value={form.customProfession} 
+                    onChange={(e) => setForm({ ...form, customProfession: e.target.value })} 
+                    placeholder="e.g. Quantitative Analyst"
+                  />
+                </div>
+              )}
+
               <div>
                 <label className="sl-label">Deadline</label>
                 <div style={{ position: 'relative' }}>
@@ -143,6 +183,11 @@ export default function QuestChainPage() {
           </div>
         ) : (
           <div className={styles.timelineContainer}>
+            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+              <div style={{ display: 'inline-block', background: 'rgba(0, 212, 255, 0.05)', border: '1px solid var(--sl-blue)', padding: '10px 24px', borderRadius: '20px', fontFamily: 'var(--sl-font-display)', fontSize: '0.85rem' }}>
+                ⚡ SELECTED HUNTER CLASS: <span style={{ color: 'var(--sl-blue)', textTransform: 'uppercase', fontWeight: 800 }}>{quest.targetProfession || 'Awakened Hunter'}</span>
+              </div>
+            </div>
             <div className={styles.timelineLine} />
             {quest.milestones.map((m: any, idx: number) => (
               <div key={idx} className={`${styles.questNode} ${m.completed ? styles.completedNode : ''}`}>
