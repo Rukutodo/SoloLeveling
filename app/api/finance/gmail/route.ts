@@ -96,8 +96,10 @@ export const POST = withLogger(async (req: NextRequest) => {
     If no transactions are found, return an empty array. Do not add any text other than the JSON array.`;
 
     let parsedText = '';
+    const aiStartTime = Date.now();
+
     if (fileData && mimeType) {
-      console.log('[AI-BACKEND] Sending payload to model...');
+      console.log(`[AI-BACKEND] Sending ${mimeType} file (${fileData.length} chars) to gemma-4-31b-it...`);
       const result = await model.generateContent([
         {
           inlineData: {
@@ -107,14 +109,19 @@ export const POST = withLogger(async (req: NextRequest) => {
         },
         prompt
       ]);
-      console.log('[AI-BACKEND] Response received. Content length:', result.response.text().length);
-      parsedText = result.response.text().trim();
+      const resText = result.response.text();
+      const aiDuration = (Date.now() - aiStartTime) / 1000;
+      console.log(`[AI-BACKEND] Response received in ${aiDuration.toFixed(2)}s. Content length: ${resText.length}`);
+      parsedText = resText.trim();
     } else {
-      const fullPrompt = `${prompt}\n\nEmail Logs/Texts to parse:\n\"\"\"\n${textsToParse.join('\n\n--- MESSAGE BLOCK ---\n\n')}\n\"\"\"`;
-      console.log('[AI-BACKEND] Sending payload to model...');
+      const textsJoined = textsToParse.join('\n\n--- MESSAGE BLOCK ---\n\n');
+      console.log(`[AI-BACKEND] Sending ${textsToParse.length} text blocks (${textsJoined.length} chars) to gemma-4-31b-it...`);
+      const fullPrompt = `${prompt}\n\nEmail Logs/Texts to parse:\n\"\"\"\n${textsJoined}\n\"\"\"`;
       const result = await model.generateContent(fullPrompt);
-      console.log('[AI-BACKEND] Response received. Content length:', result.response.text().length);
-      parsedText = result.response.text().trim();
+      const resText = result.response.text();
+      const aiDuration = (Date.now() - aiStartTime) / 1000;
+      console.log(`[AI-BACKEND] Response received in ${aiDuration.toFixed(2)}s. Content length: ${resText.length}`);
+      parsedText = resText.trim();
     }
 
     // Remove markdown codeblock wrappers if present
