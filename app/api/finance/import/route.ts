@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
           date: tx.date ? new Date(tx.date) : new Date(),
           amount: Number(tx.amount) || 0,
           type: tx.type === 'income' ? 'income' : 'expense',
-          category: tx.category || 'Other',
+          category: tx.category && tx.category !== 'Other' ? tx.category : (tx.description || 'Transaction').split(/[\s\/\-_|]+/).slice(0, 2).join(' ').replace(/[^a-zA-Z0-9 ]/g, '').trim() || tx.description?.slice(0, 20) || 'Transaction',
           description: tx.description || 'Imported Transaction',
           signature: tx.signature,
           recurring: false,
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
         date: tx.date || new Date().toISOString(),
         amount: Number(tx.amount) || 0,
         type: tx.type === 'income' ? 'income' : 'expense',
-        category: tx.category || 'Other',
+        category: tx.category && tx.category !== 'Other' ? tx.category : (tx.description || 'Transaction').split(/[\s\/\-_|]+/).slice(0, 2).join(' ').replace(/[^a-zA-Z0-9 ]/g, '').trim() || tx.description?.slice(0, 20) || 'Transaction',
         description: tx.description || 'Imported Transaction',
         status: isDuplicate ? 'duplicate' : 'imported',
       };

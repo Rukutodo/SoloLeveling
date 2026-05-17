@@ -249,7 +249,8 @@ export default function FinancePage() {
           dateStr = `${y}-${m}-${d}`;
         }
 
-        let category = type === 'income' ? 'Other Income' : 'Other';
+        const derivedCategory = description.split(/[\s\/\-_|]+/).slice(0, 2).join(' ').replace(/[^a-zA-Z0-9 ]/g, '').trim() || description.slice(0, 20).trim();
+        let category = type === 'income' ? derivedCategory : derivedCategory;
         const descLower = description.toLowerCase();
         if (type === 'expense') {
           if (descLower.includes('uber') || descLower.includes('lyft') || descLower.includes('cab') || descLower.includes('metro') || descLower.includes('fuel') || descLower.includes('petrol')) {
