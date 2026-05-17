@@ -131,6 +131,17 @@ export default function FinancePage() {
 
   const deleteTransaction = async (id: string) => { await fetch(`/api/finance?id=${id}`, { method: 'DELETE' }); fetchData(); };
 
+  const clearAllTransactions = async () => {
+    if (!confirm('[SYSTEM] WARNING: This will permanently nuke ALL records in your credit ledger. Proceed?')) return;
+    const res = await fetch('/api/finance?clearAll=true', { method: 'DELETE' });
+    if (res.ok) {
+      alert('[SYSTEM] LEDGER WIPED SUCCESSFULLY.');
+      fetchData();
+    } else {
+      alert('[SYSTEM] WIPE FAILED.');
+    }
+  };
+
   const syncGmailDirectly = () => {
     const googleObj = (window as any).google;
     if (!googleObj) {
@@ -715,6 +726,9 @@ export default function FinancePage() {
                   </button>
                   <button className={`sl-btn ${importTab === 'paste' ? 'sl-btn-primary' : 'sl-btn-ghost'}`} onClick={() => setImportTab('paste')} style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <FaList /> Paste Receipt
+                  </button>
+                  <button className="sl-btn sl-btn-ghost" onClick={clearAllTransactions} style={{ fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '6px', marginLeft: 'auto', color: 'var(--sl-red)', borderColor: 'var(--sl-red)' }}>
+                    <FaTrashAlt /> Nuke Records
                   </button>
                 </div>
 

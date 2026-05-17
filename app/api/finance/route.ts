@@ -146,6 +146,13 @@ export async function DELETE(req: NextRequest) {
     await dbConnect();
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
+    const clearAll = searchParams.get('clearAll') === 'true';
+
+    if (clearAll) {
+      console.log(`[FINANCE] Bulk deletion triggered for user: ${session.user.id}`);
+      await Transaction.deleteMany({ userId: session.user.id });
+      return NextResponse.json({ message: 'All records cleared' });
+    }
 
     if (!id) {
       return NextResponse.json({ error: 'Transaction ID required' }, { status: 400 });
