@@ -3,16 +3,17 @@ import { auth } from '@/auth';
 import dbConnect from '@/lib/mongodb';
 import Note from '@/lib/models/Note';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const { id } = await params;
     const body = await req.json();
     await dbConnect();
 
     const note = await Note.findOneAndUpdate(
-      { _id: params.id, userId: session.user.id },
+      { _id: id, userId: session.user.id },
       { $set: body },
       { new: true }
     );
@@ -25,13 +26,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+    const { id } = await params;
     await dbConnect();
-    const note = await Note.findOneAndDelete({ _id: params.id, userId: session.user.id });
+    const note = await Note.findOneAndDelete({ _id: id, userId: session.user.id });
 
     if (!note) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
