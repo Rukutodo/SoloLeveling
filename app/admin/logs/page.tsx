@@ -60,6 +60,27 @@ export default function AdminLogsPage() {
   const [range, setRange] = useState(24);
   const [filter, setFilter] = useState<string>('all');
   const [autoRefresh, setAutoRefresh] = useState(false);
+  const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch('/api/user');
+      if (res.ok) {
+        const d = await res.json();
+        setSidebarData({
+          userName: d.stats.name,
+          level: d.stats.level,
+          xp: d.stats.xp,
+          xpToNext: d.stats.xpToNext,
+          rank: d.stats.rank,
+          title: d.stats.title,
+          rankColor: d.stats.rankColor
+        });
+      }
+    } catch (e) {
+      console.error('Failed to load user info for sidebar', e);
+    }
+  };
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -72,6 +93,12 @@ export default function AdminLogsPage() {
   }, [range]);
 
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
+
+  useEffect(() => {
+    if (session) {
+      fetchUser();
+    }
+  }, [session]);
 
   useEffect(() => {
     if (!autoRefresh) return;
@@ -91,9 +118,9 @@ export default function AdminLogsPage() {
   const aiQuotaPct = Math.round((summary.aiCallsThisHour / 30) * 100);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--sl-bg)' }}>
-      <Sidebar />
-      <main style={{ flex: 1, padding: '32px', overflowY: 'auto', fontFamily: 'var(--sl-font)' }}>
+    <div className="sl-page-wrapper">
+      <Sidebar {...sidebarData} />
+      <main className="sl-main-content" style={{ fontFamily: 'var(--sl-font)' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>

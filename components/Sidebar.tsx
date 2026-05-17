@@ -78,6 +78,7 @@ const navConfig = [
   { href: '/workouts', label: 'Workouts', key: 'workouts', section: 'fitness' },
   { href: '/calendar', label: 'Calendar', key: 'calendar', section: 'planning' },
   { href: '/finance', label: 'Finance', key: 'finance', section: 'planning' },
+  { href: '/admin/logs', label: 'System Monitor', key: 'dashboard', section: 'planning' },
 ];
 
 // Theme-specific labels for nav sections
