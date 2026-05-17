@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import crypto from 'crypto';
+import { withLogger } from '@/lib/apiLogger';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -10,7 +11,7 @@ interface GmailMessage {
   snippet: string;
 }
 
-export async function POST(req: NextRequest) {
+export const POST = withLogger(async (req: NextRequest) => {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -155,4 +156,4 @@ export async function POST(req: NextRequest) {
     console.error('Gmail API parsing error:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
-}
+}, { enforceAiRateLimit: true });
