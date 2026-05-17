@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
-import { MdFormatBold, MdFormatItalic, MdFormatUnderlined, MdFormatListBulleted, MdAdd, MdBook, MdDescription, MdDeleteOutline, MdTextFields, MdEdit, MdCleaningServices, MdMenu, MdZoomIn, MdZoomOut } from 'react-icons/md';
+import { MdFormatBold, MdFormatItalic, MdFormatUnderlined, MdFormatListBulleted, MdAdd, MdBook, MdDescription, MdDeleteOutline, MdTextFields, MdEdit, MdCleaningServices, MdMenu, MdZoomIn, MdZoomOut, MdHelpOutline } from 'react-icons/md';
 import styles from './notes.module.css';
 
 interface Note {
@@ -35,6 +35,7 @@ export default function NotesPage() {
   const [isAltPressed, setIsAltPressed] = useState(false);
   const [showPanes, setShowPanes] = useState(true);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [showHelp, setShowHelp] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -418,6 +419,11 @@ export default function NotesPage() {
                     <button className={styles.addBtn} onClick={() => setZoomLevel(z => Math.min(3, z + 0.1))}><MdZoomIn /></button>
                   </div>
 
+                  {/* Help Toggle */}
+                  <button className={styles.toolbarBtn} onClick={() => setShowHelp(!showHelp)} title="Quick Shortcuts Help" style={{ marginRight: '8px' }}>
+                    <MdHelpOutline />
+                  </button>
+
                   <select 
                     className="sl-input" 
                     value={activeNote.pageStyle || 'plain'} 
@@ -437,7 +443,39 @@ export default function NotesPage() {
                   />
                 </div>
                 
-                <div className={styles.editorAreaWrapper} ref={wrapperRef}>
+                <div className={styles.editorAreaWrapper} ref={wrapperRef} style={{ position: 'relative' }}>
+                  {showHelp && (
+                    <div 
+                      style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        width: '280px',
+                        background: 'rgba(30, 30, 36, 0.95)',
+                        border: '1px solid var(--sl-glass-border)',
+                        borderRadius: '8px',
+                        padding: '16px',
+                        zIndex: 100,
+                        color: '#fff',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+                        backdropFilter: 'blur(10px)',
+                        pointerEvents: 'auto'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '6px' }}>
+                        <span style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--sl-text-primary)' }}>Drawing Shortcuts</span>
+                        <button onClick={() => setShowHelp(false)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '0.8rem' }}>Close</button>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--sl-text-dim)' }}>
+                        <div><strong>⌨️ Ctrl Key:</strong> Hold to temporarily switch to Eraser.</div>
+                        <div><strong>⌨️ Alt Key:</strong> Hold to draw shapes (Rect, Ellipse, Arrow) in Pen Mode.</div>
+                        <div><strong>🔍 Ctrl + Scroll:</strong> Zoom in/out of the note canvas.</div>
+                        <div><strong>✏️ Pen controls:</strong> Adjust color, thickness, and pressure-sensitivity using the toolbar options when Pen is selected.</div>
+                        <div><strong>📱 Sidebar:</strong> Toggle the Hamburger menu on the left to hide/show list panels.</div>
+                      </div>
+                    </div>
+                  )}
+
                   <div 
                     className={`${styles.zoomContainer} ${getBgClass()}`} 
                     style={{ 
