@@ -39,6 +39,8 @@ export default function FinancePage() {
   const [parsing, setParsing] = useState(false);
   const [parsedTransactions, setParsedTransactions] = useState<any[]>([]);
   const [importStats, setImportStats] = useState<any>(null);
+  const [importBreakdown, setImportBreakdown] = useState<any[]>([]);
+  const [breakdownFilter, setBreakdownFilter] = useState<'all' | 'imported' | 'duplicate'>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -134,6 +136,7 @@ export default function FinancePage() {
     setParsing(true);
     setParsedTransactions([]);
     setImportStats(null);
+    setImportBreakdown([]);
     
     try {
       const client = googleObj.accounts.oauth2.initTokenClient({
@@ -196,6 +199,7 @@ export default function FinancePage() {
     setParsing(true);
     setParsedTransactions([]);
     setImportStats(null);
+    setImportBreakdown([]);
     try {
       const res = await fetch('/api/finance/gmail', {
         method: 'POST',
@@ -302,6 +306,7 @@ export default function FinancePage() {
     setLoadingStatus('[SYSTEM] READING FILE BYTES...');
     setParsedTransactions([]);
     setImportStats(null);
+    setImportBreakdown([]);
 
     const fileName = file.name.toLowerCase();
 
@@ -509,6 +514,8 @@ export default function FinancePage() {
       if (res.ok) {
         const data = await res.json();
         setImportStats(data);
+        setImportBreakdown(data.breakdown || []);
+        setBreakdownFilter('all');
         setParsedTransactions([]);
         fetchData();
       } else {
@@ -791,16 +798,259 @@ export default function FinancePage() {
                 )}
 
                 {importStats && (
-                  <div className="sl-panel" style={{ marginTop: '16px', padding: '16px', background: 'rgba(0, 212, 255, 0.03)', border: '1px solid var(--sl-blue)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--sl-blue)', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '8px' }}>
-                      <FaCheckCircle /> Synchronization Complete
-                    </div>
-                    <div style={{ display: 'flex', gap: '20px', fontSize: '0.8rem', color: 'var(--sl-text-bright)' }}>
-                      <div>Saved: <span style={{ color: 'var(--sl-green)', fontWeight: 800 }}>{importStats.savedCount}</span></div>
-                      <div>Duplicates Skipped: <span style={{ color: 'var(--sl-text-ghost)' }}>{importStats.ignoredCount}</span></div>
+                  <div 
+                    className="sl-panel" 
+                    style={{ 
+                      marginTop: '24px', 
+                      padding: '24px', 
+                      background: 'linear-gradient(180deg, rgba(0, 212, 255, 0.04) 0%, rgba(0, 0, 0, 0.2) 100%)', 
+                      border: '1px solid var(--sl-blue)', 
+                      borderRadius: '16px',
+                      position: 'relative'
+                    }}
+                  >
+                    {/* Header & Title */}
+                    <div className="sl-flex-between" style={{ marginBottom: '20px', borderBottom: '1px solid var(--sl-glass-border)', paddingBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <FaCheckCircle style={{ color: 'var(--sl-green)', fontSize: '1.25rem', filter: 'drop-shadow(0 0 8px hsla(150, 100%, 50%, 0.4))' }} />
+                        <div>
+                          <h3 style={{ fontFamily: 'var(--sl-font-display)', fontSize: '0.9rem', fontWeight: 800, color: 'var(--sl-text-bright)', letterSpacing: '1px' }}>
+                            [SYSTEM] TRANSACTION SYNTHESIS REPORT
+                          </h3>
+                          <p style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', textTransform: 'uppercase', fontFamily: 'var(--sl-font-mono)', marginTop: '2px' }}>
+                            Verification and ingestion logs compiled successfully
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* XP Gain Notification Banner */}
                       {importStats.xp && (
-                        <div style={{ color: 'var(--sl-purple)', fontWeight: 800 }}>+{importStats.xp.xpGained} XP Level Up!</div>
+                        <div 
+                          style={{ 
+                            background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05))', 
+                            border: '1px solid var(--sl-purple-glow)', 
+                            padding: '6px 12px', 
+                            borderRadius: '20px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '8px'
+                          }}
+                        >
+                          <FaBolt style={{ color: 'var(--sl-purple)', fontSize: '0.8rem' }} />
+                          <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--sl-purple)', fontFamily: 'var(--sl-font-display)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            +{importStats.xp.xpGained} XP GAINED
+                          </span>
+                        </div>
                       )}
+                    </div>
+
+                    {/* Metric Cards Row */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+                      <div className="sl-panel" style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--sl-glass-border)', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.6rem', color: 'var(--sl-text-ghost)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+                          Total Processed
+                        </div>
+                        <div style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.5rem', fontWeight: 800, color: 'var(--sl-text-bright)' }}>
+                          {importStats.totalProcessed || 0}
+                        </div>
+                      </div>
+                      
+                      <div className="sl-panel" style={{ padding: '16px', background: 'rgba(16, 185, 129, 0.03)', border: '1px solid rgba(16, 185, 129, 0.2)', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.6rem', color: 'var(--sl-green)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+                          New Ingested
+                        </div>
+                        <div style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.5rem', fontWeight: 800, color: 'var(--sl-green)', filter: 'drop-shadow(0 0 6px rgba(16, 185, 129, 0.2))' }}>
+                          {importStats.savedCount || 0}
+                        </div>
+                      </div>
+                      
+                      <div className="sl-panel" style={{ padding: '16px', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--sl-glass-border)', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.6rem', color: 'var(--sl-text-dim)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+                          Duplicates Skipped
+                        </div>
+                        <div style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.5rem', fontWeight: 800, color: 'var(--sl-text-ghost)' }}>
+                          {importStats.ignoredCount || 0}
+                        </div>
+                      </div>
+
+                      <div className="sl-panel" style={{ padding: '16px', background: 'rgba(0, 212, 255, 0.02)', border: '1px solid rgba(0, 212, 255, 0.2)', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.6rem', color: 'var(--sl-blue)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+                          Net Impact
+                        </div>
+                        <div 
+                          style={{ 
+                            fontFamily: 'var(--sl-font-display)', 
+                            fontSize: '1.5rem', 
+                            fontWeight: 800, 
+                            color: (() => {
+                              const net = (importBreakdown || [])
+                                .filter(t => t.status === 'imported')
+                                .reduce((acc, curr) => acc + (curr.type === 'income' ? curr.amount : -curr.amount), 0);
+                              return net >= 0 ? 'var(--sl-green)' : 'var(--sl-red)';
+                            })()
+                          }}
+                        >
+                          {(() => {
+                            const net = (importBreakdown || [])
+                              .filter(t => t.status === 'imported')
+                              .reduce((acc, curr) => acc + (curr.type === 'income' ? curr.amount : -curr.amount), 0);
+                            return (net >= 0 ? '+' : '-') + '₹' + Math.abs(net).toLocaleString();
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section: Category breakdown of newly imported items */}
+                    {importBreakdown.some(t => t.status === 'imported' && t.type === 'expense') && (
+                      <div style={{ marginBottom: '24px' }}>
+                        <h4 style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
+                          Ingested Expense Distribution
+                        </h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                          {(() => {
+                            const expenseMap: Record<string, number> = {};
+                            importBreakdown
+                              .filter(t => t.status === 'imported' && t.type === 'expense')
+                              .forEach(t => {
+                                expenseMap[t.category] = (expenseMap[t.category] || 0) + t.amount;
+                              });
+                            const totalImportedExpenses = Object.values(expenseMap).reduce((a, b) => a + b, 0);
+                            return Object.entries(expenseMap)
+                              .sort((a, b) => b[1] - a[1])
+                              .map(([cat, amount]) => {
+                                const percent = totalImportedExpenses > 0 ? (amount / totalImportedExpenses) * 100 : 0;
+                                return (
+                                  <div key={cat} style={{ background: 'rgba(255, 255, 255, 0.01)', border: '1px solid var(--sl-glass-border)', padding: '12px 16px', borderRadius: '10px' }}>
+                                    <div className="sl-flex-between" style={{ fontSize: '0.75rem', marginBottom: '6px' }}>
+                                      <span style={{ color: 'var(--sl-text-bright)', fontWeight: 700 }}>{cat}</span>
+                                      <span style={{ color: 'var(--sl-blue)', fontFamily: 'var(--sl-font-display)', fontWeight: 800 }}>
+                                        ₹{amount.toLocaleString()} ({percent.toFixed(0)}%)
+                                      </span>
+                                    </div>
+                                    <div style={{ width: '100%', height: '4px', background: 'var(--sl-bg-base)', borderRadius: '2px', overflow: 'hidden' }}>
+                                      <div style={{ width: `${percent}%`, height: '100%', background: 'var(--sl-blue)', boxShadow: '0 0 8px var(--sl-blue-glow)', borderRadius: '2px' }} />
+                                    </div>
+                                  </div>
+                                );
+                              });
+                          })()}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Section: Interactive Transaction Listing */}
+                    <div>
+                      <div className="sl-flex-between" style={{ marginBottom: '12px', borderBottom: '1px solid var(--sl-glass-border)', paddingBottom: '8px' }}>
+                        <h4 style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          Detailed Transaction Log
+                        </h4>
+                        
+                        {/* Filter Pills */}
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          {(['all', 'imported', 'duplicate'] as const).map((filterOpt) => (
+                            <button
+                              key={filterOpt}
+                              onClick={() => setBreakdownFilter(filterOpt)}
+                              style={{
+                                background: breakdownFilter === filterOpt ? 'rgba(0, 212, 255, 0.15)' : 'rgba(255, 255, 255, 0.02)',
+                                border: `1px solid ${breakdownFilter === filterOpt ? 'var(--sl-blue)' : 'var(--sl-glass-border)'}`,
+                                color: breakdownFilter === filterOpt ? 'var(--sl-blue)' : 'var(--sl-text-ghost)',
+                                borderRadius: '12px',
+                                padding: '4px 10px',
+                                fontSize: '0.65rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                textTransform: 'uppercase',
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              {filterOpt === 'all' ? 'All Processed' : filterOpt === 'imported' ? 'Ingested' : 'Skipped'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
+                        {importBreakdown
+                          .filter(t => {
+                            if (breakdownFilter === 'imported') return t.status === 'imported';
+                            if (breakdownFilter === 'duplicate') return t.status === 'duplicate';
+                            return true;
+                          })
+                          .map((tx, idx) => {
+                            const isImported = tx.status === 'imported';
+                            return (
+                              <div 
+                                key={idx} 
+                                style={{ 
+                                  display: 'flex', 
+                                  justifyContent: 'space-between', 
+                                  alignItems: 'center', 
+                                  background: isImported ? 'rgba(16, 185, 129, 0.01)' : 'rgba(255, 255, 255, 0.01)', 
+                                  border: `1px solid ${isImported ? 'rgba(16, 185, 129, 0.2)' : 'var(--sl-glass-border)'}`, 
+                                  padding: '12px 16px', 
+                                  borderRadius: '10px',
+                                  opacity: isImported ? 1 : 0.6,
+                                  transition: 'all 0.2s ease'
+                                }}
+                              >
+                                <div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isImported ? 'var(--sl-text-bright)' : 'var(--sl-text-dim)' }}>
+                                      {tx.description}
+                                    </span>
+                                    <span 
+                                      style={{ 
+                                        fontSize: '0.55rem', 
+                                        fontWeight: 800, 
+                                        textTransform: 'uppercase', 
+                                        padding: '2px 6px', 
+                                        borderRadius: '10px',
+                                        fontFamily: 'var(--sl-font-mono)',
+                                        background: isImported ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                                        color: isImported ? 'var(--sl-green)' : 'var(--sl-text-ghost)',
+                                        border: `1px solid ${isImported ? 'rgba(16, 185, 129, 0.2)' : 'var(--sl-glass-border)'}`
+                                      }}
+                                    >
+                                      {isImported ? 'INGESTED' : 'DUPLICATE'}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', marginTop: '4px' }}>
+                                    {new Date(tx.date).toLocaleDateString()} • {tx.category}
+                                  </div>
+                                </div>
+                                <div style={{ fontSize: '0.9rem', fontWeight: 800, color: tx.type === 'income' ? 'var(--sl-green)' : 'var(--sl-red)' }}>
+                                  {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString()}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        
+                        {importBreakdown.filter(t => {
+                          if (breakdownFilter === 'imported') return t.status === 'imported';
+                          if (breakdownFilter === 'duplicate') return t.status === 'duplicate';
+                          return true;
+                        }).length === 0 && (
+                          <div style={{ textAlign: 'center', padding: '24px', color: 'var(--sl-text-ghost)', fontSize: '0.75rem', fontFamily: 'var(--sl-font-mono)' }}>
+                            [SYSTEM] NO TRANSACTIONS IN THIS SECTOR
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Complete/Acknowledge Button */}
+                    <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+                      <button 
+                        className="sl-btn sl-btn-primary" 
+                        onClick={() => {
+                          setImportStats(null);
+                          setImportBreakdown([]);
+                          setBreakdownFilter('all');
+                        }}
+                        style={{ padding: '8px 24px', fontSize: '0.75rem', boxShadow: '0 0 15px rgba(0, 212, 255, 0.2)' }}
+                      >
+                        Complete Synchronization
+                      </button>
                     </div>
                   </div>
                 )}

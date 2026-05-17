@@ -57,7 +57,20 @@ export async function POST(req: NextRequest) {
       savedCount = results.length;
     }
 
-    // 4. Award XP for syncing transactions if at least one transaction was imported
+    // 4. Construct a detailed breakdown for the frontend report
+    const breakdown = transactions.map((tx) => {
+      const isDuplicate = tx.signature && existingSignatures.has(tx.signature);
+      return {
+        date: tx.date || new Date().toISOString(),
+        amount: Number(tx.amount) || 0,
+        type: tx.type === 'income' ? 'income' : 'expense',
+        category: tx.category || 'Other',
+        description: tx.description || 'Imported Transaction',
+        status: isDuplicate ? 'duplicate' : 'imported',
+      };
+    });
+
+    // 5. Award XP for syncing transactions if at least one transaction was imported
     let xpResult = null;
     if (savedCount > 0) {
       xpResult = await awardXP(userId, XP_REWARDS.LOG_TRANSACTION);
@@ -68,6 +81,7 @@ export async function POST(req: NextRequest) {
       ignoredCount,
       totalProcessed: transactions.length,
       xp: xpResult,
+      breakdown,
     });
   } catch (error) {
     console.error('Import API error:', error);
