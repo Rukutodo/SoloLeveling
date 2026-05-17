@@ -1,5 +1,3 @@
-import pdf from 'pdf-parse';
-
 // Local Categorization Logic
 function categorize(description: string, type: 'income' | 'expense') {
   const desc = description.toLowerCase();
@@ -30,6 +28,8 @@ function cleanDescription(desc: string) {
 }
 
 export async function parseKotakPDF(buffer: Buffer) {
+  // Dynamic require to prevent build-time initialization issues
+  const pdf = require('pdf-parse');
   const data = await pdf(buffer);
   const text = data.text;
   const transactions = [];
