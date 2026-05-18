@@ -57,9 +57,20 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     };
   }, [session?.user?.id]);
 
-  const markAsRead = (id: string) => {
-    // API call to mark as read could go here
+  const markAsRead = async (id: string) => {
+    // Optimistic UI update
     setMessages(prev => prev.map(m => m._id === id ? { ...m, isRead: true } : m));
+    
+    // Persist to database
+    try {
+      await fetch('/api/messages', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+    } catch (e) {
+      console.error('Failed to mark message as read', e);
+    }
   };
 
   return (
