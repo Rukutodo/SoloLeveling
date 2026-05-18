@@ -193,6 +193,38 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function PUT(req: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await dbConnect();
+    const body = await req.json();
+    const { id, amount } = body;
+
+    if (!id || amount === undefined) {
+      return NextResponse.json({ error: 'Transaction ID and amount required' }, { status: 400 });
+    }
+
+    const transaction = await Transaction.findOneAndUpdate(
+      { _id: id, userId: session.user.id },
+      { amount: Number(amount) },
+      { new: true }
+    );
+
+    if (!transaction) {
+      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ transaction });
+  } catch (error) {
+    console.error('Finance PUT error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: NextRequest) {
   try {
     const session = await auth();

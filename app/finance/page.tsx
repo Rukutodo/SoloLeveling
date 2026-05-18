@@ -1119,6 +1119,17 @@ export default function FinancePage() {
                       <span style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.125rem', fontWeight: 800, color: t.type === 'income' ? 'var(--sl-green)' : 'var(--sl-red)' }}>
                         {t.type === 'income' ? '+' : '-'}₹{t.amount.toLocaleString()}
                       </span>
+                      <button className="sl-btn sl-btn-ghost" onClick={async () => {
+                        const val = prompt('Edit amount for ' + t.description, String(t.amount));
+                        if (val !== null && val !== '' && !isNaN(Number(val))) {
+                          await fetch('/api/finance', { 
+                            method: 'PUT', 
+                            headers: { 'Content-Type': 'application/json' }, 
+                            body: JSON.stringify({ id: t._id, amount: Number(val) }) 
+                          });
+                          fetchData();
+                        }
+                      }} style={{ padding: '8px', color: 'var(--sl-blue)' }}><MdSettings /></button>
                       <button className="sl-btn sl-btn-ghost" onClick={() => deleteTransaction(t._id)} style={{ padding: '8px' }}><MdDelete /></button>
                     </div>
                   </div>
