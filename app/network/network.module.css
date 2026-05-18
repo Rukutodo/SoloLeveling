@@ -161,30 +161,38 @@
   gap: 12px;
 }
 
+.searchPanel {
+  overflow: visible !important;
+  z-index: 50;
+}
+
 .searchDropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: var(--sl-bg-sub);
+  background: var(--sl-bg-elevated);
   border: 1px solid var(--sl-blue);
-  border-top: none;
-  border-radius: 0 0 12px 12px;
-  z-index: 100;
-  max-height: 200px;
+  border-radius: 12px;
+  z-index: 1000;
+  max-height: 250px;
   overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px var(--sl-blue-glow);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px var(--sl-blue-glow);
+  padding: 8px 0;
 }
 
 .searchResultItem {
-  padding: 12px 16px;
+  padding: 12px 20px;
   cursor: pointer;
-  transition: all 0.2s;
-  border-bottom: 1px solid var(--sl-glass-border);
+  transition: all 0.2s var(--sl-ease-out);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .searchResultItem:hover {
-  background: hsla(190, 100%, 50%, 0.1);
+  background: hsla(190, 100%, 50%, 0.15);
+  padding-left: 24px;
 }
 
 .searchResultItem:last-child {

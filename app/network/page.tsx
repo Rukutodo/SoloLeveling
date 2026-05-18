@@ -144,7 +144,7 @@ export default function HunterNetwork() {
                 <span style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', textTransform: 'uppercase' }}>Your Hunter Tag: </span>
                 <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--sl-blue)', marginLeft: '4px' }}>{sidebarData?.tag || '...'}</span>
               </div>
-              <p style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', marginBottom: '12px' }}>Search by Name, Email or Tag (e.g. Sung#1234)</p>
+              <p style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', marginBottom: '12px' }}>Search by Name, Email or Tag (e.g. Sung#1234 or Venu)</p>
               
               <div style={{ position: 'relative' }}>
                 <input 
