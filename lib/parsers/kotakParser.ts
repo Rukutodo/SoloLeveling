@@ -75,7 +75,7 @@ export async function parseKotakPDF(buffer: Buffer) {
 
     // --- SELF-TRANSFER EXCLUSION ---
     const selfNames = ['POTNURU VENU GOPAL', 'VENU GOPAL', 'RUKUTODO'];
-    if (type === 'income' && selfNames.some(name => narrationRaw.toUpperCase().includes(name))) {
+    if (type === 'income' && selfNames.some(name => narrationRaw.toUpperCase().includes(name)) && !lowerNarration.includes('salary')) {
       continue;
     }
 

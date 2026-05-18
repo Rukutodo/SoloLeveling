@@ -89,7 +89,7 @@ export async function parseHDFCExcel(buffer: Buffer) {
 
     // --- SELF-TRANSFER EXCLUSION ---
     const selfNames = ['POTNURU VENU GOPAL', 'VENU GOPAL', 'RUKUTODO'];
-    if (finalType === 'income' && selfNames.some(name => narration.toUpperCase().includes(name))) {
+    if (finalType === 'income' && selfNames.some(name => narration.toUpperCase().includes(name)) && !narration.toLowerCase().includes('salary')) {
       continue;
     }
 
