@@ -29,8 +29,9 @@ export async function POST(req: NextRequest) {
     
     const existingSignatures = new Set(existingTx.map((t) => t.signature));
 
-    // 2. Filter out duplicates and drop 0 amounts
+    // 2. Filter out duplicates (both against DB and within the batch)
     const uniqueToInsert = [];
+    const seenInBatch = new Set();
     let ignoredCount = 0;
 
     for (const tx of transactions) {
@@ -39,9 +40,12 @@ export async function POST(req: NextRequest) {
         ignoredCount++;
         continue;
       }
-      if (tx.signature && existingSignatures.has(tx.signature)) {
+      
+      const sig = tx.signature;
+      if (sig && (existingSignatures.has(sig) || seenInBatch.has(sig))) {
         ignoredCount++;
       } else {
+        if (sig) seenInBatch.add(sig);
         uniqueToInsert.push({
           userId,
           date: tx.date ? new Date(tx.date) : new Date(),
@@ -50,7 +54,7 @@ export async function POST(req: NextRequest) {
           category: tx.category && tx.category !== 'Other' ? tx.category : (tx.description || 'Transaction').split(/[\s\/\-_|]+/).slice(0, 2).join(' ').replace(/[^a-zA-Z0-9 ]/g, '').trim() || tx.description?.slice(0, 20) || 'Transaction',
           description: tx.description || 'Imported Transaction',
           source: tx.source || 'File Import',
-          signature: tx.signature,
+          signature: sig,
           recurring: false,
         });
       }
@@ -58,28 +62,40 @@ export async function POST(req: NextRequest) {
 
     // 3. Perform bulk insert
     let savedCount = 0;
-    if (uniqueToInsert.length > 0) {
-      const results = await Transaction.insertMany(uniqueToInsert);
-      savedCount = results.length;
+    try {
+      if (uniqueToInsert.length > 0) {
+        const results = await Transaction.insertMany(uniqueToInsert, { ordered: false });
+        savedCount = results.length;
+      }
+    } catch (insertErr: any) {
+      // If some inserted but some failed (duplicate key), we can still report success for the ones that made it
+      console.warn('[FINANCE-IMPORT] Partial insert failure or duplicate key during bulk insert:', insertErr.message);
+      savedCount = insertErr.result?.nInserted || 0;
     }
 
     // 4. Construct a detailed breakdown for the frontend report
-    const breakdown = transactions
-      .filter(tx => (Number(tx.amount) || 0) > 0)
-      .map((tx) => {
-        const isDuplicate = tx.signature && existingSignatures.has(tx.signature);
-        return {
+    const processedBreakdown = [];
+    const finalSeen = new Set(existingTx.map(t => t.signature));
+    
+    for (const tx of transactions) {
+       const amount = Number(tx.amount) || 0;
+       if (amount === 0) continue;
+       
+       const isDuplicate = tx.signature && finalSeen.has(tx.signature);
+       if (!isDuplicate && tx.signature) finalSeen.add(tx.signature); // Mark as seen for subsequent items in same list
+
+       processedBreakdown.push({
           date: tx.date || new Date().toISOString(),
-          amount: Number(tx.amount) || 0,
+          amount: amount,
           type: tx.type === 'income' ? 'income' : 'expense',
           category: tx.category && tx.category !== 'Other' ? tx.category : (tx.description || 'Transaction').split(/[\s\/\-_|]+/).slice(0, 2).join(' ').replace(/[^a-zA-Z0-9 ]/g, '').trim() || tx.description?.slice(0, 20) || 'Transaction',
           description: tx.description || 'Imported Transaction',
           source: tx.source || 'File Import',
           status: isDuplicate ? 'duplicate' : 'imported',
-        };
-      });
+       });
+    }
 
-    // 5. Award XP for syncing transactions if at least one transaction was imported
+    // 5. Award XP for syncing transactions
     let xpResult = null;
     if (savedCount > 0) {
       xpResult = await awardXP(userId, XP_REWARDS.LOG_TRANSACTION);
@@ -90,10 +106,10 @@ export async function POST(req: NextRequest) {
       ignoredCount,
       totalProcessed: transactions.length,
       xp: xpResult,
-      breakdown,
+      breakdown: processedBreakdown,
     });
-  } catch (error) {
-    console.error('Import API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('[FINANCE-IMPORT] Critical Error:', error);
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }
