@@ -26,7 +26,7 @@ import {
   RiCalendarEventFill, RiMoneyDollarCircleFill, RiLogoutCircleFill,
 } from 'react-icons/ri';
 import { HiX } from 'react-icons/hi';
-import { MdDashboard, MdTaskAlt, MdMenuBook, MdLibraryBooks, MdMail } from 'react-icons/md';
+import { MdDashboard, MdTaskAlt, MdMenuBook, MdLibraryBooks, MdMail, MdGroup } from 'react-icons/md';
 import ThemeSwitcher from './ThemeSwitcher';
 import styles from './Sidebar.module.css';
 
@@ -42,35 +42,35 @@ const iconSets: Record<ThemeName, Record<string, React.ComponentType<{className?
     notes: MdLibraryBooks, logbook: MdMenuBook, calories: GiMeal,
     bmi: GiHeartBeats, workouts: GiMuscleUp, calendar: GiCalendar,
     finance: GiGoldBar, logout: GiExitDoor, logo: GiSwordWound,
-    messages: MdMail,
+    messages: MdMail, network: MdGroup,
   },
   onedark: {
     dashboard: HiOutlineHome, todos: HiOutlineClipboardList, quests: HiOutlineMap,
     notes: HiOutlineDocumentText, logbook: HiOutlineBookOpen, calories: HiOutlineFire,
     bmi: HiOutlineHeart, workouts: HiOutlineLightningBolt, calendar: HiOutlineCalendar,
     finance: HiOutlineCurrencyDollar, logout: HiOutlineLogout, logo: HiOutlineHome,
-    messages: MdMail,
+    messages: MdMail, network: MdGroup,
   },
   rosepine: {
     dashboard: FiHome, todos: FiCheckSquare, quests: FiMap,
     notes: FiFileText, logbook: FiBook, calories: FiCoffee,
     bmi: FiActivity, workouts: FiZap, calendar: FiCalendar,
     finance: FiDollarSign, logout: FiLogOut, logo: FiHome,
-    messages: MdMail,
+    messages: MdMail, network: MdGroup,
   },
   catppuccin: {
     dashboard: RiDashboardFill, todos: RiTodoFill, quests: RiRoadMapFill,
     notes: RiStickyNoteFill, logbook: RiBookFill, calories: RiFireFill,
     bmi: RiHeartPulseFill, workouts: RiBoxingFill, calendar: RiCalendarEventFill,
     finance: RiMoneyDollarCircleFill, logout: RiLogoutCircleFill, logo: RiDashboardFill,
-    messages: MdMail,
+    messages: MdMail, network: MdGroup,
   },
   gruvbox: {
     dashboard: HiOutlineHome, todos: HiOutlineClipboardList, quests: HiOutlineMap,
     notes: HiOutlineDocumentText, logbook: HiOutlineBookOpen, calories: HiOutlineFire,
     bmi: HiOutlineHeart, workouts: HiOutlineLightningBolt, calendar: HiOutlineCalendar,
     finance: HiOutlineCurrencyDollar, logout: HiOutlineLogout, logo: HiOutlineHome,
-    messages: MdMail,
+    messages: MdMail, network: MdGroup,
   },
 };
 
@@ -85,6 +85,7 @@ const navConfig = [
   { href: '/workouts', label: 'Workouts', key: 'workouts', section: 'fitness' },
   { href: '/calendar', label: 'Calendar', key: 'calendar', section: 'planning' },
   { href: '/finance', label: 'Finance', key: 'finance', section: 'planning' },
+  { href: '/network', label: 'Hunter Network', key: 'network', section: 'planning' },
   { href: '/messages', label: 'Shadow Inbox', key: 'messages', section: 'planning' },
   { href: '/admin/logs', label: 'System Monitor', key: 'dashboard', section: 'planning' },
 ];
