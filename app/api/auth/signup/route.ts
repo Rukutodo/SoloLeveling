@@ -3,6 +3,22 @@ import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/mongodb';
 import User from '@/lib/models/User';
 
+async function generateUniqueTag(name: string) {
+  const firstName = name.split(' ')[0].replace(/[^a-zA-Z0-9]/g, '');
+  let tag = '';
+  let isUnique = false;
+  let attempts = 0;
+
+  while (!isUnique && attempts < 10) {
+    const random = Math.floor(1000 + Math.random() * 9000);
+    tag = `${firstName}#${random}`;
+    const existing = await User.findOne({ tag });
+    if (!existing) isUnique = true;
+    attempts++;
+  }
+  return tag;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { email, password, name } = await req.json();
@@ -34,12 +50,16 @@ export async function POST(req: NextRequest) {
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
+    
+    // Generate Unique Hunter Tag
+    const tag = await generateUniqueTag(name);
 
     // Create user
     const user = await User.create({
       email: email.toLowerCase(),
       password: hashedPassword,
       name,
+      tag
     });
 
     return NextResponse.json(
@@ -49,6 +69,7 @@ export async function POST(req: NextRequest) {
           id: user._id.toString(),
           email: user.email,
           name: user.name,
+          tag: user.tag
         },
       },
       { status: 201 }

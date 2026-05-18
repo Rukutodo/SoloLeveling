@@ -36,11 +36,16 @@ export default function HunterNetwork() {
 
   const sendRequest = async () => {
     if (!emailInput) return;
+    
+    const isTag = emailInput.includes('#');
+    const payload = isTag ? { recipientTag: emailInput } : { recipientEmail: emailInput };
+
     const res = await fetch('/api/friends', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recipientEmail: emailInput })
+      body: JSON.stringify(payload)
     });
+    
     if (res.ok) {
       alert('[SYSTEM] REQUEST TRANSMITTED TO TARGET HUNTER.');
       setEmailInput('');
@@ -113,11 +118,12 @@ export default function HunterNetwork() {
           <div className={styles.managementCol}>
             <div className={`sl-panel ${styles.searchPanel}`}>
               <h2 className={styles.sectionLabel}><MdPersonAdd /> Recruit New Hunter</h2>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <p style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', marginBottom: '12px' }}>Search by Email or Hunter Tag (e.g. Sung#1234)</p>
+              <div style={{ display: 'flex', gap: '10px' }}>
                 <input 
-                  type="email" 
+                  type="text" 
                   className="sl-input" 
-                  placeholder="Enter Hunter's email..." 
+                  placeholder="Email or Name#1234..." 
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                 />
@@ -133,7 +139,7 @@ export default function HunterNetwork() {
                     <div key={req._id} className={styles.requestItem}>
                       <div>
                         <div className={styles.hunterName}>{req.requester.name}</div>
-                        <div className={styles.hunterRank} style={{ color: 'var(--sl-blue)' }}>{req.requester.rank}-Rank Hunter</div>
+                        <div className={styles.hunterRank} style={{ color: 'var(--sl-blue)' }}>{req.requester.tag} • {req.requester.rank}-Rank</div>
                       </div>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button className="sl-btn sl-btn-primary" style={{ padding: '8px' }} onClick={() => handleRequest(req._id, 'accepted')}><MdCheck /></button>
@@ -155,7 +161,7 @@ export default function HunterNetwork() {
                       <div className={styles.hunterAvatar}>{hunter.name[0]}</div>
                       <div style={{ flex: 1 }}>
                         <div className={styles.hunterName}>{hunter.name}</div>
-                        <div className={styles.hunterRank}>LVL {hunter.level} • {hunter.rank}-Rank</div>
+                        <div className={styles.hunterRank}>{hunter.tag} • LVL {hunter.level}</div>
                       </div>
                       <MdVisibility style={{ color: 'var(--sl-text-ghost)' }} />
                     </div>
@@ -174,7 +180,12 @@ export default function HunterNetwork() {
                     {(selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester).name[0]}
                   </div>
                   <div>
-                    <h2 className={styles.hunterBigName}>{(selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester).name}</h2>
+                    <h2 className={styles.hunterBigName}>
+                      {(selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester).name}
+                      <span style={{ fontSize: '0.8rem', color: 'var(--sl-text-ghost)', marginLeft: '10px' }}>
+                        #{(selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester).tag?.split('#')[1]}
+                      </span>
+                    </h2>
                     <p className={styles.hunterBigTitle}>{(selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester).title}</p>
                   </div>
                 </div>

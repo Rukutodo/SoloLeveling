@@ -94,5 +94,6 @@ export async function getUserStats(userId: string) {
     title: rankInfo.title,
     rankColor: rankInfo.color,
     name: user.name,
+    tag: user.tag,
   };
 }

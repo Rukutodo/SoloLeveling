@@ -522,6 +522,7 @@ input, textarea, select {
   display: flex;
   min-height: 100vh;
   background-color: var(--sl-bg-base);
+  width: 100%;
 }
 
 .sl-main-content {
@@ -533,6 +534,13 @@ input, textarea, select {
   min-height: 100vh;
   background-color: var(--sl-bg-base);
   transition: margin-left 0.3s var(--sl-ease-out);
+  width: calc(100% - var(--sl-sidebar-w));
+}
+
+/* Adjust for collapsed sidebar */
+body:has(.sidebarCollapsed) .sl-main-content {
+  margin-left: var(--sl-sidebar-c);
+  width: calc(100% - var(--sl-sidebar-c));
 }
 
 .sl-page-header {

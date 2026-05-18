@@ -37,10 +37,16 @@ export async function POST(req: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { recipientEmail } = await req.json();
+    const { recipientEmail, recipientTag } = await req.json();
     await dbConnect();
 
-    const recipient = await User.findOne({ email: recipientEmail });
+    let recipient;
+    if (recipientTag) {
+      recipient = await User.findOne({ tag: recipientTag });
+    } else {
+      recipient = await User.findOne({ email: recipientEmail?.toLowerCase() });
+    }
+    
     if (!recipient) return NextResponse.json({ error: 'Hunter not found' }, { status: 404 });
 
     if (recipient._id.toString() === session.user.id) {
