@@ -25,9 +25,17 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       .then(res => res.json())
       .then(data => setMessages(data.messages || []));
 
-    // Initialize Pusher
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_APP_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    // Initialize Pusher only if keys are available
+    const pusherKey = process.env.NEXT_PUBLIC_PUSHER_APP_KEY;
+    const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
+
+    if (!pusherKey || !pusherCluster) {
+      console.warn('[SYSTEM] Pusher environment variables missing. Real-time notifications disabled.');
+      return;
+    }
+
+    const pusher = new Pusher(pusherKey, {
+      cluster: pusherCluster,
     });
 
     const channel = pusher.subscribe(`user-${session.user.id}`);
@@ -36,8 +44,10 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       setMessages(prev => [newMessage, ...prev]);
       // Play system sound if it's a system message
       if (newMessage.type === 'system') {
-        const audio = new Audio('/sounds/system-alert.mp3');
-        audio.play().catch(() => {}); // Catch if browser blocks auto-play
+        try {
+          const audio = new Audio('/sounds/system-alert.mp3');
+          audio.play().catch(() => {}); 
+        } catch (e) {}
       }
     });
 

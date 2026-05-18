@@ -133,7 +133,11 @@ export async function GET() {
 }
 
 function formatTimeAgo(date: Date): string {
-  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (!date) return 'Ancient';
+  const time = new Date(date).getTime();
+  if (isNaN(time)) return 'Ancient';
+  
+  const seconds = Math.floor((Date.now() - time) / 1000);
   
   if (seconds < 60) return 'Just now';
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
