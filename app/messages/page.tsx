@@ -26,7 +26,7 @@ export default function MessagesPage() {
   if (status === 'loading') return <div className="sl-loader">INITIALIZING SYSTEM...</div>;
 
   return (
-    <div className="sl-container">
+    <div className="sl-page-wrapper">
       <Sidebar 
         userName={sidebarData?.name} 
         level={sidebarData?.level} 
@@ -37,7 +37,7 @@ export default function MessagesPage() {
         rankColor={sidebarData?.rankColor} 
       />
       
-      <main className="sl-main">
+      <main className="sl-main-content">
         <div className="sl-page-header">
           <h1 className="sl-page-title"><MdMail style={{ verticalAlign: 'middle' }} /> Shadow Inbox</h1>
           <p className="sl-page-subtitle">[SYSTEM] Encrypted communications channel</p>

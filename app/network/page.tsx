@@ -17,6 +17,7 @@ export default function HunterNetwork() {
   const [friendQuests, setFriendQuests] = useState<any[]>([]);
   const [loadingQuests, setLoadingQuests] = useState(false);
   const [encourageMsg, setEncourageMsg] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -25,6 +26,17 @@ export default function HunterNetwork() {
     }
   }, [status]);
 
+  useEffect(() => {
+    if (emailInput.length >= 2) {
+      const delayDebounceFn = setTimeout(() => {
+        searchHunters(emailInput);
+      }, 300);
+      return () => clearTimeout(delayDebounceFn);
+    } else {
+      setSearchResults([]);
+    }
+  }, [emailInput]);
+
   const fetchData = async () => {
     const res = await fetch('/api/friends');
     if (res.ok) {
@@ -32,6 +44,16 @@ export default function HunterNetwork() {
       setFriends(data.friends || []);
       setPending(data.pending || []);
     }
+  };
+
+  const searchHunters = async (query: string) => {
+    try {
+      const res = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSearchResults(data.users || []);
+      }
+    } catch (e) {}
   };
 
   const sendRequest = async () => {
@@ -49,6 +71,7 @@ export default function HunterNetwork() {
     if (res.ok) {
       alert('[SYSTEM] REQUEST TRANSMITTED TO TARGET HUNTER.');
       setEmailInput('');
+      setSearchResults([]);
       fetchData();
     } else {
       const d = await res.json();
@@ -70,8 +93,8 @@ export default function HunterNetwork() {
   const viewFriendStatus = async (friend: any) => {
     setSelectedFriend(friend);
     setLoadingQuests(true);
-    const friendId = friend.requester._id === session?.user?.id ? friend.recipient._id : friend.requester._id;
-    const res = await fetch(`/api/friends/status?userId=${friendId}`);
+    const hunter = friend.requester._id === session?.user?.id ? friend.recipient : friend.requester;
+    const res = await fetch(`/api/friends/status?userId=${hunter._id}`);
     if (res.ok) {
       const data = await res.json();
       setFriendQuests(data.todos || []);
@@ -81,11 +104,11 @@ export default function HunterNetwork() {
 
   const sendEncouragement = async () => {
     if (!encourageMsg || !selectedFriend) return;
-    const friendId = selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient._id : selectedFriend.requester._id;
+    const hunter = selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester;
     const res = await fetch('/api/friends/encourage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ friendId, message: encourageMsg })
+      body: JSON.stringify({ friendId: hunter._id, message: encourageMsg })
     });
     if (res.ok) {
       alert('[SYSTEM] ENCOURAGEMENT SENT TO COMRADE.');
@@ -96,7 +119,7 @@ export default function HunterNetwork() {
   if (status === 'loading') return <div className="sl-loader">INITIALIZING NETWORK...</div>;
 
   return (
-    <div className="sl-container">
+    <div className="sl-page-wrapper">
       <Sidebar 
         userName={sidebarData?.name} 
         level={sidebarData?.level} 
@@ -107,14 +130,13 @@ export default function HunterNetwork() {
         rankColor={sidebarData?.rankColor} 
       />
 
-      <main className="sl-main">
+      <main className="sl-main-content">
         <div className="sl-page-header">
           <h1 className="sl-page-title"><MdGroup style={{ verticalAlign: 'middle' }} /> Hunter Network</h1>
           <p className="sl-page-subtitle">[SYSTEM] Comrade tracking and coordination</p>
         </div>
 
         <div className={styles.networkGrid}>
-          {/* Left Column: Management */}
           <div className={styles.managementCol}>
             <div className={`sl-panel ${styles.searchPanel}`}>
               <h2 className={styles.sectionLabel}><MdPersonAdd /> Recruit New Hunter</h2>
@@ -122,16 +144,36 @@ export default function HunterNetwork() {
                 <span style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', textTransform: 'uppercase' }}>Your Hunter Tag: </span>
                 <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--sl-blue)', marginLeft: '4px' }}>{sidebarData?.tag || '...'}</span>
               </div>
-              <p style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', marginBottom: '12px' }}>Search by Email or Hunter Tag (e.g. Sung#1234)</p>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <p style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', marginBottom: '12px' }}>Search by Name, Email or Tag (e.g. Sung#1234)</p>
+              
+              <div style={{ position: 'relative' }}>
                 <input 
                   type="text" 
                   className="sl-input" 
-                  placeholder="Email or Name#1234..." 
+                  placeholder="Search name or Tag..." 
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                 />
-                <button className="sl-btn sl-btn-primary" onClick={sendRequest}>Recruit</button>
+                
+                <AnimatePresence>
+                  {searchResults.length > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className={styles.searchDropdown}
+                    >
+                      {searchResults.map(u => (
+                        <div key={u.tag} className={styles.searchResultItem} onClick={() => { setEmailInput(u.tag); setSearchResults([]); }}>
+                          <div style={{ fontWeight: 800 }}>{u.name}</div>
+                          <div style={{ fontSize: '0.65rem', color: 'var(--sl-blue)' }}>{u.tag} • LVL {u.level}</div>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <button className="sl-btn sl-btn-primary" onClick={sendRequest} style={{ marginTop: '12px', width: '100%' }}>Recruit</button>
               </div>
             </div>
 
@@ -175,7 +217,6 @@ export default function HunterNetwork() {
             </div>
           </div>
 
-          {/* Right Column: Visibility */}
           <div className={styles.visibilityCol}>
             {selectedFriend ? (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`sl-panel ${styles.statusPanel}`}>
