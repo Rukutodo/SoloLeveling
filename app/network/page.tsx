@@ -244,7 +244,7 @@ export default function HunterNetwork() {
                       {friendQuests.map(quest => (
                         <div key={quest._id} className={styles.questItem}>
                           <MdStars style={{ color: quest.completed ? 'var(--sl-green)' : 'var(--sl-text-ghost)' }} />
-                          <span style={{ color: quest.completed ? 'var(--sl-text-bright)' : 'var(--sl-text-ghost)' }}>{quest.text}</span>
+                          <span style={{ color: quest.completed ? 'var(--sl-text-bright)' : 'var(--sl-text-ghost)' }}>{quest.title}</span>
                         </div>
                       ))}
                     </div>
