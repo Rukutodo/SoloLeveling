@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import dbConnect from '@/lib/mongodb';
 import Transaction from '@/lib/models/Transaction';
 import { awardXP, XP_REWARDS } from '@/lib/xpSystem';
+import { sendSystemMessage } from '@/lib/notifications';
 
 export async function POST(req: NextRequest) {
   try {
@@ -100,6 +101,7 @@ export async function POST(req: NextRequest) {
     let xpResult = null;
     if (savedCount > 0) {
       xpResult = await awardXP(userId, XP_REWARDS.LOG_TRANSACTION);
+      await sendSystemMessage(userId, `[SYSTEM] ${savedCount} transactions successfully synthesized into Gold Reserve.`);
     }
 
     return NextResponse.json({

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useTheme, ThemeName } from './ThemeProvider';
+import { useNotifications } from './NotificationProvider';
 import {
   GiSwordWound, GiMuscleUp, GiMeal, GiHeartBeats, GiCalendar,
   GiGoldBar, GiExitDoor, GiHamburgerMenu, GiTreasureMap,
@@ -25,7 +26,7 @@ import {
   RiCalendarEventFill, RiMoneyDollarCircleFill, RiLogoutCircleFill,
 } from 'react-icons/ri';
 import { HiX } from 'react-icons/hi';
-import { MdDashboard, MdTaskAlt, MdMenuBook, MdLibraryBooks } from 'react-icons/md';
+import { MdDashboard, MdTaskAlt, MdMenuBook, MdLibraryBooks, MdMail } from 'react-icons/md';
 import ThemeSwitcher from './ThemeSwitcher';
 import styles from './Sidebar.module.css';
 
@@ -41,30 +42,35 @@ const iconSets: Record<ThemeName, Record<string, React.ComponentType<{className?
     notes: MdLibraryBooks, logbook: MdMenuBook, calories: GiMeal,
     bmi: GiHeartBeats, workouts: GiMuscleUp, calendar: GiCalendar,
     finance: GiGoldBar, logout: GiExitDoor, logo: GiSwordWound,
+    messages: MdMail,
   },
   onedark: {
     dashboard: HiOutlineHome, todos: HiOutlineClipboardList, quests: HiOutlineMap,
     notes: HiOutlineDocumentText, logbook: HiOutlineBookOpen, calories: HiOutlineFire,
     bmi: HiOutlineHeart, workouts: HiOutlineLightningBolt, calendar: HiOutlineCalendar,
     finance: HiOutlineCurrencyDollar, logout: HiOutlineLogout, logo: HiOutlineHome,
+    messages: MdMail,
   },
   rosepine: {
     dashboard: FiHome, todos: FiCheckSquare, quests: FiMap,
     notes: FiFileText, logbook: FiBook, calories: FiCoffee,
     bmi: FiActivity, workouts: FiZap, calendar: FiCalendar,
     finance: FiDollarSign, logout: FiLogOut, logo: FiHome,
+    messages: MdMail,
   },
   catppuccin: {
     dashboard: RiDashboardFill, todos: RiTodoFill, quests: RiRoadMapFill,
     notes: RiStickyNoteFill, logbook: RiBookFill, calories: RiFireFill,
     bmi: RiHeartPulseFill, workouts: RiBoxingFill, calendar: RiCalendarEventFill,
     finance: RiMoneyDollarCircleFill, logout: RiLogoutCircleFill, logo: RiDashboardFill,
+    messages: MdMail,
   },
   gruvbox: {
     dashboard: HiOutlineHome, todos: HiOutlineClipboardList, quests: HiOutlineMap,
     notes: HiOutlineDocumentText, logbook: HiOutlineBookOpen, calories: HiOutlineFire,
     bmi: HiOutlineHeart, workouts: HiOutlineLightningBolt, calendar: HiOutlineCalendar,
     finance: HiOutlineCurrencyDollar, logout: HiOutlineLogout, logo: HiOutlineHome,
+    messages: MdMail,
   },
 };
 
@@ -79,6 +85,7 @@ const navConfig = [
   { href: '/workouts', label: 'Workouts', key: 'workouts', section: 'fitness' },
   { href: '/calendar', label: 'Calendar', key: 'calendar', section: 'planning' },
   { href: '/finance', label: 'Finance', key: 'finance', section: 'planning' },
+  { href: '/messages', label: 'Shadow Inbox', key: 'messages', section: 'planning' },
   { href: '/admin/logs', label: 'System Monitor', key: 'dashboard', section: 'planning' },
 ];
 
@@ -105,6 +112,7 @@ export default function Sidebar({
   rank = 'E', title = 'Awakened Hunter', rankColor = '#8b8b8b',
 }: SidebarProps) {
   const pathname = usePathname();
+  const { unreadCount } = useNotifications();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { theme } = useTheme();
@@ -196,7 +204,28 @@ export default function Sidebar({
                   <Link key={item.href} href={item.href}
                     className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
                     id={`nav-${item.href.slice(1)}`}>
-                    <Icon className={styles.navIcon} />
+                    <div style={{ position: 'relative' }}>
+                      <Icon className={styles.navIcon} />
+                      {item.key === 'messages' && unreadCount > 0 && (
+                        <span style={{ 
+                          position: 'absolute', 
+                          top: '-4px', 
+                          right: '-4px', 
+                          background: 'var(--sl-red)', 
+                          color: 'white', 
+                          fontSize: '0.6rem', 
+                          fontWeight: 900, 
+                          padding: '2px 5px',
+                          minWidth: '16px',
+                          textAlign: 'center',
+                          borderRadius: '10px', 
+                          border: '2px solid var(--sl-bg-sub)',
+                          lineHeight: 1
+                        }}>
+                          {unreadCount}
+                        </span>
+                      )}
+                    </div>
                     <span className={styles.navLabel}>{item.label}</span>
                   </Link>
                 );

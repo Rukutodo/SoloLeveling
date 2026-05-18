@@ -3,6 +3,7 @@ import './globals.css';
 import './themes.css';
 import SessionProvider from '@/components/SessionProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { NotificationProvider } from '@/components/NotificationProvider';
 
 export const metadata: Metadata = {
   title: 'SoloLeveling — Personal Development System',
@@ -31,9 +32,11 @@ export default function RootLayout({
       </head>
       <body>
         <SessionProvider>
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
+          <NotificationProvider>
+            <ThemeProvider>
+              {children}
+            </ThemeProvider>
+          </NotificationProvider>
         </SessionProvider>
       </body>
     </html>

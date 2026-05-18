@@ -1,5 +1,6 @@
 import dbConnect from './mongodb';
 import User from './models/User';
+import { sendSystemMessage } from './notifications';
 
 /* ─── XP Rewards ───────────────────────────────────────────────────── */
 export const XP_REWARDS = {
@@ -59,6 +60,10 @@ export async function awardXP(userId: string, amount: number) {
   user.title = rankInfo.title;
 
   await user.save();
+
+  if (leveledUp) {
+    await sendSystemMessage(userId, `[SYSTEM] LEVEL UP! You have ascended to Level ${newLevel}. Rank: ${user.rank} (${user.title}).`);
+  }
 
   return {
     level: newLevel,

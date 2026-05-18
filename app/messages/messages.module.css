@@ -1,0 +1,136 @@
+.msgLayout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  height: calc(100vh - 200px);
+  min-height: 500px;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px !important;
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: transparent;
+  border: 1px solid var(--sl-glass-border);
+  border-radius: 12px;
+  color: var(--sl-text-ghost);
+  font-family: var(--sl-font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s var(--sl-ease-out);
+  cursor: pointer;
+}
+
+.tabBtn:hover {
+  background: hsla(0, 0%, 100%, 0.05);
+  color: var(--sl-text-bright);
+}
+
+.tabBtn.active {
+  background: var(--sl-bg-base);
+  color: var(--sl-blue);
+  border-color: var(--sl-blue);
+  box-shadow: 0 0 15px var(--sl-blue-glow);
+}
+
+.messageWindow {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.msgHeader {
+  padding: 20px 24px;
+  background: hsla(0, 0%, 100%, 0.02);
+  border-bottom: 1px solid var(--sl-glass-border);
+  font-family: var(--sl-font-mono);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--sl-text-ghost);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.msgList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.msgItem {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: hsla(0, 0%, 100%, 0.01);
+  border: 1px solid var(--sl-glass-border);
+  border-radius: 12px;
+  transition: all 0.2s var(--sl-ease-out);
+}
+
+.msgItem.unread {
+  border-left: 3px solid var(--sl-blue);
+  background: hsla(200, 100%, 50%, 0.03);
+}
+
+.msgIcon {
+  font-size: 1.2rem;
+  color: var(--sl-text-ghost);
+}
+
+.msgContent {
+  flex: 1;
+}
+
+.msgMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.msgSender {
+  font-weight: 800;
+  font-size: 0.75rem;
+  color: var(--sl-text-bright);
+  font-family: var(--sl-font-display);
+}
+
+.msgTime {
+  font-size: 0.6rem;
+  color: var(--sl-text-ghost);
+  font-family: var(--sl-font-mono);
+}
+
+.msgText {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--sl-text-main);
+}
+
+.msgInputArea {
+  padding: 20px;
+  background: hsla(0, 0%, 100%, 0.02);
+  border-top: 1px solid var(--sl-glass-border);
+  display: flex;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .msgLayout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
