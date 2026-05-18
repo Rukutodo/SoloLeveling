@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { sendSystemMessage } from '@/lib/notifications';
 import Friend from '@/lib/models/Friend';
+import dbConnect from '@/lib/mongodb';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,6 +10,8 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { friendId, message } = await req.json();
+
+    await dbConnect();
 
     // Verify friendship
     const isFriend = await Friend.findOne({
