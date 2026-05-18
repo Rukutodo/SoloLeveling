@@ -22,19 +22,7 @@ export async function GET(req: NextRequest) {
 
     let startDate: Date;
     let endDate: Date;
-
-    const findAnchorSalary = async (mIndex: number, yNum: number) => {
-      // For month M, the "funding salary" is the one received at the end of M-1 or start of M
-      // Window: 20th of prev month to 15th of current month
-      const windowStart = new Date(yNum, mIndex - 1, 20);
-      const windowEnd = new Date(yNum, mIndex, 15);
-      return await Transaction.findOne({
-        userId: session.user.id,
-        category: 'Salary',
-        type: 'income',
-        date: { $gte: windowStart, $lt: windowEnd }
-      }).sort({ date: 1 }); // The FIRST salary in this window is the "Anchor"
-    };
+    let transactions: any[] = [];
 
     const findAnchorSalary = async (mIndex: number, yNum: number) => {
       // Window: 20th of prev month to 15th of current month
@@ -45,50 +33,22 @@ export async function GET(req: NextRequest) {
         category: 'Salary',
         type: 'income',
         date: { $gte: windowStart, $lt: windowEnd }
-      }).sort({ date: 1, index: 1 }); // Find the earliest salary in window
+      }).sort({ date: 1, index: 1 });
     };
 
-    // Determine Financial Cycle Boundaries
+    // Determine Financial Cycle Boundaries and Fetch Transactions
     if (!requestedMonth && !requestedYear) {
+      // DEFAULT VIEW (Today)
       const anchor = await findAnchorSalary(currentMonth, currentYear);
       const nextAnchor = await findAnchorSalary(currentMonth + 1, currentYear);
       
-      // If we found an anchor salary, start cycle from that date
-      // For transactions on the SAME date as anchor, we only include those with index >= anchor.index
       if (anchor) {
         startDate = new Date(anchor.date);
         const anchorIdx = anchor.index || 0;
-        
-        // Fetch transactions for May:
-        // (Date > April 30) OR (Date == April 30 AND Index >= SalaryIndex)
-        const transactions = await Transaction.find({
-          userId: session.user.id,
-          $or: [
-            { date: { $gt: startDate } },
-            { date: startDate, index: { $gte: anchorIdx } }
-          ],
-          date: { $lt: nextAnchor ? new Date(nextAnchor.date) : new Date(currentYear, currentMonth + 1, 10) }
-        }).sort({ date: -1, index: -1 });
-
-        // ... continue with summary calculation using this specific list
-        return sendResponse(transactions, startDate);
-      }
-      
-      startDate = new Date(currentYear, currentMonth, 1);
-      endDate = nextAnchor ? new Date(nextAnchor.date) : new Date(currentYear, currentMonth + 1, 10);
-    } else {
-      const m = parseInt(requestedMonth!);
-      const y = parseInt(requestedYear!);
-      const anchor = await findAnchorSalary(m, y);
-      const nextAnchor = await findAnchorSalary(m + 1, y);
-
-      if (anchor) {
-        startDate = new Date(anchor.date);
-        const anchorIdx = anchor.index || 0;
-        const nextDate = nextAnchor ? new Date(nextAnchor.date) : new Date(y, m + 1, 1);
+        const nextDate = nextAnchor ? new Date(nextAnchor.date) : new Date(currentYear, currentMonth + 1, 10);
         const nextIdx = nextAnchor ? (nextAnchor.index || 0) : 999;
 
-        const transactions = await Transaction.find({
+        transactions = await Transaction.find({
           userId: session.user.id,
           $and: [
             {
@@ -105,23 +65,52 @@ export async function GET(req: NextRequest) {
             }
           ]
         }).sort({ date: -1, index: -1 });
-
-        return sendResponse(transactions, startDate);
+      } else {
+        startDate = new Date(currentYear, currentMonth, 1);
+        endDate = nextAnchor ? new Date(nextAnchor.date) : new Date(currentYear, currentMonth + 1, 10);
+        transactions = await Transaction.find({
+          userId: session.user.id,
+          date: { $gte: startDate, $lt: endDate },
+        }).sort({ date: -1, index: -1 });
       }
+    } else {
+      // HISTORICAL / SPECIFIC MONTH VIEW
+      const m = parseInt(requestedMonth!);
+      const y = parseInt(requestedYear!);
+      const anchor = await findAnchorSalary(m, y);
+      const nextAnchor = await findAnchorSalary(m + 1, y);
 
-      startDate = new Date(y, m, 1);
-      endDate = nextAnchor ? new Date(nextAnchor.date) : new Date(y, m + 1, 1);
-    }
+      if (anchor) {
+        startDate = new Date(anchor.date);
+        const anchorIdx = anchor.index || 0;
+        const nextDate = nextAnchor ? new Date(nextAnchor.date) : new Date(y, m + 1, 1);
+        const nextIdx = nextAnchor ? (nextAnchor.index || 0) : 999;
 
-    // Default Fallback Fetch
-    const transactions = await Transaction.find({
-      userId: session.user.id,
-      date: { $gte: startDate, $lt: endDate },
-    }).sort({ date: -1, index: -1 });
-
-    function sendResponse(txs: any[], sDate: Date) {
-      // (Rest of the calculation logic moved here)
-      // This is a complex refactor, let's simplify by just adjusting the query in-place
+        transactions = await Transaction.find({
+          userId: session.user.id,
+          $and: [
+            {
+              $or: [
+                { date: { $gt: startDate } },
+                { date: startDate, index: { $gte: anchorIdx } }
+              ]
+            },
+            {
+              $or: [
+                { date: { $lt: nextDate } },
+                { date: nextDate, index: { $lt: nextIdx } }
+              ]
+            }
+          ]
+        }).sort({ date: -1, index: -1 });
+      } else {
+        startDate = new Date(y, m, 1);
+        endDate = nextAnchor ? new Date(nextAnchor.date) : new Date(y, m + 1, 1);
+        transactions = await Transaction.find({
+          userId: session.user.id,
+          date: { $gte: startDate, $lt: endDate },
+        }).sort({ date: -1, index: -1 });
+      }
     }
 
     // Fetch active EMIs
@@ -129,7 +118,7 @@ export async function GET(req: NextRequest) {
     const activeEmis = await EMI.find({ 
       userId: session.user.id, 
       active: true,
-      startDate: { $lt: endDate } // EMI started before or during this month
+      startDate: { $lt: new Date(currentYear, currentMonth + 1, 1) } 
     });
 
     // Calculate summary
@@ -141,11 +130,9 @@ export async function GET(req: NextRequest) {
       .filter((t) => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0);
 
-    // Add EMIs to expenses
     const emiTotal = activeEmis.reduce((sum, e) => sum + e.amount, 0);
     expenses += emiTotal;
 
-    // Category breakdown — use description-derived name for uncategorized ('Other') transactions
     const categoryBreakdown: Record<string, number> = {};
     transactions
       .filter((t) => t.type === 'expense')
@@ -157,7 +144,6 @@ export async function GET(req: NextRequest) {
         categoryBreakdown[label] = (categoryBreakdown[label] || 0) + t.amount;
       });
 
-    // Add EMI category
     if (emiTotal > 0) {
       categoryBreakdown['EMI'] = (categoryBreakdown['EMI'] || 0) + emiTotal;
     }
@@ -167,7 +153,7 @@ export async function GET(req: NextRequest) {
       summary: { income, expenses, net: income - expenses },
       categoryBreakdown,
       emiTotal,
-      isSalaryCycle: !requestedMonth && !requestedYear && !!transactions.find(t => t.category === 'Salary'),
+      isSalaryCycle: !!transactions.find(t => t.category === 'Salary'),
       cycleStart: startDate.toISOString().split('T')[0],
     });
   } catch (error) {
@@ -194,6 +180,8 @@ export async function POST(req: NextRequest) {
       category: body.category,
       description: body.description,
       recurring: body.recurring || false,
+      index: body.index || 0,
+      source: body.source || 'Manual Entry'
     });
 
     const xpResult = await awardXP(session.user.id, XP_REWARDS.LOG_TRANSACTION);
@@ -218,7 +206,6 @@ export async function DELETE(req: NextRequest) {
     const clearAll = searchParams.get('clearAll') === 'true';
 
     if (clearAll) {
-      console.log(`[FINANCE] Bulk deletion triggered for user: ${session.user.id}`);
       await Transaction.deleteMany({ userId: session.user.id });
       return NextResponse.json({ message: 'All records cleared' });
     }

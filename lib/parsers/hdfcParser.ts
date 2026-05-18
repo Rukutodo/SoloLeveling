@@ -79,10 +79,10 @@ export async function parseHDFCExcel(buffer: Buffer) {
     if (withdrawal === 0 && deposit === 0) continue;
 
     const amount = deposit > 0 ? deposit : withdrawal;
-    const type = deposit > 0 ? 'income' : 'expense';
+    const type: 'income' | 'expense' = deposit > 0 ? 'income' : 'expense';
     
     // Explicit check for Interest
-    let finalType = type;
+    let finalType: 'income' | 'expense' = type;
     if (narration.toLowerCase().includes('int.pd') || narration.toLowerCase().includes('interest')) {
        finalType = 'income';
     }
