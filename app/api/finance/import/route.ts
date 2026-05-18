@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
           category: tx.category && tx.category !== 'Other' ? tx.category : (tx.description || 'Transaction').split(/[\s\/\-_|]+/).slice(0, 2).join(' ').replace(/[^a-zA-Z0-9 ]/g, '').trim() || tx.description?.slice(0, 20) || 'Transaction',
           description: tx.description || 'Imported Transaction',
           source: tx.source || 'File Import',
+          index: tx.index !== undefined ? tx.index : 0,
           signature: sig,
           recurring: false,
         });

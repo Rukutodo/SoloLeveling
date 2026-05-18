@@ -8,7 +8,7 @@ function categorize(description: string, type: 'income' | 'expense') {
   if (type === 'income') {
     if (desc.includes('salary') || desc.includes('payout') || desc.includes('tata consultancy') || desc.includes('tcs ')) return 'Salary';
     if (desc.includes('refund') || desc.includes('cashback')) return 'Other Income';
-    if (desc.includes('dividend') || desc.includes('interest')) return 'Investments';
+    if (desc.includes('dividend') || desc.includes('interest') || desc.includes('int.pd')) return 'Investments';
     return 'Other Income';
   } else {
     if (desc.includes('swiggy') || desc.includes('zomato') || desc.includes('agra sweets') || desc.includes('blinkit') || desc.includes('coffee')) return 'Food';
@@ -41,6 +41,7 @@ export async function parseHDFCExcel(buffer: Buffer) {
   let narrationIdx = 1;
   let withdrawalIdx = 4;
   let depositIdx = 5;
+  let globalIndex = 0;
 
   for (const row of rows) {
     if (!headerFound) {
@@ -53,7 +54,7 @@ export async function parseHDFCExcel(buffer: Buffer) {
         narrationIdx = idx;
         withdrawalIdx = row.findIndex(cell => String(cell || '').toLowerCase().includes('withdrawal'));
         depositIdx = row.findIndex(cell => String(cell || '').toLowerCase().includes('deposit'));
-        console.log(`[LOCAL-PARSER] HDFC Header found at row. Map: Narration:${narrationIdx}, Dr:${withdrawalIdx}, Cr:${depositIdx}`);
+        console.log(`[LOCAL-PARSER] HDFC Header found. Map: Narration:${narrationIdx}, Dr:${withdrawalIdx}, Cr:${depositIdx}`);
       }
       continue;
     }
@@ -64,7 +65,7 @@ export async function parseHDFCExcel(buffer: Buffer) {
     const dateStr = dateCell;
     const narration = String(row[narrationIdx] || '');
     
-    // Robust numeric parsing: remove commas and whitespace
+    // Robust numeric parsing
     const parseAmount = (val: any) => {
         if (val === undefined || val === null || val === '') return 0;
         const cleaned = String(val).replace(/,/g, '').trim();
@@ -79,14 +80,18 @@ export async function parseHDFCExcel(buffer: Buffer) {
 
     const amount = deposit > 0 ? deposit : withdrawal;
     const type = deposit > 0 ? 'income' : 'expense';
+    
+    // Explicit check for Interest
+    let finalType = type;
+    if (narration.toLowerCase().includes('int.pd') || narration.toLowerCase().includes('interest')) {
+       finalType = 'income';
+    }
 
     // --- SELF-TRANSFER EXCLUSION ---
     const selfNames = ['POTNURU VENU GOPAL', 'VENU GOPAL', 'RUKUTODO'];
-    if (type === 'income' && selfNames.some(name => narration.toUpperCase().includes(name))) {
-      console.log(`[LOCAL-PARSER] Skipping self-transfer: ${narration}`);
+    if (finalType === 'income' && selfNames.some(name => narration.toUpperCase().includes(name))) {
       continue;
     }
-    // -----------------------------
 
     const parts = dateStr.split('/');
     if (parts.length !== 3) continue;
@@ -98,9 +103,10 @@ export async function parseHDFCExcel(buffer: Buffer) {
     transactions.push({
       date: formattedDate,
       amount,
-      type,
-      category: categorize(narration, type),
+      type: finalType,
+      category: categorize(narration, finalType),
       description: cleanDescription(narration),
+      index: globalIndex++,
     });
   }
 

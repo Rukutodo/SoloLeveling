@@ -4,7 +4,7 @@ function categorize(description: string, type: 'income' | 'expense') {
   if (type === 'income') {
     if (desc.includes('salary') || desc.includes('payout') || desc.includes('tata consultancy') || desc.includes('tcs ')) return 'Salary';
     if (desc.includes('refund') || desc.includes('cashback')) return 'Other Income';
-    if (desc.includes('dividend') || desc.includes('interest')) return 'Investments';
+    if (desc.includes('dividend') || desc.includes('interest') || desc.includes('int.pd')) return 'Investments';
     return 'Other Income';
   } else {
     if (desc.includes('swiggy') || desc.includes('zomato') || desc.includes('agra sweets') || desc.includes('blinkit') || desc.includes('coffee') || desc.includes('cafe')) return 'Food';
@@ -34,6 +34,7 @@ export async function parseKotakPDF(buffer: Buffer) {
   const data = await pdf(buffer, {});
   const text = data.text;
   const transactions: any[] = [];
+  let globalIndex = 0;
 
   // Robust Regex for Kotak Statement Row with Anti-Smash Logic:
   // (\d{1,3}) - ID
@@ -62,11 +63,10 @@ export async function parseKotakPDF(buffer: Buffer) {
     let type: 'income' | 'expense' = 'expense';
     const lowerNarration = narrationRaw.toLowerCase();
     
-    // Heuristic for Kotak: Balance Check is better but harder in raw text stream.
-    // Use keyword detection + owner name identification.
     if (lowerNarration.includes('salary') || 
         lowerNarration.includes('refund') || 
         lowerNarration.includes('interest') ||
+        lowerNarration.includes('int.pd') ||
         lowerNarration.includes('mr potnuru mano') || 
         lowerNarration.includes('venu go') ||
         lowerNarration.includes('cr/')) {
@@ -76,10 +76,8 @@ export async function parseKotakPDF(buffer: Buffer) {
     // --- SELF-TRANSFER EXCLUSION ---
     const selfNames = ['POTNURU VENU GOPAL', 'VENU GOPAL', 'RUKUTODO'];
     if (type === 'income' && selfNames.some(name => narrationRaw.toUpperCase().includes(name))) {
-      console.log(`[LOCAL-PARSER] Skipping self-transfer: ${narrationRaw}`);
       continue;
     }
-    // -----------------------------
 
     transactions.push({
       date: formattedDate,
@@ -87,6 +85,7 @@ export async function parseKotakPDF(buffer: Buffer) {
       type,
       category: categorize(narrationRaw, type),
       description: cleanDescription(narrationRaw),
+      index: globalIndex++,
     });
   }
 
