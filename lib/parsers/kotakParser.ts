@@ -73,6 +73,14 @@ export async function parseKotakPDF(buffer: Buffer) {
        type = 'income';
     }
 
+    // --- SELF-TRANSFER EXCLUSION ---
+    const selfNames = ['POTNURU VENU GOPAL', 'VENU GOPAL', 'RUKUTODO'];
+    if (type === 'income' && selfNames.some(name => narrationRaw.toUpperCase().includes(name))) {
+      console.log(`[LOCAL-PARSER] Skipping self-transfer: ${narrationRaw}`);
+      continue;
+    }
+    // -----------------------------
+
     transactions.push({
       date: formattedDate,
       amount,

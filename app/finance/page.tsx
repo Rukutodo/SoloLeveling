@@ -8,6 +8,58 @@ import { GiHeartBeats } from 'react-icons/gi';
 import { FaBolt, FaGoogle, FaFileInvoiceDollar, FaCloudUploadAlt, FaSearchDollar, FaList, FaCheckCircle, FaTrashAlt } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
 import styles from './finance.module.css';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
+
+const COLORS = [
+  '#00d4ff', '#7b2ff7', '#10b981', '#f43f5e', '#fbbf24', 
+  '#ec4899', '#8b5cf6', '#06b6d4', '#f97316', '#a855f7'
+];
+
+const renderActiveShape = (props: any) => {
+  const RADIAN = Math.PI / 180;
+  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+  const sin = Math.sin(-RADIAN * midAngle);
+  const cos = Math.cos(-RADIAN * midAngle);
+  const sx = cx + (outerRadius + 10) * cos;
+  const sy = cy + (outerRadius + 10) * sin;
+  const mx = cx + (outerRadius + 30) * cos;
+  const my = cy + (outerRadius + 30) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+  const ey = my;
+  const textAnchor = cos >= 0 ? 'start' : 'end';
+
+  return (
+    <g>
+      <text x={cx} y={cy} dy={8} textAnchor="middle" fill="var(--sl-text-bright)" style={{ fontFamily: 'var(--sl-font-display)', fontWeight: 800, fontSize: '0.8rem' }}>
+        {payload.name}
+      </text>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        innerRadius={outerRadius + 6}
+        outerRadius={outerRadius + 10}
+        fill={fill}
+      />
+      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
+      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="var(--sl-text-bright)" style={{ fontSize: '0.7rem', fontWeight: 700 }}>{`₹${value.toLocaleString()}`}</text>
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="var(--sl-text-ghost)" style={{ fontSize: '0.6rem' }}>
+        {`(${(percent * 100).toFixed(1)}%)`}
+      </text>
+    </g>
+  );
+};
 
 interface Transaction { _id: string; date: string; amount: number; type: 'income' | 'expense'; category: string; description: string; }
 
@@ -53,6 +105,11 @@ export default function FinancePage() {
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
+  const [activePieIndex, setActivePieIndex] = useState(0);
+
+  const onPieEnter = (_: any, index: number) => {
+    setActivePieIndex(index);
+  };
 
   const month = currentDate.getMonth();
   const year = currentDate.getFullYear();
@@ -539,6 +596,35 @@ export default function FinancePage() {
           {/* Left Column: Analysis */}
           <div className="sl-panel" style={{ padding: '32px' }}>
             <h2 className="sl-section-title">Analysis Sector</h2>
+            
+            <div style={{ width: '100%', height: '320px', marginBottom: '32px', borderBottom: '1px solid var(--sl-glass-border)', paddingBottom: '32px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    activeIndex={activePieIndex}
+                    activeShape={renderActiveShape}
+                    data={Object.entries(categoryBreakdown).map(([name, value]) => ({ name, value }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    fill="var(--sl-blue)"
+                    dataKey="value"
+                    onMouseEnter={onPieEnter}
+                    stroke="none"
+                  >
+                    {Object.entries(categoryBreakdown).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ background: 'var(--sl-bg-sub)', border: '1px solid var(--sl-glass-border)', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+                    itemStyle={{ color: 'var(--sl-blue)', fontFamily: 'var(--sl-font-mono)', fontSize: '0.7rem' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
             <div className={styles.categoryList}>
               <h3 style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px' }}>Expense Breakdown</h3>
               {Object.keys(categoryBreakdown).length > 0 ? (

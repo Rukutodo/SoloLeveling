@@ -80,6 +80,14 @@ export async function parseHDFCExcel(buffer: Buffer) {
     const amount = deposit > 0 ? deposit : withdrawal;
     const type = deposit > 0 ? 'income' : 'expense';
 
+    // --- SELF-TRANSFER EXCLUSION ---
+    const selfNames = ['POTNURU VENU GOPAL', 'VENU GOPAL', 'RUKUTODO'];
+    if (type === 'income' && selfNames.some(name => narration.toUpperCase().includes(name))) {
+      console.log(`[LOCAL-PARSER] Skipping self-transfer: ${narration}`);
+      continue;
+    }
+    // -----------------------------
+
     const parts = dateStr.split('/');
     if (parts.length !== 3) continue;
     
