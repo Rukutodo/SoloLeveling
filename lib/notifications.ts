@@ -1,5 +1,5 @@
-import { pusherServer } from '../pusher';
-import Message from '../models/Message';
+import { pusherServer } from './pusher';
+import Message from './models/Message';
 
 export async function sendSystemMessage(userId: string, text: string) {
   try {
