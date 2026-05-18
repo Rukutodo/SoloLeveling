@@ -1101,39 +1101,88 @@ export default function FinancePage() {
             )}
 
             {activeTab === 'tx' && (
-              <div className={styles.txList}>
-                {transactions.map((t) => (
-                  <div key={t._id} className={styles.txItem}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div className={`${styles.txIcon} ${t.type === 'income' ? styles.txIconIncome : styles.txIconExpense}`}>
-                        {t.type === 'income' ? <MdTrendingUp /> : <MdTrendingDown />}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--sl-text-bright)' }}>{t.description}</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', textTransform: 'uppercase' }}>
-                          {t.category} • {new Date(t.date).toLocaleDateString()} {(t as any).source && <span style={{ color: 'var(--sl-blue-glow)', marginLeft: '4px', textTransform: 'none' }}>[{ (t as any).source }]</span>}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.125rem', fontWeight: 800, color: t.type === 'income' ? 'var(--sl-green)' : 'var(--sl-red)' }}>
-                        {t.type === 'income' ? '+' : '-'}₹{t.amount.toLocaleString()}
-                      </span>
-                      <button className="sl-btn sl-btn-ghost" onClick={async () => {
-                        const val = prompt('Edit amount for ' + t.description, String(t.amount));
-                        if (val !== null && val !== '' && !isNaN(Number(val))) {
-                          await fetch('/api/finance', { 
-                            method: 'PUT', 
-                            headers: { 'Content-Type': 'application/json' }, 
-                            body: JSON.stringify({ id: t._id, amount: Number(val) }) 
-                          });
-                          fetchData();
-                        }
-                      }} style={{ padding: '8px', color: 'var(--sl-blue)' }}><MdSettings /></button>
-                      <button className="sl-btn sl-btn-ghost" onClick={() => deleteTransaction(t._id)} style={{ padding: '8px' }}><MdDelete /></button>
-                    </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+                {/* Income / Credits Column */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--sl-green)', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px', paddingLeft: '8px' }}>
+                    <MdTrendingUp /> Credits Inbound
                   </div>
-                ))}
+                  <div className={styles.txList}>
+                    {transactions.filter(t => t.type === 'income').length > 0 ? (
+                      transactions.filter(t => t.type === 'income').map((t) => (
+                        <div key={t._id} className={styles.txItem}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div className={`${styles.txIcon} ${styles.txIconIncome}`}>
+                              <MdTrendingUp />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--sl-text-bright)' }}>{t.description}</div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', textTransform: 'uppercase' }}>
+                                {t.category} • {new Date(t.date).toLocaleDateString()} {(t as any).source && <span style={{ color: 'var(--sl-blue-glow)', marginLeft: '4px', textTransform: 'none' }}>[{ (t as any).source }]</span>}
+                              </div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.125rem', fontWeight: 800, color: 'var(--sl-green)' }}>
+                              +₹{t.amount.toLocaleString()}
+                            </span>
+                            <button className="sl-btn sl-btn-ghost" onClick={async () => {
+                              const val = prompt('Edit amount for ' + t.description, String(t.amount));
+                              if (val !== null && val !== '' && !isNaN(Number(val))) {
+                                await fetch('/api/finance', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: t._id, amount: Number(val) }) });
+                                fetchData();
+                              }
+                            }} style={{ padding: '8px', color: 'var(--sl-blue)' }}><MdSettings /></button>
+                            <button className="sl-btn sl-btn-ghost" onClick={() => deleteTransaction(t._id)} style={{ padding: '8px' }}><MdDelete /></button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="sl-empty"><div className="sl-empty-text">No credits detected</div></div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Expense / Debits Column */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--sl-red)', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px', paddingLeft: '8px' }}>
+                    <MdTrendingDown /> Debits Authorized
+                  </div>
+                  <div className={styles.txList}>
+                    {transactions.filter(t => t.type === 'expense').length > 0 ? (
+                      transactions.filter(t => t.type === 'expense').map((t) => (
+                        <div key={t._id} className={styles.txItem}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div className={`${styles.txIcon} ${styles.txIconExpense}`}>
+                              <MdTrendingDown />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--sl-text-bright)' }}>{t.description}</div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontFamily: 'var(--sl-font-mono)', textTransform: 'uppercase' }}>
+                                {t.category} • {new Date(t.date).toLocaleDateString()} {(t as any).source && <span style={{ color: 'var(--sl-blue-glow)', marginLeft: '4px', textTransform: 'none' }}>[{ (t as any).source }]</span>}
+                              </div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{ fontFamily: 'var(--sl-font-display)', fontSize: '1.125rem', fontWeight: 800, color: 'var(--sl-red)' }}>
+                              -₹{t.amount.toLocaleString()}
+                            </span>
+                            <button className="sl-btn sl-btn-ghost" onClick={async () => {
+                              const val = prompt('Edit amount for ' + t.description, String(t.amount));
+                              if (val !== null && val !== '' && !isNaN(Number(val))) {
+                                await fetch('/api/finance', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: t._id, amount: Number(val) }) });
+                                fetchData();
+                              }
+                            }} style={{ padding: '8px', color: 'var(--sl-blue)' }}><MdSettings /></button>
+                            <button className="sl-btn sl-btn-ghost" onClick={() => deleteTransaction(t._id)} style={{ padding: '8px' }}><MdDelete /></button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="sl-empty"><div className="sl-empty-text">No debits recorded</div></div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
