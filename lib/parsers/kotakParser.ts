@@ -30,50 +30,46 @@ function cleanDescription(desc: string) {
 export async function parseKotakPDF(buffer: Buffer) {
   // Dynamic require to prevent build-time initialization issues
   const pdf = require('pdf-parse');
-  const data = await pdf(buffer);
+  // Pass explicit empty options to fix 'default_options is not defined' ReferenceError
+  const data = await pdf(buffer, {});
   const text = data.text;
-  const transactions = [];
+  const transactions: any[] = [];
 
-  // Robust Regex for Kotak Statement Row:
-  // (\d{1,2}) - ID
+  // Robust Regex for Kotak Statement Row with Anti-Smash Logic:
+  // (\d{1,3}) - ID
   // (\d{2}\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{4}) - Date
-  // ([\s\S]*?) - Description (Lazy)
-  // (?:UPI-[\d]+)? - Optional Ref prefix
-  // ([\d,]+\.\d{2}) - Withdrawal (if exists) OR Deposit
-  // ([\d,]+\.\d{2})? - Balance
+  // ([\s\S]*?) - Description
+  // (\d{12})? - UPI Ref (Exactly 12 digits, optional)
+  // ([\d,]+\.\d{2}) - Amount
+  // ([\d,]+\.\d{2}) - Balance
   
-  // Based on extracted text pattern: 
-  // 101 May 2026UPI/RAJENDRAN ROSHI/473001972151/Payment from Ph UPI-612160468665160.004,671.71
-  // We see ID + Date + Description + Ref + Amount + Balance all smashed together
-  
-  const rowRegex = /(\d{1,3})(\d{2}\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{4})([\s\S]*?)([\d,]+\.\d{2})([\d,]+\.\d{2})/g;
+  const rowRegex = /(\d{1,3})(\d{2}\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{4})([\s\S]*?)(\d{12})?([\d,]+\.\d{2})([\d,]+\.\d{2})/g;
   
   let match;
   while ((match = rowRegex.exec(text)) !== null) {
     const dateStr = match[2];
     let narrationRaw = match[3].trim();
-    const amountStr = match[4].replace(/,/g, '');
+    const amountStr = match[5].replace(/,/g, '');
     const amount = parseFloat(amountStr);
 
-    if (isNaN(amount) || amount === 0) continue;
+    if (isNaN(amount) || amount === 0 || amount > 10000000) continue;
 
     // Date parsing: DD MMM YYYY -> YYYY-MM-DD
     const months: Record<string, string> = { Jan:'01', Feb:'02', Mar:'03', Apr:'04', May:'05', Jun:'06', Jul:'07', Aug:'08', Sep:'09', Oct:'10', Nov:'11', Dec:'12' };
     const [d, m, y] = dateStr.split(' ');
     const formattedDate = `${y}-${months[m]}-${d.padStart(2, '0')}`;
 
-    // Detection Logic: 
-    // In Kotak text extraction, Description contains the Narration and the UPI Ref.
-    // The amount immediately following Narration could be Withdrawal OR Deposit.
-    // Heuristic: If 'Salary', 'Refund', or names like 'Potnuru' (owner) appear, it's income.
     let type: 'income' | 'expense' = 'expense';
     const lowerNarration = narrationRaw.toLowerCase();
     
+    // Heuristic for Kotak: Balance Check is better but harder in raw text stream.
+    // Use keyword detection + owner name identification.
     if (lowerNarration.includes('salary') || 
         lowerNarration.includes('refund') || 
         lowerNarration.includes('interest') ||
         lowerNarration.includes('mr potnuru mano') || 
-        lowerNarration.includes('venu go')) {
+        lowerNarration.includes('venu go') ||
+        lowerNarration.includes('cr/')) {
        type = 'income';
     }
 
