@@ -6,7 +6,7 @@ import * as XLSX from 'xlsx';
 function categorize(description: string, type: 'income' | 'expense') {
   const desc = description.toLowerCase();
   if (type === 'income') {
-    if (desc.includes('salary') || desc.includes('payout')) return 'Salary';
+    if (desc.includes('salary') || desc.includes('payout') || desc.includes('tata consultancy') || desc.includes('tcs ')) return 'Salary';
     if (desc.includes('refund') || desc.includes('cashback')) return 'Other Income';
     if (desc.includes('dividend') || desc.includes('interest')) return 'Investments';
     return 'Other Income';

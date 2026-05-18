@@ -23,30 +23,51 @@ export async function GET(req: NextRequest) {
     let startDate: Date;
     let endDate: Date;
 
-    // Determine Financial Cycle Start
-    if (!requestedMonth && !requestedYear) {
-      // DEFAULT: Count from the latest salary
-      const latestSalary = await Transaction.findOne({
+    const findAnchorSalary = async (mIndex: number, yNum: number) => {
+      // Look for salary in the "Pay Window" (20th of prev month to 15th of current month)
+      const windowStart = new Date(yNum, mIndex - 1, 20);
+      const windowEnd = new Date(yNum, mIndex, 15);
+      return await Transaction.findOne({
         userId: session.user.id,
         category: 'Salary',
-        type: 'income'
-      }).sort({ date: -1 });
+        type: 'income',
+        date: { $gte: windowStart, $lt: windowEnd }
+      }).sort({ date: 1 }); // Find the FIRST salary in that window (the intended payday)
+    };
 
-      if (latestSalary) {
-        console.log('[FINANCE] Salary-based cycle detected. Start:', latestSalary.date);
-        startDate = new Date(latestSalary.date);
-        // End date is far in the future to capture all recent spending
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 10);
+    // Determine Financial Cycle Start
+    if (!requestedMonth && !requestedYear) {
+      // DEFAULT VIEW (Today)
+      const anchor = await findAnchorSalary(currentMonth, currentYear);
+      
+      if (anchor) {
+        console.log('[FINANCE] Current cycle anchor salary found:', anchor.date);
+        startDate = new Date(anchor.date);
       } else {
         startDate = new Date(currentYear, currentMonth, 1);
-        endDate = new Date(currentYear, currentMonth + 1, 1);
       }
+      // End date is future to catch all recent activity
+      endDate = new Date(currentYear, currentMonth + 1, 10);
     } else {
-      // HISTORICAL: Use standard calendar month
-      const m = parseInt(requestedMonth || String(currentMonth));
-      const y = parseInt(requestedYear || String(currentYear));
-      startDate = new Date(y, m, 1);
-      endDate = new Date(y, m + 1, 1);
+      // HISTORICAL / SPECIFIC MONTH VIEW
+      const m = parseInt(requestedMonth!);
+      const y = parseInt(requestedYear!);
+      
+      const anchor = await findAnchorSalary(m, y);
+      if (anchor) {
+        console.log(`[FINANCE] Month ${m} anchor salary found:`, anchor.date);
+        startDate = new Date(anchor.date);
+      } else {
+        startDate = new Date(y, m, 1);
+      }
+      
+      // End date for historical view is either the next month's anchor salary OR the 1st of next month
+      const nextAnchor = await findAnchorSalary(m + 1, y);
+      if (nextAnchor) {
+        endDate = new Date(nextAnchor.date);
+      } else {
+        endDate = new Date(y, m + 1, 1);
+      }
     }
 
     // Fetch transactions for the determined period
