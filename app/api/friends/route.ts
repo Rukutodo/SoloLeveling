@@ -4,7 +4,6 @@ import dbConnect from '@/lib/mongodb';
 import User from '@/lib/models/User';
 import Friend from '@/lib/models/Friend';
 import { sendSystemMessage } from '@/lib/notifications';
-import { pusherServer } from '@/lib/pusher';
 
 // GET: Fetch friends and pending requests
 export async function GET(req: NextRequest) {
@@ -72,10 +71,6 @@ export async function POST(req: NextRequest) {
 
     // Notify recipient
     await sendSystemMessage(recipient._id.toString(), `[SYSTEM] New Friend Request from ${session.user.name}.`);
-    await pusherServer.trigger(`user-${recipient._id}`, 'friend-request', {
-        from: session.user.name,
-        requestId: friendRequest._id
-    });
 
     return NextResponse.json({ message: 'Request sent' }, { status: 201 });
   } catch (error) {
@@ -104,9 +99,6 @@ export async function PUT(req: NextRequest) {
 
     if (status === 'accepted') {
         await sendSystemMessage(request.requester.toString(), `[SYSTEM] ${session.user.name} accepted your friend request. You can now track each other's progress.`);
-        await pusherServer.trigger(`user-${request.requester}`, 'friend-accepted', {
-            by: session.user.name
-        });
     }
 
     return NextResponse.json({ message: `Request ${status}` });

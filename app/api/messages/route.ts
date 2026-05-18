@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import dbConnect from '@/lib/mongodb';
 import Message from '@/lib/models/Message';
-import { pusherServer } from '@/lib/pusher';
 
 export async function GET(req: NextRequest) {
   try {
@@ -40,13 +39,9 @@ export async function POST(req: NextRequest) {
       type,
     });
 
-    // Broadcast via Pusher
-    // @ts-ignore
-    await pusherServer.trigger(`user-${receiverId}`, 'new-message', message);
-
     return NextResponse.json({ message }, { status: 201 });
   } catch (error) {
-    console.error('Pusher/Message error:', error);
+    console.error('Message error:', error);
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
   }
 }

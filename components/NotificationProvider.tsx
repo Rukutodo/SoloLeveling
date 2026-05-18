@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import Pusher from 'pusher-js';
 import { useSession } from 'next-auth/react';
 
 interface NotificationContextType {
@@ -18,51 +17,27 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   const [messages, setMessages] = useState<any[]>([]);
   const unreadCount = messages.filter(m => !m.isRead && m.receiverId === session?.user?.id).length;
 
-  useEffect(() => {
+  const fetchMessages = () => {
     if (!session?.user?.id) return;
-
-    // Fetch initial messages
     fetch('/api/messages')
       .then(res => res.json())
-      .then(data => setMessages(data.messages || []));
+      .then(data => {
+        if (data.messages) {
+           setMessages(data.messages);
+        }
+      })
+      .catch(console.error);
+  };
 
-    // Initialize Pusher only if keys are available
-    const pusherKey = process.env.NEXT_PUBLIC_PUSHER_APP_KEY;
-    const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER;
-
-    if (!pusherKey || !pusherCluster) {
-      console.warn('[SYSTEM] Pusher environment variables missing. Real-time notifications disabled.');
-      return;
-    }
-
-    const pusher = new Pusher(pusherKey, {
-      cluster: pusherCluster,
-    });
-
-    const channel = pusher.subscribe(`user-${session.user.id}`);
-    
-    channel.bind('new-message', (newMessage: any) => {
-      setMessages(prev => [newMessage, ...prev]);
-      // Play system sound if it's a system message
-      if (newMessage.type === 'system') {
-        try {
-          const audio = new Audio('/sounds/system-alert.mp3');
-          audio.play().catch(() => {}); 
-        } catch (e) {}
-      }
-    });
-
-    return () => {
-      pusher.unsubscribe(`user-${session.user.id}`);
-      pusher.disconnect();
-    };
+  useEffect(() => {
+    fetchMessages();
+    // Simple persistent polling every 10 seconds
+    const interval = setInterval(fetchMessages, 10000);
+    return () => clearInterval(interval);
   }, [session?.user?.id]);
 
   const markAsRead = async (id: string) => {
-    // Optimistic UI update
     setMessages(prev => prev.map(m => m._id === id ? { ...m, isRead: true } : m));
-    
-    // Persist to database
     try {
       await fetch('/api/messages', {
         method: 'PUT',
