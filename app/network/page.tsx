@@ -118,6 +118,10 @@ export default function HunterNetwork() {
           <div className={styles.managementCol}>
             <div className={`sl-panel ${styles.searchPanel}`}>
               <h2 className={styles.sectionLabel}><MdPersonAdd /> Recruit New Hunter</h2>
+              <div style={{ marginBottom: '16px', padding: '10px', background: 'var(--sl-bg-sub)', borderRadius: '8px', border: '1px solid var(--sl-glass-border)' }}>
+                <span style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', textTransform: 'uppercase' }}>Your Hunter Tag: </span>
+                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--sl-blue)', marginLeft: '4px' }}>{sidebarData?.tag || '...'}</span>
+              </div>
               <p style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', marginBottom: '12px' }}>Search by Email or Hunter Tag (e.g. Sung#1234)</p>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <input 
