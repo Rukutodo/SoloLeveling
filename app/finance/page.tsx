@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
-import { MdAdd, MdClose, MdDelete, MdTrendingUp, MdTrendingDown, MdChevronLeft, MdChevronRight, MdAccountBalanceWallet, MdOutlineAutorenew } from 'react-icons/md';
+import { MdAdd, MdClose, MdDelete, MdTrendingUp, MdTrendingDown, MdChevronLeft, MdChevronRight, MdAccountBalanceWallet, MdOutlineAutorenew, MdSettings } from 'react-icons/md';
 import { GiHeartBeats } from 'react-icons/gi';
 import { FaBolt, FaGoogle, FaFileInvoiceDollar, FaCloudUploadAlt, FaSearchDollar, FaList, FaCheckCircle, FaTrashAlt } from 'react-icons/fa';
 import * as XLSX from 'xlsx';
