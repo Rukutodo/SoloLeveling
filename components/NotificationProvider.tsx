@@ -8,6 +8,7 @@ interface NotificationContextType {
   messages: any[];
   unreadCount: number;
   markAsRead: (id: string) => void;
+  addMessage: (msg: any) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -15,7 +16,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<any[]>([]);
-  const unreadCount = messages.filter(m => !m.isRead).length;
+  const unreadCount = messages.filter(m => !m.isRead && m.receiverId === session?.user?.id).length;
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -73,8 +74,12 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     }
   };
 
+  const addMessage = (msg: any) => {
+    setMessages(prev => [msg, ...prev]);
+  };
+
   return (
-    <NotificationContext.Provider value={{ messages, unreadCount, markAsRead }}>
+    <NotificationContext.Provider value={{ messages, unreadCount, markAsRead, addMessage }}>
       {children}
     </NotificationContext.Provider>
   );

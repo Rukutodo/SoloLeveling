@@ -18,12 +18,12 @@ export async function GET(req: NextRequest) {
     const friends = await Friend.find({
       $or: [{ requester: userId }, { recipient: userId }],
       status: 'accepted'
-    }).populate('requester recipient', 'name email level rank title');
+    }).populate('requester recipient', 'name email level rank title tag');
 
     const pending = await Friend.find({
       recipient: userId,
       status: 'pending'
-    }).populate('requester', 'name email level rank title');
+    }).populate('requester', 'name email level rank title tag');
 
     return NextResponse.json({ friends, pending });
   } catch (error) {

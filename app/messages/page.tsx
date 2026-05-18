@@ -10,7 +10,7 @@ import styles from './messages.module.css';
 
 export default function MessagesPage() {
   const { data: session, status } = useSession();
-  const { messages, markAsRead } = useNotifications();
+  const { messages, markAsRead, addMessage } = useNotifications();
   const [activeTab, setActiveTab] = useState<'system' | 'chat'>('system');
   const [replyText, setReplyText] = useState('');
   const [sidebarData, setSidebarData] = useState<any>(null);
@@ -29,6 +29,28 @@ export default function MessagesPage() {
 
   const filteredMessages = messages.filter(m => activeTab === 'system' ? m.type === 'system' : m.type === 'chat');
 
+  const getSenderName = (msg: any) => {
+    if (msg.type === 'system') return 'SYSTEM';
+    if (msg.senderId === session?.user?.id) return 'You';
+    
+    const friend = friends.find(f => f.requester._id === msg.senderId || f.recipient._id === msg.senderId);
+    if (friend) {
+      const hunter = friend.requester._id === msg.senderId ? friend.requester : friend.recipient;
+      return hunter.name;
+    }
+    return 'Hunter';
+  };
+
+  const getReceiverName = (msg: any) => {
+    if (msg.type === 'system' || msg.receiverId === session?.user?.id) return '';
+    const friend = friends.find(f => f.requester._id === msg.receiverId || f.recipient._id === msg.receiverId);
+    if (friend) {
+      const hunter = friend.requester._id === msg.receiverId ? friend.requester : friend.recipient;
+      return ` ➔ ${hunter.name}`;
+    }
+    return ' ➔ Hunter';
+  };
+
   const sendMessage = async () => {
     if (!replyText.trim() || !selectedChatUser) return;
     
@@ -39,8 +61,9 @@ export default function MessagesPage() {
         body: JSON.stringify({ receiverId: selectedChatUser, text: replyText, type: 'chat' })
       });
       if (res.ok) {
+        const data = await res.json();
+        addMessage(data.message); // Instantly show sent message in UI
         setReplyText('');
-        alert('[SYSTEM] MESSAGE TRANSMITTED.');
       }
     } catch (e) {
       console.error(e);
@@ -100,15 +123,18 @@ export default function MessagesPage() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      className={`${styles.msgItem} ${!msg.isRead ? styles.unread : ''}`}
-                      onMouseEnter={() => !msg.isRead && markAsRead(msg._id)}
+                      className={`${styles.msgItem} ${!msg.isRead && msg.receiverId === session?.user?.id ? styles.unread : ''}`}
+                      onMouseEnter={() => !msg.isRead && msg.receiverId === session?.user?.id && markAsRead(msg._id)}
                     >
                       <div className={styles.msgIcon}>
                         {msg.type === 'system' ? <MdCheckCircle style={{ color: 'var(--sl-blue)' }} /> : <MdMail />}
                       </div>
                       <div className={styles.msgContent}>
                         <div className={styles.msgMeta}>
-                          <span className={styles.msgSender}>{msg.senderId === 'system' ? 'SYSTEM' : 'Hunter'}</span>
+                          <span className={styles.msgSender}>
+                            {getSenderName(msg)}
+                            <span style={{ color: 'var(--sl-text-ghost)', fontWeight: 400 }}>{getReceiverName(msg)}</span>
+                          </span>
                           <span className={styles.msgTime}>{new Date(msg.createdAt).toLocaleString()}</span>
                         </div>
                         <div className={styles.msgText}>{msg.text}</div>

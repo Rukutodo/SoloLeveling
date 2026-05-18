@@ -10,9 +10,14 @@ export async function GET(req: NextRequest) {
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     await dbConnect();
-    const messages = await Message.find({ receiverId: session.user.id })
+    const messages = await Message.find({
+      $or: [
+        { receiverId: session.user.id },
+        { senderId: session.user.id, type: 'chat' }
+      ]
+    })
       .sort({ createdAt: -1 })
-      .limit(50);
+      .limit(100);
 
     return NextResponse.json({ messages });
   } catch (error) {
