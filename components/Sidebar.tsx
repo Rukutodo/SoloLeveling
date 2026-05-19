@@ -28,6 +28,7 @@ import {
 import { HiX } from 'react-icons/hi';
 import { MdDashboard, MdTaskAlt, MdMenuBook, MdLibraryBooks, MdMail, MdGroup, MdSettings } from 'react-icons/md';
 import ThemeSwitcher from './ThemeSwitcher';
+import TopHeader from './TopHeader';
 import styles from './Sidebar.module.css';
 
 interface SidebarProps {
@@ -245,10 +246,6 @@ export default function Sidebar({
           </button>
         </div>
       </aside>
-    </>
-  );
-}
->
     </>
   );
 }
