@@ -1,44 +1,95 @@
 .networkGrid {
   display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: 24px;
-  min-height: calc(100vh - 250px);
+  grid-template-columns: 380px 1fr;
+  gap: 32px;
+  min-height: calc(100vh - 200px);
 }
 
 .sectionLabel {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-family: var(--sl-font-display);
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.75rem;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--sl-text-ghost);
-  margin-bottom: 16px;
+  letter-spacing: 2px;
+  color: var(--sl-blue);
+  margin-bottom: 24px;
 }
 
 .managementCol {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
 }
 
+.searchPanel, .friendsPanel, .pendingPanel {
+  padding: 32px;
+}
+
+/* ─── Recruit Section ─────────────────────────────────────────────── */
+.tagDisplay {
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: var(--sl-bg-sub);
+  border-radius: var(--sl-radius-md);
+  border: 1px solid var(--sl-glass-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tagLabel {
+  font-family: var(--sl-font-display);
+  font-size: 0.6rem;
+  color: var(--sl-text-ghost);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.tagValue {
+  font-family: var(--sl-font-display);
+  font-size: 0.875rem;
+  font-weight: 900;
+  color: var(--sl-blue);
+  text-shadow: 0 0 10px var(--sl-blue-glow);
+}
+
+.searchHint {
+  font-size: 0.7rem;
+  color: var(--sl-text-ghost);
+  margin-bottom: 16px;
+  font-family: var(--sl-font-main);
+  line-height: 1.4;
+}
+
+/* ─── Lists ───────────────────────────────────────────────────────── */
 .requestList, .friendList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .requestItem, .friendItem {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 12px 16px;
-  background: hsla(0, 0%, 100%, 0.02);
+  gap: 20px;
+  padding: 16px 24px;
+  background: var(--sl-bg-sub);
   border: 1px solid var(--sl-glass-border);
-  border-radius: 12px;
+  border-radius: var(--sl-radius-lg);
   transition: all 0.3s var(--sl-ease-out);
+  position: relative;
+  overflow: hidden;
+}
+
+.requestItem::after, .friendItem::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, oklch(100% 0 0 / 0.02) 0%, transparent 60%);
+  pointer-events: none;
 }
 
 .friendItem {
@@ -46,16 +97,17 @@
 }
 
 .friendItem:hover {
-  background: hsla(0, 0%, 100%, 0.05);
+  background: var(--sl-bg-surface);
   border-color: var(--sl-blue);
-  transform: translateX(4px);
+  transform: translateX(6px);
+  box-shadow: var(--sl-shadow-md), 0 0 15px var(--sl-blue-glow);
 }
 
 .hunterAvatar {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background: var(--sl-bg-base);
-  border: 1px solid var(--sl-blue);
+  border: 2px solid var(--sl-blue);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -63,13 +115,15 @@
   font-family: var(--sl-font-display);
   font-weight: 900;
   color: var(--sl-blue);
-  box-shadow: 0 0 10px var(--sl-blue-glow);
+  box-shadow: 0 0 12px var(--sl-blue-glow);
+  flex-shrink: 0;
 }
 
 .hunterName {
   font-weight: 800;
-  font-size: 0.85rem;
+  font-size: 0.9375rem;
   color: var(--sl-text-bright);
+  font-family: var(--sl-font-main);
 }
 
 .hunterRank {
@@ -77,10 +131,13 @@
   color: var(--sl-text-ghost);
   font-family: var(--sl-font-mono);
   text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
 }
 
+/* ─── Status Panel ────────────────────────────────────────────────── */
 .statusPanel {
-  padding: 32px !important;
+  padding: 48px !important;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -89,50 +146,54 @@
 .statusHeader {
   display: flex;
   align-items: center;
-  gap: 24px;
-  margin-bottom: 32px;
-  padding-bottom: 24px;
+  gap: 32px;
+  margin-bottom: 40px;
+  padding-bottom: 32px;
   border-bottom: 1px solid var(--sl-glass-border);
 }
 
 .hunterBigAvatar {
-  width: 64px;
-  height: 64px;
-  background: var(--sl-bg-base);
-  border: 2px solid var(--sl-blue);
+  width: 80px;
+  height: 80px;
+  background: var(--sl-bg-sub);
+  border: 3px solid var(--sl-blue);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-family: var(--sl-font-display);
   font-weight: 900;
   color: var(--sl-blue);
-  box-shadow: 0 0 20px var(--sl-blue-glow);
+  box-shadow: 0 0 30px var(--sl-blue-glow);
 }
 
 .hunterBigName {
   font-family: var(--sl-font-display);
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 900;
   color: var(--sl-text-bright);
-  letter-spacing: 1px;
+  letter-spacing: -0.5px;
 }
 
 .hunterBigTitle {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--sl-blue);
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 2px;
+  font-family: var(--sl-font-display);
+  margin-top: 4px;
 }
 
 .feedLabel {
-  font-family: var(--sl-font-mono);
-  font-size: 0.6rem;
-  font-weight: 800;
+  font-family: var(--sl-font-display);
+  font-size: 0.7rem;
+  font-weight: 900;
   color: var(--sl-text-ghost);
   text-transform: uppercase;
-  margin-bottom: 16px;
+  letter-spacing: 3px;
+  margin-bottom: 24px;
 }
 
 .questFeed {
@@ -142,23 +203,24 @@
 .questList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .questItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: hsla(0, 0%, 100%, 0.01);
-  border-radius: 8px;
-  font-size: 0.85rem;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--sl-bg-sub);
+  border-radius: var(--sl-radius-md);
+  font-size: 0.875rem;
+  border: 1px solid var(--sl-glass-border);
 }
 
 .encourageArea {
-  margin-top: 32px;
+  margin-top: 48px;
   display: flex;
-  gap: 12px;
+  gap: 16px;
 }
 
 .searchPanel {
@@ -168,39 +230,40 @@
 
 .searchDropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 8px);
   left: 0;
   right: 0;
   background: var(--sl-bg-elevated);
   border: 1px solid var(--sl-blue);
-  border-radius: 12px;
+  border-radius: var(--sl-radius-md);
   z-index: 1000;
-  max-height: 250px;
+  max-height: 300px;
   overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px var(--sl-blue-glow);
-  padding: 8px 0;
+  box-shadow: var(--sl-shadow-lg), 0 0 20px var(--sl-blue-glow);
+  padding: 12px 0;
 }
 
 .searchResultItem {
-  padding: 12px 20px;
+  padding: 16px 24px;
   cursor: pointer;
-  transition: all 0.2s var(--sl-ease-out);
+  transition: all 0.25s var(--sl-ease-out);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .searchResultItem:hover {
-  background: hsla(190, 100%, 50%, 0.15);
-  padding-left: 24px;
+  background: var(--sl-blue-dim);
+  padding-left: 32px;
 }
 
 .searchResultItem:last-child {
   border-bottom: none;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
   .networkGrid {
     grid-template-columns: 1fr;
+    gap: 48px;
   }
 }

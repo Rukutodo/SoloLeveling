@@ -118,7 +118,7 @@ export default function HunterNetwork() {
     }
   };
 
-  if (status === 'loading') return <div className="sl-loader">INITIALIZING NETWORK...</div>;
+  if (status === 'loading') return <div className="sl-loader" style={{ fontFamily: 'var(--sl-font-display)', letterSpacing: '4px' }}>INITIALIZING NETWORK...</div>;
 
   return (
     <div className="sl-page-wrapper">
@@ -142,11 +142,13 @@ export default function HunterNetwork() {
           <div className={styles.managementCol}>
             <div className={`sl-panel ${styles.searchPanel}`}>
               <h2 className={styles.sectionLabel}><MdPersonAdd /> Recruit New Hunter</h2>
-              <div style={{ marginBottom: '16px', padding: '10px', background: 'var(--sl-bg-sub)', borderRadius: '8px', border: '1px solid var(--sl-glass-border)' }}>
-                <span style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', textTransform: 'uppercase' }}>Your Hunter Tag: </span>
-                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--sl-blue)', marginLeft: '4px' }}>{sidebarData?.tag || '...'}</span>
+              
+              <div className={styles.tagDisplay}>
+                <span className={styles.tagLabel}>Your Hunter Tag</span>
+                <span className={styles.tagValue}>{sidebarData?.tag || '...'}</span>
               </div>
-              <p style={{ fontSize: '0.65rem', color: 'var(--sl-text-ghost)', marginBottom: '12px' }}>Search by Name, Email or Tag (e.g. Sung#1234 or Venu)</p>
+              
+              <p className={styles.searchHint}>Search by Name, Email or Tag (e.g. Sung#1234 or Venu)</p>
               
               <div style={{ position: 'relative' }}>
                 <input 
@@ -168,14 +170,14 @@ export default function HunterNetwork() {
                       {searchResults.map(u => (
                         <div key={u.tag} className={styles.searchResultItem} onClick={() => { setEmailInput(u.tag); setSearchResults([]); }}>
                           <div style={{ fontWeight: 800 }}>{u.name}</div>
-                          <div style={{ fontSize: '0.65rem', color: 'var(--sl-blue)' }}>{u.tag} • LVL {u.level}</div>
+                          <div style={{ fontSize: '0.65rem', color: 'var(--sl-blue)', fontFamily: 'var(--sl-font-mono)' }}>{u.tag} • LVL {u.level}</div>
                         </div>
                       ))}
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <button className="sl-btn sl-btn-primary" onClick={sendRequest} style={{ marginTop: '12px', width: '100%' }}>Recruit</button>
+                <button className="sl-btn sl-btn-primary" onClick={sendRequest} style={{ marginTop: '16px', width: '100%' }}>Recruit Hunter</button>
               </div>
             </div>
 
