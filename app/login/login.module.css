@@ -1,30 +1,46 @@
-.loginPage { 
-  min-height: 100vh; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
+.loginPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--sl-bg-base);
   position: relative;
   overflow: hidden;
 }
 
+/* Atmospheric layered background */
 .loginPage::before {
   content: '';
   position: absolute;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(circle at 50% 50%, hsla(190, 100%, 50%, 0.05) 0%, transparent 50%);
-  animation: rotate 20s linear infinite;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 30%, hsla(190, 100%, 50%, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, hsla(270, 90%, 65%, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 10%, hsla(190, 100%, 50%, 0.04) 0%, transparent 40%);
+  pointer-events: none;
 }
 
-@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+/* Rotating glow orb */
+.loginPage::after {
+  content: '';
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, hsla(190, 100%, 50%, 0.04) 0%, transparent 60%);
+  animation: orbit 25s linear infinite;
+  pointer-events: none;
+}
 
-.loginContainer { 
-  width: 100%; 
-  max-width: 440px; 
-  z-index: 10; 
-  padding: 24px; 
-  animation: slide-in-up 0.8s var(--sl-ease-out);
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(200px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(200px) rotate(-360deg); }
+}
+
+.loginContainer {
+  width: 100%;
+  max-width: 440px;
+  z-index: 10;
+  padding: 24px;
 }
 
 .systemHeader { text-align: center; margin-bottom: 40px; }

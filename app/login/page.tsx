@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { GiSwordWound } from 'react-icons/gi';
 import styles from './login.module.css';
 
@@ -164,18 +165,33 @@ export default function LoginPage() {
 
   return (
     <div className={styles.loginPage}>
-      <div className={styles.loginContainer}>
+      <motion.div
+        className={styles.loginContainer}
+        initial={{ opacity: 0, y: 32 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      >
         {/* System Header */}
-        <div className={styles.systemHeader}>
+        <motion.div
+          className={styles.systemHeader}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        >
           <div className={styles.systemIcon}>
             <GiSwordWound />
           </div>
           <h1 className={styles.systemTitle}>SOLO LEVELING</h1>
           <p className={styles.systemSubtitle}>Personal Development System</p>
-        </div>
+        </motion.div>
 
         {/* Login Panel */}
-        <div className={styles.loginPanel}>
+        <motion.div
+          className={styles.loginPanel}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        >
           {/* Tab Toggle */}
           <div className={styles.tabContainer}>
             <button
@@ -261,11 +277,7 @@ export default function LoginPage() {
               disabled={loading}
               id="submit-btn"
             >
-              {loading
-                ? 'ARISE...'
-                : isSignUp
-                  ? '⚔ Awaken'
-                  : '⚔ Enter the System'}
+              {loading ? 'ARISE...' : isSignUp ? 'AWAKEN' : 'ENTER THE SYSTEM'}
             </button>
           </form>
 
@@ -283,8 +295,8 @@ export default function LoginPage() {
               ? '[SYSTEM] Create your hunter profile'
               : '[SYSTEM] Awaiting authentication...'}
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

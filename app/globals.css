@@ -629,3 +629,45 @@ body:has(.sidebarCollapsed) .sl-main-content {
     grid-template-columns: 1fr;
   }
 }
+
+/* ─── Skeleton Loader ──────────────────────────────────────────────── */
+@keyframes skeleton-wave {
+  0% { background-position: -400px 0; }
+  100% { background-position: calc(400px + 100%) 0; }
+}
+
+.sl-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--sl-bg-elevated) 25%,
+    hsla(240, 15%, 20%, 0.8) 37%,
+    var(--sl-bg-elevated) 63%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-wave 1.6s ease infinite;
+  border-radius: var(--sl-radius-sm);
+}
+
+/* ─── Sidebar Active Indicator ─────────────────────────────────────── */
+.sl-nav-active-bar {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--sl-blue);
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 0 8px var(--sl-blue-glow);
+}
+
+/* ─── Reduced Motion ───────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

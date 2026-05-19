@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { motion, type Variants } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import {
   GiMeal,
@@ -13,8 +14,7 @@ import {
   GiCrossedSwords,
   GiTreasureMap,
 } from 'react-icons/gi';
-import { MdAddCircle, MdFitnessCenter, MdRestaurant, MdMonetizationOn } from 'react-icons/md';
-import { FaFire, FaBalanceScale } from 'react-icons/fa';
+import { MdFitnessCenter, MdRestaurant, MdAddCircle } from 'react-icons/md';
 import styles from './dashboard.module.css';
 
 interface UserStats {
@@ -36,11 +36,83 @@ interface DashboardData {
   monthlyNetWorth: number;
   isSalaryCycle?: boolean;
   cycleStart?: string;
-  recentActivity: Array<{
-    icon: string;
-    text: string;
-    time: string;
-  }>;
+  recentActivity: Array<{ icon: string; text: string; time: string }>;
+}
+
+function useCountUp(target: number, duration = 1.5) {
+  const [count, setCount] = useState(0);
+  const rafRef = useRef<number>(0);
+  useEffect(() => {
+    if (target === 0) { setCount(0); return; }
+    let startTime = 0;
+    const step = (ts: number) => {
+      if (!startTime) startTime = ts;
+      const progress = Math.min((ts - startTime) / (duration * 1000), 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(eased * target));
+      if (progress < 1) rafRef.current = requestAnimationFrame(step);
+    };
+    rafRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [target, duration]);
+  return count;
+}
+
+const pageVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+};
+
+const sectionVariants: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0 },
+};
+
+const activityIconMap: Record<string, React.ReactNode> = {
+  meal: <GiMeal />,
+  workout: <GiMuscleUp />,
+  bmi: <GiHeartBeats />,
+  calendar: <GiCalendar />,
+  finance: <GiGoldBar />,
+  xp: <GiCrossedSwords />,
+};
+
+function DashboardSkeleton() {
+  return (
+    <div className="sl-page-wrapper">
+      <Sidebar />
+      <main className="sl-main-content">
+        <div className={styles.dashPage}>
+          <div className={styles.greetingSkeleton}>
+            <div className={`sl-skeleton ${styles.skLine} ${styles.skTitle}`} />
+            <div className={`sl-skeleton ${styles.skLine} ${styles.skSubtitle}`} />
+          </div>
+          <div className={`${styles.playerCard} sl-panel`}>
+            <div className={`sl-skeleton ${styles.skAvatar}`} />
+            <div className={styles.skPlayerInfo}>
+              <div className={`sl-skeleton ${styles.skLine} ${styles.skName}`} />
+              <div className={`sl-skeleton ${styles.skLine} ${styles.skRank}`} />
+              <div className={`sl-skeleton ${styles.skLine} ${styles.skXp}`} />
+            </div>
+          </div>
+          <div className={styles.statsGrid}>
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className={`sl-panel ${styles.statCard}`}>
+                <div className={`sl-skeleton ${styles.skIcon}`} />
+                <div className={`sl-skeleton ${styles.skLine} ${styles.skLabel}`} />
+                <div className={`sl-skeleton ${styles.skLine} ${styles.skValue}`} />
+              </div>
+            ))}
+          </div>
+          <div className={styles.actionsGrid}>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className={`sl-skeleton ${styles.skActionCard}`} />
+            ))}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
 }
 
 export default function DashboardPage() {
@@ -62,10 +134,11 @@ export default function DashboardPage() {
   const [syncStatus, setSyncStatus] = useState('');
   const [activeQuest, setActiveQuest] = useState<any>(null);
 
+  const calCount = useCountUp(dashData.todayCalories);
+  const streakCount = useCountUp(dashData.workoutStreak);
+
   useEffect(() => {
-    if (status === 'authenticated') {
-      fetchData();
-    }
+    if (status === 'authenticated') fetchData();
   }, [status]);
 
   const fetchData = async () => {
@@ -75,56 +148,43 @@ export default function DashboardPage() {
         fetch('/api/dashboard'),
         fetch('/api/quests/chain'),
       ]);
-
       if (userRes.ok) {
-        const userData = await userRes.json();
-        setStats(userData.stats);
-        if (userData.user?.dailyCalorieGoal) {
-          setDashData((prev) => ({ ...prev, calorieGoal: userData.user.dailyCalorieGoal }));
-        }
+        const ud = await userRes.json();
+        setStats(ud.stats);
+        if (ud.user?.dailyCalorieGoal) setDashData((p) => ({ ...p, calorieGoal: ud.user.dailyCalorieGoal }));
       }
-
       if (dashRes.ok) {
-        const data = await dashRes.json();
-        setDashData((prev) => ({ ...prev, ...data }));
+        const dashJson = await dashRes.json();
+        setDashData((p) => ({ ...p, ...dashJson }));
       }
-
-      if (questRes.ok) {
-        const data = await questRes.json();
-        setActiveQuest(data.quest);
-      }
-    } catch (error) {
-      console.error('Dashboard fetch error:', error);
+      if (questRes.ok) { const d = await questRes.json(); setActiveQuest(d.quest); }
+    } catch (e) {
+      console.error('Dashboard fetch error:', e);
     } finally {
       setLoading(false);
     }
   };
 
-  if (status === 'loading' || loading) {
-    return (
-      <div className={styles.loadingPage}>
-        <div className={styles.loadingSpinner} />
-        <div className={styles.loadingText}>ARISE...</div>
-      </div>
-    );
-  }
+  if (status === 'loading' || loading) return <DashboardSkeleton />;
 
   const userName = stats?.name || session?.user?.name || 'Hunter';
-  const initials = userName
-    .split(' ')
-    .map((n: string) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
+  const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   const xpPercent = stats ? Math.min((stats.xp / stats.xpToNext) * 100, 100) : 0;
 
   const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    const h = new Date().getHours();
+    return h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
   };
+
+  const bmiCategory = dashData.latestBmi
+    ? dashData.latestBmi < 18.5 ? 'Underweight'
+    : dashData.latestBmi < 25 ? 'Normal'
+    : dashData.latestBmi < 30 ? 'Overweight' : 'Obese'
+    : 'Not tracked';
+
+  const questProgress = activeQuest
+    ? Math.round((activeQuest.milestones.filter((m: any) => m.completed).length / activeQuest.milestones.length) * 100)
+    : 0;
 
   return (
     <div className="sl-page-wrapper">
@@ -139,203 +199,209 @@ export default function DashboardPage() {
       />
 
       <main className="sl-main-content">
-        <div className={styles.dashPage}>
+        <motion.div className={styles.dashPage} variants={pageVariants} initial="hidden" animate="visible">
+
           {/* Greeting */}
-          <div className={`sl-page-header ${styles.greeting}`}>
+          <motion.div variants={sectionVariants} className={`sl-page-header ${styles.greeting}`}>
             <h1 className={styles.greetingText}>
               {getGreeting()}, <span className={styles.greetingAccent}>{userName}</span>
             </h1>
-            <p className={styles.greetingSubtext}>
-              [SYSTEM] Daily status report initialized
-            </p>
-          </div>
+            <p className={styles.greetingSubtext}>[SYSTEM] Daily status report initialized</p>
+          </motion.div>
 
           {/* Player Status Card */}
-          <div className={`sl-panel ${styles.playerCard}`}>
-            <div className={styles.playerAvatarLarge}>{initials}</div>
-            <div className={styles.playerMainInfo}>
-              <div className={styles.playerNameLarge}>{userName}</div>
-              <div
-                className={styles.playerTitleLarge}
-                style={{ color: stats?.rankColor || '#8b8b8b' }}
-              >
-                {stats?.rank || 'E'}-Rank • {stats?.title || 'Awakened Hunter'}
-              </div>
-              <div className={styles.xpBarLarge}>
-                <div className={styles.xpInfo}>
-                  <span>Level {stats?.level || 1}</span>
-                  <span>
-                    {stats?.xp || 0} / {stats?.xpToNext || 100} XP
-                  </span>
+          <motion.div variants={sectionVariants}>
+            <div className={`sl-panel ${styles.playerCard}`}>
+              <div className={styles.playerAvatarLarge}>{initials}</div>
+              <div className={styles.playerMainInfo}>
+                <div className={styles.playerNameLarge}>{userName}</div>
+                <div className={styles.playerTitleLarge} style={{ color: stats?.rankColor || '#8b8b8b' }}>
+                  {stats?.rank || 'E'}-Rank • {stats?.title || 'Awakened Hunter'}
                 </div>
-                <div className={styles.xpTrack}>
-                  <div
-                    className={styles.xpFillLarge}
-                    style={{ width: `${xpPercent}%` }}
-                  />
+                <div className={styles.xpBarLarge}>
+                  <div className={styles.xpInfo}>
+                    <span>Level {stats?.level || 1}</span>
+                    <span>{stats?.xp || 0} / {stats?.xpToNext || 100} XP</span>
+                  </div>
+                  <div className={styles.xpTrack}>
+                    <motion.div
+                      className={styles.xpFillLarge}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${xpPercent}%` }}
+                      transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className={styles.playerStatsRow}>
+                <div className={styles.playerStatItem}>
+                  <div className={styles.playerStatValue} style={{ color: 'var(--sl-gold)' }}>
+                    {(stats?.totalXp || 0).toLocaleString()}
+                  </div>
+                  <div className={styles.playerStatLabel}>Total XP</div>
+                </div>
+                <div className={styles.playerStatItem}>
+                  <div className={styles.playerStatValue} style={{ color: 'var(--sl-blue)' }}>
+                    {stats?.level || 1}
+                  </div>
+                  <div className={styles.playerStatLabel}>Level</div>
                 </div>
               </div>
             </div>
-            <div className={styles.playerStatsRow}>
-              <div className={styles.playerStatItem}>
-                <div className={styles.playerStatValue} style={{ color: 'var(--sl-gold)' }}>
-                  {stats?.totalXp || 0}
-                </div>
-                <div className={styles.playerStatLabel}>Total XP</div>
-              </div>
-              <div className={styles.playerStatItem}>
-                <div className={styles.playerStatValue} style={{ color: 'var(--sl-blue)' }}>
-                  {stats?.level || 1}
-                </div>
-                <div className={styles.playerStatLabel}>Level</div>
-              </div>
-            </div>
-          </div>
+          </motion.div>
 
           {/* Quick Stats */}
-          <div className={styles.statsGrid}>
-            <div className={`sl-panel ${styles.statCard}`}>
-              <div className={styles.statIcon}><FaFire /></div>
+          <motion.div variants={sectionVariants} className={styles.statsGrid}>
+            <motion.div whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.2 } }} className={`sl-panel ${styles.statCard} ${styles.statCalories}`}>
+              <div className={`${styles.statIcon} ${styles.iconBlue}`}><GiMeal /></div>
               <div className={styles.statLabel}>Calories Today</div>
-              <div className={styles.statValue}>{dashData.todayCalories}</div>
+              <div className={styles.statValue}>{calCount}</div>
               <div className={styles.statSub}>/ {dashData.calorieGoal} kcal</div>
-            </div>
-            <div className={`sl-panel ${styles.statCard}`}>
-              <div className={styles.statIcon}><GiMuscleUp /></div>
+              <div className={styles.statBar}>
+                <motion.div
+                  className={`${styles.statBarFill} ${styles.fillBlue}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min((dashData.todayCalories / dashData.calorieGoal) * 100, 100)}%` }}
+                  transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.5 }}
+                />
+              </div>
+            </motion.div>
+
+            <motion.div whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.2 } }} className={`sl-panel ${styles.statCard} ${styles.statWorkout}`}>
+              <div className={`${styles.statIcon} ${styles.iconPurple}`}><GiMuscleUp /></div>
               <div className={styles.statLabel}>Workout Streak</div>
-              <div className={styles.statValue}>{dashData.workoutStreak}</div>
+              <div className={styles.statValue}>{streakCount}</div>
               <div className={styles.statSub}>days</div>
-            </div>
-            <div className={`sl-panel ${styles.statCard}`}>
-              <div className={styles.statIcon}><FaBalanceScale /></div>
+            </motion.div>
+
+            <motion.div whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.2 } }} className={`sl-panel ${styles.statCard} ${styles.statBmi}`}>
+              <div className={`${styles.statIcon} ${styles.iconGreen}`}><GiHeartBeats /></div>
               <div className={styles.statLabel}>Current BMI</div>
-              <div className={styles.statValue}>
-                {dashData.latestBmi?.toFixed(1) || '—'}
-              </div>
-              <div className={styles.statSub}>
-                {dashData.latestBmi
-                  ? dashData.latestBmi < 18.5 ? 'Underweight' :
-                    dashData.latestBmi < 25 ? 'Normal' :
-                    dashData.latestBmi < 30 ? 'Overweight' : 'Obese'
-                  : 'Not tracked'}
-              </div>
-            </div>
-            <div className={`sl-panel ${styles.statCard}`}>
-              <div className={styles.statIcon}><MdMonetizationOn /></div>
+              <div className={styles.statValue}>{dashData.latestBmi?.toFixed(1) || '—'}</div>
+              <div className={styles.statSub}>{bmiCategory}</div>
+            </motion.div>
+
+            <motion.div whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.2 } }} className={`sl-panel ${styles.statCard} ${styles.statFinance}`}>
+              <div className={`${styles.statIcon} ${styles.iconGold}`}><GiGoldBar /></div>
               <div className={styles.statLabel}>Monthly Net</div>
               <div className={styles.statValue}>
                 {dashData.monthlyNetWorth >= 0 ? '+' : ''}₹{Math.abs(dashData.monthlyNetWorth).toLocaleString()}
               </div>
               <div className={styles.statSub}>
-                {dashData.isSalaryCycle ? `since ${new Date(dashData.cycleStart!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'this month'}
+                {dashData.isSalaryCycle
+                  ? `since ${new Date(dashData.cycleStart!).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
+                  : 'this month'}
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Main Quest Widget */}
           {activeQuest && (
-            <div className={styles.questWidget} style={{ marginBottom: '32px' }}>
-              <div className="sl-panel" style={{ padding: '24px', position: 'relative', overflow: 'hidden', border: '1px solid var(--sl-gold-glow)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <GiTreasureMap style={{ color: 'var(--sl-gold)', fontSize: '1.5rem' }} />
+            <motion.div variants={sectionVariants} className={styles.questWidget}>
+              <div className={`sl-panel ${styles.questPanel}`}>
+                <div className={styles.questHeader}>
+                  <div className={styles.questMeta}>
+                    <GiTreasureMap className={styles.questIcon} />
                     <div>
-                      <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--sl-text-bright)' }}>MAIN QUEST: {activeQuest.title}</h2>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)' }}>DEADLINE: {new Date(activeQuest.deadline).toLocaleDateString()}</div>
+                      <div className={styles.questTitle}>MAIN QUEST: {activeQuest.title}</div>
+                      <div className={styles.questDeadline}>
+                        DEADLINE: {new Date(activeQuest.deadline).toLocaleDateString()}
+                      </div>
                     </div>
                   </div>
-                  <Link href="/quests/chain" className="sl-btn sl-btn-secondary" style={{ padding: '6px 12px', fontSize: '0.65rem' }}>View Roadmap</Link>
+                  <Link href="/quests/chain" className="sl-btn sl-btn-secondary" style={{ padding: '6px 14px', fontSize: '0.65rem' }}>
+                    View Roadmap
+                  </Link>
                 </div>
-
-                <div className="sl-grid-2" style={{ gap: '20px' }}>
+                <div className={styles.questProgress}>
                   <div>
-                    <div className="sl-flex-between" style={{ marginBottom: '8px', fontSize: '0.75rem' }}>
+                    <div className={styles.questProgressHeader}>
                       <span>Evolution Progress</span>
-                      <span>{Math.round((activeQuest.milestones.filter((m: any) => m.completed).length / activeQuest.milestones.length) * 100)}%</span>
+                      <span>{questProgress}%</span>
                     </div>
                     <div className="sl-progress sl-progress-gold">
-                      <div className="sl-progress-fill" style={{ width: `${(activeQuest.milestones.filter((m: any) => m.completed).length / activeQuest.milestones.length) * 100}%` }} />
+                      <motion.div
+                        className="sl-progress-fill"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${questProgress}%` }}
+                        transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1], delay: 0.6 }}
+                      />
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div className="sl-panel" style={{ padding: '10px 16px', background: 'rgba(255,183,0,0.05)', flex: 1 }}>
-                      <div style={{ fontSize: '0.6rem', color: 'var(--sl-gold)', fontWeight: 800 }}>CURRENT OBJECTIVE</div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--sl-text-bright)' }}>
-                        {activeQuest.milestones.find((m: any) => !m.completed)?.title || 'Quest Completed'}
-                      </div>
+                  <div className={styles.currentObjective}>
+                    <div className={styles.objectiveLabel}>CURRENT OBJECTIVE</div>
+                    <div className={styles.objectiveText}>
+                      {activeQuest.milestones.find((m: any) => !m.completed)?.title || 'Quest Completed'}
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Quick Actions */}
-          <div className={styles.actionsSection}>
+          <motion.div variants={sectionVariants} className={styles.actionsSection}>
             <h2 className="sl-section-title">Quick Actions</h2>
             <div className={styles.actionsGrid}>
-              <Link href="/calories" className={styles.actionCard} id="action-calories">
-                <MdRestaurant className={styles.actionIcon} />
-                <div>
-                  <div className={styles.actionText}>Log Meal</div>
-                  <div className={styles.actionSub}>AI-powered calorie scan</div>
-                </div>
-              </Link>
-              <Link href="/workouts" className={styles.actionCard} id="action-workouts">
-                <MdFitnessCenter className={styles.actionIcon} />
-                <div>
-                  <div className={styles.actionText}>Start Workout</div>
-                  <div className={styles.actionSub}>Home or Gym mode</div>
-                </div>
-              </Link>
-              <Link href="/finance" className={styles.actionCard} id="action-finance">
-                <MdAddCircle className={styles.actionIcon} />
-                <div>
-                  <div className={styles.actionText}>Log Transaction</div>
-                  <div className={styles.actionSub}>Track your finances</div>
-                </div>
-              </Link>
+              {[
+                { href: '/calories',  icon: <MdRestaurant />,  text: 'Log Meal',          sub: 'AI-powered calorie scan', id: 'action-calories'  },
+                { href: '/workouts',  icon: <MdFitnessCenter />, text: 'Start Workout',    sub: 'Home or Gym mode',        id: 'action-workouts'  },
+                { href: '/finance',   icon: <MdAddCircle />,   text: 'Log Transaction',    sub: 'Track your finances',     id: 'action-finance'   },
+              ].map((action) => (
+                <motion.div key={action.id} whileHover={{ y: -6, scale: 1.02, transition: { duration: 0.2 } }} whileTap={{ scale: 0.97 }}>
+                  <Link href={action.href} className={styles.actionCard} id={action.id}>
+                    <span className={styles.actionIcon}>{action.icon}</span>
+                    <div>
+                      <div className={styles.actionText}>{action.text}</div>
+                      <div className={styles.actionSub}>{action.sub}</div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
             </div>
-          </div>
-          {/* Recovery System (Sleep) */}
-          <div className={styles.sleepSection} style={{ marginBottom: '32px' }}>
+          </motion.div>
+
+          {/* Recovery System */}
+          <motion.div variants={sectionVariants} className={styles.sleepSection}>
             <h2 className="sl-section-title">Recovery System</h2>
-            <div className="sl-panel" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+            <div className={`sl-panel ${styles.sleepPanel}`}>
+              <div className={styles.sleepInputs}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--sl-text-ghost)', marginBottom: '8px' }}>Hours Slept</label>
-                      <input 
-                        type="number" 
-                        value={sleepHours} 
-                        onChange={(e) => setSleepHours(Number(e.target.value))} 
-                        className="sl-input" 
-                        style={{ width: '100%' }}
+                  <div className={styles.sleepInputGroup}>
+                    <div>
+                      <label className="sl-label">Hours Slept</label>
+                      <input
+                        type="number"
+                        value={sleepHours}
+                        onChange={(e) => setSleepHours(Number(e.target.value))}
+                        className="sl-input"
                       />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--sl-text-ghost)', marginBottom: '8px' }}>Quality (1-5)</label>
-                      <input 
-                        type="number" 
-                        min="1" 
-                        max="5" 
-                        value={sleepQuality} 
-                        onChange={(e) => setSleepQuality(Number(e.target.value))} 
-                        className="sl-input" 
-                        style={{ width: '100%' }}
+                    <div>
+                      <label className="sl-label">Quality (1-5)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="5"
+                        value={sleepQuality}
+                        onChange={(e) => setSleepQuality(Number(e.target.value))}
+                        className="sl-input"
                       />
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                    <button 
-                      className="sl-btn sl-btn-primary" 
+                  <div className={styles.sleepActions}>
+                    <button
+                      className="sl-btn sl-btn-primary"
                       style={{ flex: 1 }}
                       onClick={async () => {
                         await fetch('/api/sleep', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ date: new Date().toISOString().split('T')[0], hours: sleepHours, quality: sleepQuality })
+                          body: JSON.stringify({
+                            date: new Date().toISOString().split('T')[0],
+                            hours: sleepHours,
+                            quality: sleepQuality,
+                          }),
                         });
                         setSyncStatus('Recovery synced');
                         setTimeout(() => setSyncStatus(''), 3000);
@@ -343,23 +409,19 @@ export default function DashboardPage() {
                     >
                       Sync Recovery
                     </button>
-                    <button 
-                      className="sl-btn sl-btn-ghost" 
-                      style={{ flex: 1, color: 'var(--sl-blue)', borderColor: 'var(--sl-blue)' }}
+                    <button
+                      className={`sl-btn sl-btn-ghost ${styles.scanBtn}`}
+                      disabled={analyzingSleep}
                       onClick={async () => {
                         setAnalyzingSleep(true);
                         const res = await fetch('/api/ai/sleep-analysis', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ hours: sleepHours, quality: sleepQuality })
+                          body: JSON.stringify({ hours: sleepHours, quality: sleepQuality }),
                         });
-                        if (res.ok) {
-                          const data = await res.json();
-                          setSleepAnalysis(data.analysis);
-                        }
+                        if (res.ok) setSleepAnalysis((await res.json()).analysis);
                         setAnalyzingSleep(false);
                       }}
-                      disabled={analyzingSleep}
                     >
                       {analyzingSleep ? 'Analyzing...' : 'AI Bio-Scan'}
                     </button>
@@ -367,72 +429,77 @@ export default function DashboardPage() {
                 </div>
 
                 {sleepAnalysis && (
-                  <div style={{ flex: 1.5, background: 'var(--sl-bg-base)', padding: '20px', borderRadius: '16px', border: '1px solid var(--sl-glass-border)' }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--sl-blue)', marginBottom: '12px', textTransform: 'uppercase' }}>[SYSTEM] Shadow Analysis</div>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <motion.div
+                    className={styles.sleepAnalysis}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <div className={styles.analysisHeader}>[SYSTEM] Shadow Analysis</div>
+                    <div className={styles.analysisGrid}>
                       <div>
-                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--sl-text-bright)', marginBottom: '4px' }}>BODY</div>
-                        <ul style={{ padding: 0, margin: 0, listStyle: 'none', fontSize: '0.75rem' }}>
-                          {sleepAnalysis.bodyEffects.pros.map((p: string, i: number) => <li key={i} style={{ color: 'var(--sl-green)' }}>+ {p}</li>)}
-                          {sleepAnalysis.bodyEffects.cons.map((c: string, i: number) => <li key={i} style={{ color: 'var(--sl-red)' }}>- {c}</li>)}
+                        <div className={styles.analysisCategory}>BODY</div>
+                        <ul className={styles.analysisList}>
+                          {sleepAnalysis.bodyEffects.pros.map((p: string, i: number) => (
+                            <li key={i} className={styles.analysisPos}>+ {p}</li>
+                          ))}
+                          {sleepAnalysis.bodyEffects.cons.map((c: string, i: number) => (
+                            <li key={i} className={styles.analysisNeg}>- {c}</li>
+                          ))}
                         </ul>
                       </div>
                       <div>
-                        <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--sl-text-bright)', marginBottom: '4px' }}>MIND</div>
-                        <ul style={{ padding: 0, margin: 0, listStyle: 'none', fontSize: '0.75rem' }}>
-                          {sleepAnalysis.mindEffects.pros.map((p: string, i: number) => <li key={i} style={{ color: 'var(--sl-green)' }}>+ {p}</li>)}
-                          {sleepAnalysis.mindEffects.cons.map((c: string, i: number) => <li key={i} style={{ color: 'var(--sl-red)' }}>- {c}</li>)}
+                        <div className={styles.analysisCategory}>MIND</div>
+                        <ul className={styles.analysisList}>
+                          {sleepAnalysis.mindEffects.pros.map((p: string, i: number) => (
+                            <li key={i} className={styles.analysisPos}>+ {p}</li>
+                          ))}
+                          {sleepAnalysis.mindEffects.cons.map((c: string, i: number) => (
+                            <li key={i} className={styles.analysisNeg}>- {c}</li>
+                          ))}
                         </ul>
                       </div>
                     </div>
-                    <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--sl-glass-border)', fontSize: '0.75rem', fontStyle: 'italic', color: 'var(--sl-text-main)' }}>
-                      "{sleepAnalysis.overallAdvice}"
-                    </div>
-                  </div>
+                    <div className={styles.analysisAdvice}>"{sleepAnalysis.overallAdvice}"</div>
+                  </motion.div>
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Recent Activity */}
-          <div className={styles.activitySection}>
+          <motion.div variants={sectionVariants} className={styles.activitySection}>
             <h2 className="sl-section-title">Recent Activity</h2>
-            <div className={`sl-panel`} style={{ padding: '4px' }}>
+            <div className="sl-panel" style={{ padding: '4px' }}>
               {dashData.recentActivity.length > 0 ? (
                 <div className={styles.activityList}>
-                  {dashData.recentActivity.map((activity, i) => {
-                    const iconMap: Record<string, React.ReactNode> = {
-                      meal: <GiMeal />,
-                      workout: <GiMuscleUp />,
-                      bmi: <GiHeartBeats />,
-                      calendar: <GiCalendar />,
-                      finance: <GiGoldBar />,
-                      xp: <GiCrossedSwords />,
-                    };
-                    return (
-                      <div key={i} className={styles.activityItem}>
-                        <span className={styles.activityIcon}>
-                          {iconMap[activity.icon] || <GiTreasureMap />}
-                        </span>
-                        <span className={styles.activityText}>{activity.text}</span>
-                        <span className={styles.activityTime}>{activity.time}</span>
-                      </div>
-                    );
-                  })}
+                  {dashData.recentActivity.map((activity, i) => (
+                    <motion.div
+                      key={i}
+                      className={styles.activityItem}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.35, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      <span className={styles.activityIcon}>
+                        {activityIconMap[activity.icon] || <GiTreasureMap />}
+                      </span>
+                      <span className={styles.activityText}>{activity.text}</span>
+                      <span className={styles.activityTime}>{activity.time}</span>
+                    </motion.div>
+                  ))}
                 </div>
               ) : (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyIcon}><GiCrossedSwords /></div>
                   <div className={styles.emptyText}>No quests completed yet</div>
-                  <div className={styles.emptySubtext}>
-                    Start your journey by logging a meal or workout
-                  </div>
+                  <div className={styles.emptySubtext}>Start your journey by logging a meal or workout</div>
                 </div>
               )}
             </div>
-          </div>
-        </div>
+          </motion.div>
+
+        </motion.div>
       </main>
     </div>
   );
