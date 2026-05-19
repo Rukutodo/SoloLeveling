@@ -4,6 +4,7 @@ import './themes.css';
 import SessionProvider from '@/components/SessionProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { NotificationProvider } from '@/components/NotificationProvider';
+import { ToastProvider } from '@/components/ToastProvider';
 
 export const metadata: Metadata = {
   title: 'SoloLeveling — Personal Development System',
@@ -34,7 +35,9 @@ export default function RootLayout({
         <SessionProvider>
           <NotificationProvider>
             <ThemeProvider>
-              {children}
+              <ToastProvider>
+                {children}
+              </ToastProvider>
             </ThemeProvider>
           </NotificationProvider>
         </SessionProvider>

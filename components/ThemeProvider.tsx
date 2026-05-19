@@ -55,6 +55,7 @@ export function useTheme() {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeName>('sololeveling');
   const [mounted, setMounted] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
 
   // Read persisted theme on mount
   useEffect(() => {
@@ -76,9 +77,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   const setTheme = (t: ThemeName) => {
-    setThemeState(t);
-    applyTheme(t);
-    localStorage.setItem('sl-theme', t);
+    setTransitioning(true);
+    setTimeout(() => {
+      setThemeState(t);
+      applyTheme(t);
+      localStorage.setItem('sl-theme', t);
+    }, 175);
+    setTimeout(() => setTransitioning(false), 525);
   };
 
   // Prevent flash of wrong theme
@@ -87,6 +92,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
+      {transitioning && <div className="theme-overlay" />}
     </ThemeContext.Provider>
   );
 }

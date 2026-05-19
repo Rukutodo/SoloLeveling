@@ -161,8 +161,13 @@ input, textarea, select {
 
 .sl-panel:hover {
   border-color: var(--sl-glass-border-bright);
-  transform: translateY(-2px);
   box-shadow: var(--sl-shadow-lg), var(--sl-glow-sm);
+}
+
+/* Only panels inside links or explicitly marked interactive get the lift */
+a .sl-panel:hover,
+.sl-panel-interactive:hover {
+  transform: translateY(-2px);
 }
 
 /* ─── Buttons ──────────────────────────────────────────────────────── */
@@ -473,6 +478,8 @@ input, textarea, select {
   font-size: 0.8125rem;
   font-weight: 600;
   text-align: center;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--sl-shadow-md);
 }
 .sl-toast-error {
   padding: 14px 20px;
@@ -483,6 +490,20 @@ input, textarea, select {
   font-size: 0.8125rem;
   font-weight: 600;
   text-align: center;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--sl-shadow-md);
+}
+.sl-toast-info {
+  padding: 14px 20px;
+  background: var(--sl-blue-dim);
+  border: 1px solid var(--sl-blue);
+  border-radius: var(--sl-radius-md);
+  color: var(--sl-blue);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--sl-shadow-md);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -497,6 +518,27 @@ input, textarea, select {
 @keyframes slide-in-up {
   from { transform: translateY(30px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-out-down {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(20px); opacity: 0; }
+}
+
+@keyframes theme-flash {
+  0% { opacity: 0; }
+  35% { opacity: 1; }
+  65% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.theme-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 99999;
+  pointer-events: none;
+  animation: theme-flash 0.5s ease forwards;
 }
 
 @keyframes fade-in {

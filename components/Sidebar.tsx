@@ -26,7 +26,7 @@ import {
   RiCalendarEventFill, RiMoneyDollarCircleFill, RiLogoutCircleFill,
 } from 'react-icons/ri';
 import { HiX } from 'react-icons/hi';
-import { MdDashboard, MdTaskAlt, MdMenuBook, MdLibraryBooks, MdMail, MdGroup } from 'react-icons/md';
+import { MdDashboard, MdTaskAlt, MdMenuBook, MdLibraryBooks, MdMail, MdGroup, MdSettings } from 'react-icons/md';
 import ThemeSwitcher from './ThemeSwitcher';
 import styles from './Sidebar.module.css';
 
@@ -42,35 +42,35 @@ const iconSets: Record<ThemeName, Record<string, React.ComponentType<{className?
     notes: MdLibraryBooks, logbook: MdMenuBook, calories: GiMeal,
     bmi: GiHeartBeats, workouts: GiMuscleUp, calendar: GiCalendar,
     finance: GiGoldBar, logout: GiExitDoor, logo: GiSwordWound,
-    messages: MdMail, network: MdGroup,
+    messages: MdMail, network: MdGroup, adminlogs: MdSettings,
   },
   onedark: {
     dashboard: HiOutlineHome, todos: HiOutlineClipboardList, quests: HiOutlineMap,
     notes: HiOutlineDocumentText, logbook: HiOutlineBookOpen, calories: HiOutlineFire,
     bmi: HiOutlineHeart, workouts: HiOutlineLightningBolt, calendar: HiOutlineCalendar,
     finance: HiOutlineCurrencyDollar, logout: HiOutlineLogout, logo: HiOutlineHome,
-    messages: MdMail, network: MdGroup,
+    messages: MdMail, network: MdGroup, adminlogs: MdSettings,
   },
   rosepine: {
     dashboard: FiHome, todos: FiCheckSquare, quests: FiMap,
     notes: FiFileText, logbook: FiBook, calories: FiCoffee,
     bmi: FiActivity, workouts: FiZap, calendar: FiCalendar,
     finance: FiDollarSign, logout: FiLogOut, logo: FiHome,
-    messages: MdMail, network: MdGroup,
+    messages: MdMail, network: MdGroup, adminlogs: MdSettings,
   },
   catppuccin: {
     dashboard: RiDashboardFill, todos: RiTodoFill, quests: RiRoadMapFill,
     notes: RiStickyNoteFill, logbook: RiBookFill, calories: RiFireFill,
     bmi: RiHeartPulseFill, workouts: RiBoxingFill, calendar: RiCalendarEventFill,
     finance: RiMoneyDollarCircleFill, logout: RiLogoutCircleFill, logo: RiDashboardFill,
-    messages: MdMail, network: MdGroup,
+    messages: MdMail, network: MdGroup, adminlogs: MdSettings,
   },
   gruvbox: {
     dashboard: HiOutlineHome, todos: HiOutlineClipboardList, quests: HiOutlineMap,
     notes: HiOutlineDocumentText, logbook: HiOutlineBookOpen, calories: HiOutlineFire,
     bmi: HiOutlineHeart, workouts: HiOutlineLightningBolt, calendar: HiOutlineCalendar,
     finance: HiOutlineCurrencyDollar, logout: HiOutlineLogout, logo: HiOutlineHome,
-    messages: MdMail, network: MdGroup,
+    messages: MdMail, network: MdGroup, adminlogs: MdSettings,
   },
 };
 
@@ -87,16 +87,16 @@ const navConfig = [
   { href: '/finance', label: 'Finance', key: 'finance', section: 'planning' },
   { href: '/network', label: 'Hunter Network', key: 'network', section: 'planning' },
   { href: '/messages', label: 'Shadow Inbox', key: 'messages', section: 'planning' },
-  { href: '/admin/logs', label: 'System Monitor', key: 'dashboard', section: 'planning' },
+  { href: '/admin/logs', label: 'System Monitor', key: 'adminlogs', section: 'admin' },
 ];
 
 // Theme-specific labels for nav sections
 const sectionLabels: Record<ThemeName, Record<string, string>> = {
-  sololeveling: { hub: 'Command Center', fitness: 'Fitness', planning: 'Planning' },
-  onedark: { hub: 'Workspace', fitness: 'Health', planning: 'Organize' },
-  rosepine: { hub: 'Garden', fitness: 'Vitality', planning: 'Seasons' },
-  catppuccin: { hub: 'Home', fitness: 'Wellness', planning: 'Life' },
-  gruvbox: { hub: 'Terminal', fitness: 'Grind', planning: 'Ledger' },
+  sololeveling: { hub: 'Command Center', fitness: 'Fitness', planning: 'Planning', admin: 'System' },
+  onedark: { hub: 'Workspace', fitness: 'Health', planning: 'Organize', admin: 'Admin' },
+  rosepine: { hub: 'Garden', fitness: 'Vitality', planning: 'Seasons', admin: 'System' },
+  catppuccin: { hub: 'Home', fitness: 'Wellness', planning: 'Life', admin: 'System' },
+  gruvbox: { hub: 'Terminal', fitness: 'Grind', planning: 'Ledger', admin: '// admin' },
 };
 
 // Theme-specific branding

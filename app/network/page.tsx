@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
+import { useToast } from '@/components/ToastProvider';
 import { MdPersonAdd, MdCheck, MdClose, MdVisibility, MdSend, MdGroup, MdStars } from 'react-icons/md';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './network.module.css';
 
 export default function HunterNetwork() {
   const { data: session, status } = useSession();
+  const { showToast } = useToast();
   const [friends, setFriends] = useState<any[]>([]);
   const [pending, setPending] = useState<any[]>([]);
   const [emailInput, setEmailInput] = useState('');
@@ -69,13 +71,13 @@ export default function HunterNetwork() {
     });
     
     if (res.ok) {
-      alert('[SYSTEM] REQUEST TRANSMITTED TO TARGET HUNTER.');
+      showToast('[SYSTEM] Request transmitted to target hunter.');
       setEmailInput('');
       setSearchResults([]);
       fetchData();
     } else {
       const d = await res.json();
-      alert(`[ERROR] ${d.error}`);
+      showToast(`[ERROR] ${d.error}`, 'error');
     }
   };
 
@@ -111,7 +113,7 @@ export default function HunterNetwork() {
       body: JSON.stringify({ friendId: hunter._id, message: encourageMsg })
     });
     if (res.ok) {
-      alert('[SYSTEM] ENCOURAGEMENT SENT TO COMRADE.');
+      showToast('[SYSTEM] Encouragement sent to comrade.');
       setEncourageMsg('');
     }
   };
