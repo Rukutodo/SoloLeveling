@@ -267,11 +267,35 @@
 
 @media (max-width: 1024px) {
   .sidebar {
-    width: 280px !important;
+    width: 300px !important;
     transform: translateX(-100%);
+    box-shadow: 20px 0 60px rgba(0,0,0,0.8);
   }
-  .sidebarOpen { transform: translateX(0); }
-  .mobileToggle { display: flex; }
+  .sidebarOpen { 
+    transform: translateX(0); 
+  }
+  .mobileToggle { 
+    display: flex; 
+  }
+  .sidebarHeader {
+    padding: 32px 20px;
+  }
+  .nav {
+    padding: 24px 12px;
+  }
+  .navItem {
+    padding: 16px 20px;
+    font-size: 0.9375rem;
+  }
+  .playerProfile {
+    padding: 24px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 85% !important;
+  }
 }
 
 .mobileOverlay {

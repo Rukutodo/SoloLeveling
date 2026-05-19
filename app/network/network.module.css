@@ -421,12 +421,83 @@
 @media (max-width: 1400px) {
   .comradeContent {
     grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .chatSection {
+    border-left: none;
+    padding-left: 0;
+    padding-top: 32px;
+    border-top: 1px solid var(--sl-glass-border);
   }
 }
 
 @media (max-width: 1200px) {
   .networkGrid {
     grid-template-columns: 1fr;
-    gap: 48px;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .searchPanel, .friendsPanel, .pendingPanel, .statusPanel {
+    padding: 24px 20px;
+  }
+  
+  .statusHeader {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+  }
+  
+  .hunterBigAvatar {
+    width: 64px;
+    height: 64px;
+    font-size: 1.5rem;
+  }
+
+  .chatWindow {
+    min-height: 350px;
+    max-height: 50vh;
+  }
+
+  .chatBubble {
+    max-width: 90%;
+  }
+
+  .chatInput {
+    gap: 12px;
+  }
+  
+  .tagSpan {
+    display: block;
+    margin-left: 0;
+    margin-top: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .searchPanel, .friendsPanel, .pendingPanel, .statusPanel {
+    padding: 20px 16px;
+  }
+  
+  .navBtn {
+    padding: 12px 16px;
+    font-size: 0.75rem;
+  }
+
+  .requestItem, .friendItem {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .hunterAvatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .bubbleText {
+    font-size: 0.875rem;
   }
 }

@@ -372,11 +372,36 @@ body:has(.sidebarCollapsed) .sl-main-content {
 @media (max-width: 1024px) {
   .sl-main-content {
     margin-left: 0;
-    padding: 32px 24px;
+    padding: 24px 16px;
     padding-bottom: 120px;
+    width: 100%;
   }
   .sl-grid-2 {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .sl-page-header {
+    margin-bottom: 32px;
+  }
+  .sl-page-title {
+    font-size: 1.5rem;
+  }
+  .sl-stat-card {
+    padding: 20px;
+  }
+  .sl-stat-value {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .sl-main-content {
+    padding: 20px 12px;
+    padding-bottom: 100px;
+  }
+  .sl-btn {
+    padding: 12px 20px;
+    font-size: 0.7rem;
   }
 }
 
