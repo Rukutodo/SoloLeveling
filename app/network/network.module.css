@@ -308,56 +308,29 @@
 /* ─── Comrade Views ───────────────────────────────────────────────── */
 .comradeContent {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 32px;
+  grid-template-columns: 350px 1fr;
+  gap: 40px;
   flex: 1;
-}
-
-.feedLabel {
-  font-family: var(--sl-font-display);
-  font-size: 0.7rem;
-  font-weight: 900;
-  color: var(--sl-text-ghost);
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  margin-bottom: 24px;
-}
-
-.questFeed {
-  flex: 1;
-}
-
-.questList {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.questItem {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  background: var(--sl-bg-sub);
-  border-radius: var(--sl-radius-md);
-  font-size: 0.875rem;
-  border: 1px solid var(--sl-glass-border);
+  min-height: 0;
 }
 
 .chatSection {
   display: flex;
   flex-direction: column;
   height: 100%;
+  border-left: 1px solid var(--sl-glass-border);
+  padding-left: 40px;
 }
 
 .chatBubble {
   max-width: 85%;
-  padding: 12px 16px;
-  border-radius: var(--sl-radius-md);
+  padding: 12px 18px;
+  border-radius: 18px;
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  box-shadow: var(--sl-shadow-sm);
 }
 
 .chatMe {
@@ -375,10 +348,13 @@
   border-bottom-left-radius: 4px;
 }
 
+.bubbleTail.chatMe { border-top-right-radius: 4px; }
+.bubbleTail.chatThem { border-top-left-radius: 4px; }
+
 .bubbleText {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .bubbleTime {
@@ -386,13 +362,17 @@
   font-family: var(--sl-font-mono);
   opacity: 0.7;
   text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .chatInput {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   padding-top: 24px;
   border-top: 1px solid var(--sl-glass-border);
+  align-items: center;
 }
 
 .tagSpan {

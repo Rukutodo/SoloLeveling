@@ -322,41 +322,53 @@ export default function HunterNetwork() {
 
                   <div className={styles.comradeContent}>
                     <div className={styles.questFeed}>
-                      <h3 className={styles.feedLabel}>Recent Quests</h3>
+                      <h3 className={styles.feedLabel}>Tactical Quests</h3>
                       {loadingQuests ? (
-                        <div className="sl-loader" style={{ padding: '20px', fontSize: '0.7rem' }}>ACCESSING RECORDS...</div>
+                        <div className="sl-loader" style={{ padding: '40px', fontSize: '0.7rem' }}>ACCESSING RECORDS...</div>
                       ) : friendQuests.length > 0 ? (
                         <div className={styles.questList}>
                           {friendQuests.map(quest => (
                             <div key={quest._id} className={styles.questItem}>
-                              <MdStars style={{ color: quest.completed ? 'var(--sl-green)' : 'var(--sl-text-ghost)' }} />
-                              <span style={{ color: quest.completed ? 'var(--sl-text-bright)' : 'var(--sl-text-ghost)' }}>{quest.title}</span>
+                              <MdStars style={{ color: quest.completed ? 'var(--sl-green)' : 'var(--sl-text-ghost)', fontSize: '1.2rem' }} />
+                              <div style={{ flex: 1 }}>
+                                <div style={{ color: quest.completed ? 'var(--sl-text-bright)' : 'var(--sl-text-dim)', fontWeight: 700 }}>{quest.title}</div>
+                                <div style={{ fontSize: '0.6rem', color: 'var(--sl-text-ghost)', textTransform: 'uppercase', marginTop: '2px' }}>{quest.completed ? 'Mission Accomplished' : 'In Progress'}</div>
+                              </div>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p style={{ textAlign: 'center', color: 'var(--sl-text-ghost)', padding: '20px', fontSize: '0.7rem' }}>NO ACTIVE QUESTS</p>
+                        <div className="sl-empty" style={{ padding: '40px 0' }}>
+                          <div className="sl-empty-text">NO ACTIVE QUESTS</div>
+                        </div>
                       )}
                     </div>
 
                     <div className={styles.chatSection}>
-                      <h3 className={styles.feedLabel}>Comrade Communication</h3>
+                      <h3 className={styles.feedLabel}>Secure Communication</h3>
                       <div className={styles.chatWindow} ref={scrollRef}>
                         {chatMessages.length > 0 ? (
                           <div className={styles.messageList}>
-                            {chatMessages.map(msg => {
+                            {chatMessages.map((msg, i) => {
                               const isMe = msg.senderId === session?.user?.id;
+                              const prevMsg = chatMessages[i - 1];
+                              const isFirstInGroup = !prevMsg || prevMsg.senderId !== msg.senderId;
+                              
                               return (
-                                <div key={msg._id} className={`${styles.chatBubble} ${isMe ? styles.chatMe : styles.chatThem}`}>
+                                <div key={msg._id} className={`${styles.chatBubble} ${isMe ? styles.chatMe : styles.chatThem} ${isFirstInGroup ? styles.bubbleTail : ''}`}>
                                   <div className={styles.bubbleText}>{msg.text}</div>
-                                  <div className={styles.bubbleTime}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                  <div className={styles.bubbleTime}>
+                                    {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    {isMe && <MdCheck style={{ marginLeft: '4px', fontSize: '0.8rem', color: msg.isRead ? 'var(--sl-blue)' : 'inherit' }} />}
+                                  </div>
                                 </div>
                               );
                             })}
                           </div>
                         ) : (
-                          <div className="sl-empty" style={{ padding: '40px 0' }}>
-                            <div className="sl-empty-text" style={{ fontSize: '0.6rem' }}>NO MESSAGES EXCHANGED</div>
+                          <div className="sl-empty" style={{ padding: '60px 0' }}>
+                            <div className="sl-empty-text">NO MESSAGE HISTORY</div>
+                            <p style={{ fontSize: '0.6rem', color: 'var(--sl-text-ghost)', marginTop: '8px' }}>Send an encrypted word of encouragement</p>
                           </div>
                         )}
                       </div>
@@ -367,8 +379,11 @@ export default function HunterNetwork() {
                           value={replyText}
                           onChange={(e) => setReplyText(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                          style={{ borderRadius: '24px', paddingLeft: '24px' }}
                         />
-                        <button className="sl-btn sl-btn-primary" onClick={sendMessage} style={{ padding: '12px' }}><MdSend /></button>
+                        <button className="sl-btn sl-btn-primary" onClick={sendMessage} style={{ width: '48px', height: '48px', padding: 0, borderRadius: '50%' }}>
+                          <MdSend style={{ fontSize: '1.2rem' }} />
+                        </button>
                       </div>
                     </div>
                   </div>
