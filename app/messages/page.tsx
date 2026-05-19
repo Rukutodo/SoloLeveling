@@ -10,7 +10,7 @@ import styles from './messages.module.css';
 
 export default function MessagesPage() {
   const { data: session, status } = useSession();
-  const { messages, markAsRead, addMessage } = useNotifications();
+  const { messages, markAsRead, addMessage, unreadSystemCount, unreadChatCount } = useNotifications();
   const [activeTab, setActiveTab] = useState<'system' | 'chat'>('system');
   const [replyText, setReplyText] = useState('');
   const [sidebarData, setSidebarData] = useState<any>(null);
@@ -98,11 +98,21 @@ export default function MessagesPage() {
 
         <div className={styles.msgLayout}>
           <div className={`sl-panel ${styles.sidebar}`}>
-            <button className={`${styles.tabBtn} ${activeTab === 'system' ? styles.active : ''}`} onClick={() => setActiveTab('system')}>
+            <button className={`${styles.tabBtn} ${activeTab === 'system' ? styles.active : ''}`} onClick={() => setActiveTab('system')} style={{ position: 'relative' }}>
               <MdNotifications /> System Intel
+              {unreadSystemCount > 0 && (
+                <span style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'var(--sl-blue)', color: 'white', fontSize: '0.6rem', fontWeight: 900, padding: '2px 6px', borderRadius: '10px' }}>
+                  {unreadSystemCount}
+                </span>
+              )}
             </button>
-            <button className={`${styles.tabBtn} ${activeTab === 'chat' ? styles.active : ''}`} onClick={() => setActiveTab('chat')}>
+            <button className={`${styles.tabBtn} ${activeTab === 'chat' ? styles.active : ''}`} onClick={() => setActiveTab('chat')} style={{ position: 'relative' }}>
               <MdMail /> Hunter Direct
+              {unreadChatCount > 0 && (
+                <span style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'var(--sl-red)', color: 'white', fontSize: '0.6rem', fontWeight: 900, padding: '2px 6px', borderRadius: '10px' }}>
+                  {unreadChatCount}
+                </span>
+              )}
             </button>
           </div>
 

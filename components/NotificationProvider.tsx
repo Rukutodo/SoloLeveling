@@ -5,7 +5,9 @@ import { useSession } from 'next-auth/react';
 
 interface NotificationContextType {
   messages: any[];
-  unreadCount: number;
+  unreadCount: number; // Total unread
+  unreadSystemCount: number;
+  unreadChatCount: number;
   markAsRead: (id: string) => void;
   addMessage: (msg: any) => void;
 }
@@ -15,7 +17,11 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<any[]>([]);
-  const unreadCount = messages.filter(m => !m.isRead && m.receiverId === session?.user?.id).length;
+  
+  const myUnreadMessages = messages.filter(m => !m.isRead && m.receiverId === session?.user?.id);
+  const unreadCount = myUnreadMessages.length;
+  const unreadSystemCount = myUnreadMessages.filter(m => m.type === 'system').length;
+  const unreadChatCount = myUnreadMessages.filter(m => m.type === 'chat').length;
 
   const fetchMessages = () => {
     if (!session?.user?.id) return;
@@ -54,7 +60,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   };
 
   return (
-    <NotificationContext.Provider value={{ messages, unreadCount, markAsRead, addMessage }}>
+    <NotificationContext.Provider value={{ messages, unreadCount, unreadSystemCount, unreadChatCount, markAsRead, addMessage }}>
       {children}
     </NotificationContext.Provider>
   );

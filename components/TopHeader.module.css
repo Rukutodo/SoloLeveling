@@ -1,0 +1,74 @@
+.topHeader {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.notificationIcon {
+  width: 44px;
+  height: 44px;
+  background: var(--sl-bg-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--sl-glass-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sl-text-bright);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s var(--sl-spring);
+  position: relative;
+  box-shadow: var(--sl-shadow-sm);
+}
+
+.notificationIcon:hover {
+  transform: translateY(-2px);
+  border-color: var(--sl-blue);
+  color: var(--sl-blue);
+  box-shadow: var(--sl-glow-sm);
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--sl-red);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 900;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--sl-bg-sub);
+  box-shadow: 0 0 10px var(--sl-red-glow);
+  animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 1024px) {
+  .topHeader {
+    top: 16px;
+    right: 72px; /* Avoid overlapping with mobile menu toggle */
+  }
+  
+  .notificationIcon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+}
