@@ -1,143 +1,158 @@
 .todoList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .todoItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
+  padding: 20px 32px;
   background: var(--sl-bg-sub);
   border: 1px solid var(--sl-glass-border);
   border-radius: var(--sl-radius-lg);
   transition: all 0.3s var(--sl-ease-out);
   cursor: grab;
+  position: relative;
+  overflow: hidden;
 }
 
-.todoItem:active {
-  cursor: grabbing;
+.todoItem::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, oklch(100% 0 0 / 0.02) 0%, transparent 60%);
+  pointer-events: none;
 }
 
 .todoItem:hover {
   background: var(--sl-bg-surface);
-  transform: translateX(4px);
+  transform: translateX(6px);
   border-color: var(--sl-glass-border-bright);
+  box-shadow: var(--sl-shadow-md), var(--sl-glow-sm);
 }
 
 .todoLeft {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .checkBtn {
   background: none;
   border: none;
   padding: 0;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: transform 0.2s var(--sl-spring);
+  transition: transform 0.2s var(--sl-spring), color 0.2s ease;
 }
 
 .checkBtn:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
+  color: var(--sl-green) !important;
 }
 
 .kanbanBoard {
   display: grid;
-  gap: 24px;
+  gap: 32px;
   align-items: start;
 }
 
 .kanbanColumn {
-  background: var(--sl-bg-sub);
+  background: oklch(18% 0.01 240 / 0.5);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--sl-glass-border);
   border-radius: var(--sl-radius-lg);
   display: flex;
   flex-direction: column;
-  min-height: 400px;
+  min-height: 500px;
 }
 
 .columnHeader {
-  padding: 16px;
+  padding: 20px 24px;
   font-family: var(--sl-font-display);
-  font-weight: 800;
-  font-size: 0.85rem;
-  color: var(--sl-text-dim);
+  font-weight: 900;
+  font-size: 0.75rem;
+  color: var(--sl-text-bright);
   border-bottom: 1px solid var(--sl-glass-border);
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .columnContent {
-  padding: 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   flex: 1;
 }
 
 .todoCard {
   background: var(--sl-bg-surface);
-  border: 1px solid var(--sl-glass-border-bright);
-  border-radius: var(--sl-radius);
-  padding: 16px;
+  border: 1px solid var(--sl-glass-border);
+  border-radius: var(--sl-radius-md);
+  padding: 20px;
   cursor: grab;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.todoCard:active {
-  cursor: grabbing;
-  transform: scale(0.98);
+  transition: all 0.3s var(--sl-ease-out);
+  position: relative;
 }
 
 .todoCard:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px) scale(1.02);
   border-color: var(--sl-blue);
+  box-shadow: var(--sl-shadow-md), 0 0 15px var(--sl-blue-glow);
 }
 
 .todoContent {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .todoTitle {
-  font-weight: 700;
-  font-size: 0.9rem;
+  font-weight: 800;
+  font-size: 0.9375rem;
   color: var(--sl-text-bright);
+  font-family: var(--sl-font-main);
 }
 
 .todoMeta {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.65rem;
-  font-weight: 800;
+  gap: 6px;
+  font-size: 0.6rem;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  font-family: var(--sl-font-display);
 }
 
 .deleteBtn {
   background: none;
   border: none;
   color: var(--sl-text-ghost);
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.2s ease, background 0.2s ease;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.25s var(--sl-ease-out);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .deleteBtn:hover {
   color: var(--sl-red);
-  background: rgba(235, 26, 3, 0.1);
+  background: var(--sl-red-dim);
+  transform: scale(1.1);
 }
 
 /* responsive */

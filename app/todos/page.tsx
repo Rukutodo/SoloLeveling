@@ -166,13 +166,15 @@ export default function TodosPage() {
       <Sidebar {...sidebarData} />
       <main className="sl-main-content">
         <div className="sl-page-header">
-          <h1 className="sl-page-title"><MdCheckCircle style={{ verticalAlign: 'middle' }} /> Quest Board</h1>
-          <p className="sl-page-subtitle">[SYSTEM] Drag and drop your objectives</p>
+          <h1 className="sl-page-title" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <MdCheckCircle style={{ color: 'var(--sl-blue)' }} /> Quest Board
+          </h1>
+          <p className="sl-page-subtitle">[SYSTEM] Drag and drop your objectives to progress</p>
         </div>
 
-        <div style={{ marginBottom: '40px' }}>
-          <h2 style={{ fontSize: '1rem', color: 'var(--sl-text-bright)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MdCheckCircle style={{ color: 'var(--sl-green)' }} /> Todo List / Tracker
+        <div style={{ marginBottom: '64px' }}>
+          <h2 className="sl-section-title">
+            Daily Trackers
           </h2>
           <div 
             className={styles.todoList}
@@ -224,8 +226,8 @@ export default function TodosPage() {
         </div>
 
         <div>
-          <h2 style={{ fontSize: '1rem', color: 'var(--sl-text-bright)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <MdLightbulbOutline style={{ color: 'var(--sl-gold)' }} /> Kanban Board
+          <h2 className="sl-section-title">
+            Strategic Board
           </h2>
           <div className={styles.kanbanBoard} style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
             {['Idea', 'In Progress', 'Done'].map(renderColumn)}

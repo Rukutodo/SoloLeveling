@@ -201,26 +201,25 @@ export default function DashboardPage() {
       <main className="sl-main-content">
         <motion.div className={styles.dashPage} variants={pageVariants} initial="hidden" animate="visible">
 
-          {/* Greeting */}
-          <motion.div variants={sectionVariants} className={`sl-page-header ${styles.greeting}`}>
-            <h1 className={styles.greetingText}>
-              {getGreeting()}, <span className={styles.greetingAccent}>{userName}</span>
-            </h1>
-            <p className={styles.greetingSubtext}>[SYSTEM] Daily status report initialized</p>
-          </motion.div>
+          {/* Dashboard Header: Greeting + Player Status */}
+          <motion.div variants={sectionVariants} className={styles.dashHeader}>
+            <div className={styles.greeting}>
+              <h1 className={styles.greetingText}>
+                {getGreeting()}, <span className={styles.greetingAccent}>{userName}</span>
+              </h1>
+              <p className={styles.greetingSubtext}>[SYSTEM] Status: Optimal • Quest Level {stats?.level || 1}</p>
+            </div>
 
-          {/* Player Status Card */}
-          <motion.div variants={sectionVariants}>
             <div className={`sl-panel ${styles.playerCard}`}>
               <div className={styles.playerAvatarLarge}>{initials}</div>
               <div className={styles.playerMainInfo}>
                 <div className={styles.playerNameLarge}>{userName}</div>
-                <div className={styles.playerTitleLarge} style={{ color: stats?.rankColor || '#8b8b8b' }}>
+                <div className={styles.playerTitleLarge} style={{ color: stats?.rankColor || 'var(--sl-blue)' }}>
                   {stats?.rank || 'E'}-Rank • {stats?.title || 'Awakened Hunter'}
                 </div>
                 <div className={styles.xpBarLarge}>
                   <div className={styles.xpInfo}>
-                    <span>Level {stats?.level || 1}</span>
+                    <span>Exp Progress</span>
                     <span>{stats?.xp || 0} / {stats?.xpToNext || 100} XP</span>
                   </div>
                   <div className={styles.xpTrack}>

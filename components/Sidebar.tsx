@@ -148,6 +148,7 @@ export default function Sidebar({
 
   return (
     <>
+      <TopHeader />
       <button className={styles.mobileToggle} onClick={() => setMobileOpen(!mobileOpen)}
         aria-label="Toggle navigation" id="sidebar-toggle">
         {mobileOpen ? <HiX /> : <GiHamburgerMenu />}
@@ -244,6 +245,10 @@ export default function Sidebar({
           </button>
         </div>
       </aside>
+    </>
+  );
+}
+>
     </>
   );
 }
