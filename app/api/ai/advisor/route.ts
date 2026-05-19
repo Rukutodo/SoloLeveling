@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { type, data } = body;
 
-    console.log('[AI-BACKEND] Starting gemma-4-31b-it processing for AI Advisor...');
-    const model = genAI.getGenerativeModel({ model: 'gemma-4-31b-it' });
+    console.log('[AI-BACKEND] Starting gemini-1.5-flash processing for AI Advisor...');
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     let prompt = '';
     if (type === 'investment') {

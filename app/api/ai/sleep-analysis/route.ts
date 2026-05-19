@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { hours, quality } = body;
 
-    console.log('[AI-BACKEND] Starting gemma-4-31b-it processing for Sleep Analysis...');
-    const model = genAI.getGenerativeModel({ model: 'gemma-4-31b-it' });
+    console.log('[AI-BACKEND] Starting gemini-1.5-flash processing for Sleep Analysis...');
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const prompt = `Analyze the effects of ${hours} hours of sleep with a quality rating of ${quality}/5 on a person's body and mind. 
     Provide the analysis in a structured JSON format:

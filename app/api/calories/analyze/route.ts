@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { image, mimeType, dishName, ingredients, step, quantity, baseFood } = body;
 
-    console.log('[AI-BACKEND] Starting gemma-4-31b-it processing for Calorie Analysis...');
-    const model = genAI.getGenerativeModel({ model: 'gemma-4-31b-it' });
+    console.log('[AI-BACKEND] Starting gemini-1.5-flash processing for Calorie Analysis...');
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     let prompt = '';
     const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];

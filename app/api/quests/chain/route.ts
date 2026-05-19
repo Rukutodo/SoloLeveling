@@ -96,8 +96,8 @@ export async function POST(req: NextRequest) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    console.log('[AI-BACKEND] Starting gemma-4-31b-it processing for Main Quest Generation...');
-    const model = genAI.getGenerativeModel({ model: 'gemma-4-31b-it' });
+    console.log('[AI-BACKEND] Starting gemini-1.5-flash processing for Main Quest Generation...');
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = `
       As the "System Advisor" in a Solo Leveling themed self-improvement app, generate a highly realistic and motivating "Main Quest Chain" (Hunter's Roadmap) for a user.
       
