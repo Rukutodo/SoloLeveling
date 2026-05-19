@@ -8,6 +8,7 @@ interface NotificationContextType {
   unreadCount: number; // Total unread
   unreadSystemCount: number;
   unreadChatCount: number;
+  latestChatSenderId: string | null;
   markAsRead: (id: string) => void;
   addMessage: (msg: any) => void;
 }
@@ -21,7 +22,9 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   const myUnreadMessages = messages.filter(m => !m.isRead && m.receiverId === session?.user?.id);
   const unreadCount = myUnreadMessages.length;
   const unreadSystemCount = myUnreadMessages.filter(m => m.type === 'system').length;
-  const unreadChatCount = myUnreadMessages.filter(m => m.type === 'chat').length;
+  const unreadChatMessages = myUnreadMessages.filter(m => m.type === 'chat');
+  const unreadChatCount = unreadChatMessages.length;
+  const latestChatSenderId = unreadChatMessages.length > 0 ? unreadChatMessages[0].senderId : null;
 
   const fetchMessages = () => {
     if (!session?.user?.id) return;
@@ -60,7 +63,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   };
 
   return (
-    <NotificationContext.Provider value={{ messages, unreadCount, unreadSystemCount, unreadChatCount, markAsRead, addMessage }}>
+    <NotificationContext.Provider value={{ messages, unreadCount, unreadSystemCount, unreadChatCount, latestChatSenderId, markAsRead, addMessage }}>
       {children}
     </NotificationContext.Provider>
   );

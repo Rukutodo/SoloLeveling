@@ -7,11 +7,15 @@ import { MdNotifications } from 'react-icons/md';
 import styles from './TopHeader.module.css';
 
 const TopHeader = () => {
-  const { unreadCount } = useNotifications();
+  const { unreadCount, latestChatSenderId } = useNotifications();
+
+  const notificationLink = latestChatSenderId 
+    ? `/network?view=comrade&userId=${latestChatSenderId}`
+    : '/network';
 
   return (
     <div className={styles.topHeader}>
-      <Link href="/network" className={styles.notificationIcon} aria-label="Notifications">
+      <Link href={notificationLink} className={styles.notificationIcon} aria-label="Notifications">
         <MdNotifications />
         {unreadCount > 0 && (
           <span className={styles.badge}>

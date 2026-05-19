@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import { useToast } from '@/components/ToastProvider';
 import { useNotifications } from '@/components/NotificationProvider';
@@ -11,6 +12,7 @@ import styles from './network.module.css';
 
 export default function HunterNetwork() {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
   const { showToast } = useToast();
   const { messages, markAsRead, addMessage, unreadSystemCount, unreadChatCount } = useNotifications();
   
@@ -35,6 +37,21 @@ export default function HunterNetwork() {
       fetch('/api/user').then(res => res.json()).then(d => setSidebarData(d.stats));
     }
   }, [status]);
+
+  // Handle deep-linking from notifications
+  useEffect(() => {
+    if (friends.length > 0) {
+      const view = searchParams.get('view');
+      const userId = searchParams.get('userId');
+      
+      if (view === 'comrade' && userId) {
+        const friend = friends.find(f => 
+          f.requester._id === userId || f.recipient._id === userId
+        );
+        if (friend) viewFriendStatus(friend);
+      }
+    }
+  }, [friends, searchParams]);
 
   useEffect(() => {
     if (emailInput.length >= 2) {
@@ -162,6 +179,14 @@ export default function HunterNetwork() {
     }
     return false;
   }).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+  // Automatically mark visible messages as read
+  useEffect(() => {
+    const unreadInView = chatMessages.filter(m => !m.isRead && m.receiverId === session?.user?.id);
+    if (unreadInView.length > 0) {
+      unreadInView.forEach(msg => markAsRead(msg._id));
+    }
+  }, [chatMessages, session?.user?.id]);
 
   return (
     <div className="sl-page-wrapper">
