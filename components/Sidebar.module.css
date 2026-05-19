@@ -208,6 +208,22 @@
   font-size: 1.25rem;
 }
 
+.navBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--sl-red);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 900;
+  padding: 2px 5px;
+  minWidth: 16px;
+  textAlign: center;
+  border-radius: 10px;
+  border: 2px solid var(--sl-bg-sub);
+  line-height: 1;
+}
+
 .sidebarFooter {
   padding: 16px;
   border-top: 1px solid var(--sl-glass-border);

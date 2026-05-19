@@ -208,23 +208,9 @@ export default function Sidebar({
                     id={`nav-${item.href.slice(1)}`}>
                     <div style={{ position: 'relative' }}>
                       <Icon className={styles.navIcon} />
-                      {item.key === 'messages' && unreadCount > 0 && (
-                        <span style={{ 
-                          position: 'absolute', 
-                          top: '-4px', 
-                          right: '-4px', 
-                          background: 'var(--sl-red)', 
-                          color: 'white', 
-                          fontSize: '0.6rem', 
-                          fontWeight: 900, 
-                          padding: '2px 5px',
-                          minWidth: '16px',
-                          textAlign: 'center',
-                          borderRadius: '10px', 
-                          border: '2px solid var(--sl-bg-sub)',
-                          lineHeight: 1
-                        }}>
-                          {unreadCount}
+                      {item.key === 'network' && unreadCount > 0 && (
+                        <span className={styles.navBadge}>
+                          {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                       )}
                     </div>

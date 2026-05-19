@@ -103,6 +103,12 @@
   box-shadow: var(--sl-shadow-md), 0 0 15px var(--sl-blue-glow);
 }
 
+.friendItemActive {
+  background: var(--sl-bg-surface) !important;
+  border-color: var(--sl-blue) !important;
+  box-shadow: 0 0 15px var(--sl-blue-glow) !important;
+}
+
 .hunterAvatar {
   width: 44px;
   height: 44px;
@@ -133,6 +139,56 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-top: 2px;
+}
+
+/* ─── Integrated Navigation ───────────────────────────────────────── */
+.navPanel {
+  padding: 12px !important;
+  margin-bottom: 0 !important;
+}
+
+.navBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: transparent;
+  color: var(--sl-text-dim);
+  border-radius: var(--sl-radius-md);
+  font-family: var(--sl-font-display);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.3s var(--sl-ease-out);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.navBtn:hover {
+  background: oklch(100% 0 0 / 0.04);
+  color: var(--sl-text-bright);
+}
+
+.navBtnActive {
+  background: var(--sl-blue-dim) !important;
+  color: var(--sl-blue) !important;
+  border-color: oklch(70% 0.18 190 / 0.15) !important;
+}
+
+.navBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--sl-red);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 10px;
+  border: 2px solid var(--sl-bg-sub);
+  line-height: 1;
 }
 
 /* ─── Status Panel ────────────────────────────────────────────────── */
@@ -184,132 +240,6 @@
   letter-spacing: 2px;
   font-family: var(--sl-font-display);
   margin-top: 4px;
-}
-
-.feedLabel {
-  font-family: var(--sl-font-display);
-  font-size: 0.7rem;
-  font-weight: 900;
-  color: var(--sl-text-ghost);
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  margin-bottom: 24px;
-}
-
-.questFeed {
-  flex: 1;
-}
-
-.questList {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.questItem {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  background: var(--sl-bg-sub);
-  border-radius: var(--sl-radius-md);
-  font-size: 0.875rem;
-  border: 1px solid var(--sl-glass-border);
-}
-
-.encourageArea {
-  margin-top: 48px;
-  display: flex;
-  gap: 16px;
-}
-
-.searchPanel {
-  overflow: visible !important;
-  z-index: 50;
-}
-
-.searchDropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  background: var(--sl-bg-elevated);
-  border: 1px solid var(--sl-blue);
-  border-radius: var(--sl-radius-md);
-  z-index: 1000;
-  max-height: 300px;
-  overflow-y: auto;
-  box-shadow: var(--sl-shadow-lg), 0 0 20px var(--sl-blue-glow);
-  padding: 12px 0;
-}
-
-.searchResultItem {
-  padding: 16px 24px;
-  cursor: pointer;
-  transition: all 0.25s var(--sl-ease-out);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.searchResultItem:hover {
-  background: var(--sl-blue-dim);
-  padding-left: 32px;
-/* ─── Integrated Navigation ───────────────────────────────────────── */
-.navPanel {
-  padding: 12px !important;
-  margin-bottom: 0 !important;
-}
-
-.navBtn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 24px;
-  background: transparent;
-  color: var(--sl-text-dim);
-  border-radius: var(--sl-radius-md);
-  font-family: var(--sl-font-display);
-  font-size: 0.8125rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  transition: all 0.3s var(--sl-ease-out);
-  cursor: pointer;
-  border: 1px solid transparent;
-}
-
-.navBtn:hover {
-  background: oklch(100% 0 0 / 0.04);
-  color: var(--sl-text-bright);
-}
-
-.navBtnActive {
-  background: var(--sl-blue-dim) !important;
-  color: var(--sl-blue) !important;
-  border-color: oklch(70% 0.18 190 / 0.15) !important;
-}
-
-.navBadge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: var(--sl-red);
-  color: white;
-  font-size: 0.6rem;
-  font-weight: 900;
-  padding: 2px 6px;
-  border-radius: 10px;
-  border: 2px solid var(--sl-bg-sub);
-  line-height: 1;
-}
-
-/* ─── List States ─────────────────────────────────────────────────── */
-.friendItemActive {
-  background: var(--sl-bg-surface) !important;
-  border-color: var(--sl-blue) !important;
-  box-shadow: 0 0 15px var(--sl-blue-glow) !important;
 }
 
 /* ─── Chat and Intel Windows ──────────────────────────────────────── */
@@ -375,9 +305,53 @@
   line-height: 1.5;
 }
 
-/* ─── Comrade Chat Bubbles ────────────────────────────────────────── */
+/* ─── Comrade Views ───────────────────────────────────────────────── */
+.comradeContent {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 32px;
+  flex: 1;
+}
+
+.feedLabel {
+  font-family: var(--sl-font-display);
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: var(--sl-text-ghost);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 24px;
+}
+
+.questFeed {
+  flex: 1;
+}
+
+.questList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.questItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--sl-bg-sub);
+  border-radius: var(--sl-radius-md);
+  font-size: 0.875rem;
+  border: 1px solid var(--sl-glass-border);
+}
+
+.chatSection {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .chatBubble {
-  max-width: 80%;
+  max-width: 85%;
   padding: 12px 16px;
   border-radius: var(--sl-radius-md);
   position: relative;
@@ -428,19 +402,51 @@
   font-family: var(--sl-font-mono);
 }
 
-.comradeContent {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 32px;
-  flex: 1;
+/* ─── Search Overlay ──────────────────────────────────────────────── */
+.searchPanel {
+  overflow: visible !important;
+  z-index: 50;
 }
 
+.searchDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--sl-bg-elevated);
+  border: 1px solid var(--sl-blue);
+  border-radius: var(--sl-radius-md);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: var(--sl-shadow-lg), 0 0 20px var(--sl-blue-glow);
+  padding: 12px 0;
+}
+
+.searchResultItem {
+  padding: 16px 24px;
+  cursor: pointer;
+  transition: all 0.25s var(--sl-ease-out);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.searchResultItem:hover {
+  background: var(--sl-blue-dim);
+  padding-left: 32px;
+}
+
+/* ─── Responsive ───────────────────────────────────────────────────── */
 @media (max-width: 1400px) {
   .comradeContent {
     grid-template-columns: 1fr;
   }
 }
 
+@media (max-width: 1200px) {
+  .networkGrid {
+    grid-template-columns: 1fr;
     gap: 48px;
   }
 }
