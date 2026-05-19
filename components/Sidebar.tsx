@@ -87,7 +87,6 @@ const navConfig = [
   { href: '/calendar', label: 'Calendar', key: 'calendar', section: 'planning' },
   { href: '/finance', label: 'Finance', key: 'finance', section: 'planning' },
   { href: '/network', label: 'Hunter Network', key: 'network', section: 'planning' },
-  { href: '/messages', label: 'Shadow Inbox', key: 'messages', section: 'planning' },
   { href: '/admin/logs', label: 'System Monitor', key: 'adminlogs', section: 'admin' },
 ];
 

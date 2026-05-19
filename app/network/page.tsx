@@ -1,25 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
 import { useToast } from '@/components/ToastProvider';
-import { MdPersonAdd, MdCheck, MdClose, MdVisibility, MdSend, MdGroup, MdStars } from 'react-icons/md';
+import { useNotifications } from '@/components/NotificationProvider';
+import { MdPersonAdd, MdCheck, MdClose, MdVisibility, MdSend, MdGroup, MdStars, MdNotifications, MdMail, MdDelete } from 'react-icons/md';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './network.module.css';
 
 export default function HunterNetwork() {
   const { data: session, status } = useSession();
   const { showToast } = useToast();
+  const { messages, markAsRead, addMessage, unreadSystemCount, unreadChatCount } = useNotifications();
+  
   const [friends, setFriends] = useState<any[]>([]);
   const [pending, setPending] = useState<any[]>([]);
   const [emailInput, setEmailInput] = useState('');
   const [sidebarData, setSidebarData] = useState<any>(null);
+  
+  // Unified view state
+  const [activeView, setActiveView] = useState<'intel' | 'comrade'>('intel');
   const [selectedFriend, setSelectedFriend] = useState<any>(null);
   const [friendQuests, setFriendQuests] = useState<any[]>([]);
   const [loadingQuests, setLoadingQuests] = useState(false);
-  const [encourageMsg, setEncourageMsg] = useState('');
+  const [replyText, setReplyText] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -38,6 +46,12 @@ export default function HunterNetwork() {
       setSearchResults([]);
     }
   }, [emailInput]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, activeView, selectedFriend]);
 
   const fetchData = async () => {
     const res = await fetch('/api/friends');
@@ -60,16 +74,13 @@ export default function HunterNetwork() {
 
   const sendRequest = async () => {
     if (!emailInput) return;
-    
     const isTag = emailInput.includes('#');
     const payload = isTag ? { recipientTag: emailInput } : { recipientEmail: emailInput };
-
     const res = await fetch('/api/friends', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    
     if (res.ok) {
       showToast('[SYSTEM] Request transmitted to target hunter.');
       setEmailInput('');
@@ -87,13 +98,12 @@ export default function HunterNetwork() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ requestId, status: action })
     });
-    if (res.ok) {
-      fetchData();
-    }
+    if (res.ok) fetchData();
   };
 
   const viewFriendStatus = async (friend: any) => {
     setSelectedFriend(friend);
+    setActiveView('comrade');
     setLoadingQuests(true);
     const hunter = friend.requester._id === session?.user?.id ? friend.recipient : friend.requester;
     const res = await fetch(`/api/friends/status?userId=${hunter._id}`);
@@ -104,21 +114,54 @@ export default function HunterNetwork() {
     setLoadingQuests(false);
   };
 
-  const sendEncouragement = async () => {
-    if (!encourageMsg || !selectedFriend) return;
-    const hunter = selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester;
-    const res = await fetch('/api/friends/encourage', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ friendId: hunter._id, message: encourageMsg })
-    });
-    if (res.ok) {
-      showToast('[SYSTEM] Encouragement sent to comrade.');
-      setEncourageMsg('');
+  const sendMessage = async () => {
+    if (!replyText.trim()) return;
+    let receiverId;
+    
+    if (activeView === 'comrade' && selectedFriend) {
+      const hunter = selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester;
+      receiverId = hunter._id;
+    } else {
+      return; // Can only send chat to comrades
+    }
+
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiverId, text: replyText, type: 'chat' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        addMessage(data.message);
+        setReplyText('');
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
+  const clearSystemIntel = async () => {
+    if (!confirm('Purge system intelligence records?')) return;
+    await fetch('/api/messages', { method: 'DELETE' });
+    window.location.reload();
+  };
+
   if (status === 'loading') return <div className="sl-loader" style={{ fontFamily: 'var(--sl-font-display)', letterSpacing: '4px' }}>INITIALIZING NETWORK...</div>;
+
+  const currentHunter = selectedFriend ? (selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester) : null;
+  
+  // Filter messages for current view
+  const chatMessages = messages.filter(m => {
+    if (activeView === 'intel') return m.type === 'system';
+    if (activeView === 'comrade' && currentHunter) {
+      return m.type === 'chat' && (
+        (m.senderId === session?.user?.id && m.receiverId === currentHunter._id) ||
+        (m.senderId === currentHunter._id && m.receiverId === session?.user?.id)
+      );
+    }
+    return false;
+  }).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   return (
     <div className="sl-page-wrapper">
@@ -135,21 +178,31 @@ export default function HunterNetwork() {
       <main className="sl-main-content">
         <div className="sl-page-header">
           <h1 className="sl-page-title"><MdGroup style={{ verticalAlign: 'middle' }} /> Hunter Network</h1>
-          <p className="sl-page-subtitle">[SYSTEM] Comrade tracking and coordination</p>
+          <p className="sl-page-subtitle">[SYSTEM] Comrade coordination and tactical intelligence</p>
         </div>
 
         <div className={styles.networkGrid}>
           <div className={styles.managementCol}>
+            {/* Intel Hub Selector */}
+            <div className={`sl-panel ${styles.navPanel}`}>
+              <button 
+                className={`${styles.navBtn} ${activeView === 'intel' ? styles.navBtnActive : ''}`}
+                onClick={() => { setActiveView('intel'); setSelectedFriend(null); }}
+              >
+                <div style={{ position: 'relative' }}>
+                  <MdNotifications />
+                  {unreadSystemCount > 0 && <span className={styles.navBadge}>{unreadSystemCount}</span>}
+                </div>
+                <span>System Intel</span>
+              </button>
+            </div>
+
             <div className={`sl-panel ${styles.searchPanel}`}>
-              <h2 className={styles.sectionLabel}><MdPersonAdd /> Recruit New Hunter</h2>
-              
+              <h2 className={styles.sectionLabel}><MdPersonAdd /> Recruit Hunter</h2>
               <div className={styles.tagDisplay}>
-                <span className={styles.tagLabel}>Your Hunter Tag</span>
+                <span className={styles.tagLabel}>Your Tag</span>
                 <span className={styles.tagValue}>{sidebarData?.tag || '...'}</span>
               </div>
-              
-              <p className={styles.searchHint}>Search by Name, Email or Tag (e.g. Sung#1234 or Venu)</p>
-              
               <div style={{ position: 'relative' }}>
                 <input 
                   type="text" 
@@ -158,15 +211,9 @@ export default function HunterNetwork() {
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                 />
-                
                 <AnimatePresence>
                   {searchResults.length > 0 && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className={styles.searchDropdown}
-                    >
+                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className={styles.searchDropdown}>
                       {searchResults.map(u => (
                         <div key={u.tag} className={styles.searchResultItem} onClick={() => { setEmailInput(u.tag); setSearchResults([]); }}>
                           <div style={{ fontWeight: 800 }}>{u.name}</div>
@@ -176,20 +223,19 @@ export default function HunterNetwork() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-
-                <button className="sl-btn sl-btn-primary" onClick={sendRequest} style={{ marginTop: '16px', width: '100%' }}>Recruit Hunter</button>
+                <button className="sl-btn sl-btn-primary" onClick={sendRequest} style={{ marginTop: '16px', width: '100%' }}>Send Request</button>
               </div>
             </div>
 
             {pending.length > 0 && (
               <div className={`sl-panel ${styles.pendingPanel}`}>
-                <h2 className={styles.sectionLabel}>Pending Reinforcements</h2>
+                <h2 className={styles.sectionLabel}>Pending Support</h2>
                 <div className={styles.requestList}>
                   {pending.map(req => (
                     <div key={req._id} className={styles.requestItem}>
-                      <div>
+                      <div style={{ flex: 1 }}>
                         <div className={styles.hunterName}>{req.requester.name}</div>
-                        <div className={styles.hunterRank} style={{ color: 'var(--sl-blue)' }}>{req.requester.tag} • {req.requester.rank}-Rank</div>
+                        <div className={styles.hunterRank} style={{ color: 'var(--sl-blue)' }}>{req.requester.tag}</div>
                       </div>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button className="sl-btn sl-btn-primary" style={{ padding: '8px' }} onClick={() => handleRequest(req._id, 'accepted')}><MdCheck /></button>
@@ -206,14 +252,15 @@ export default function HunterNetwork() {
               <div className={styles.friendList}>
                 {friends.map(friend => {
                   const hunter = friend.requester._id === session?.user?.id ? friend.recipient : friend.requester;
+                  const isSelected = selectedFriend?._id === friend._id;
                   return (
-                    <div key={friend._id} className={styles.friendItem} onClick={() => viewFriendStatus(friend)}>
+                    <div key={friend._id} className={`${styles.friendItem} ${isSelected ? styles.friendItemActive : ''}`} onClick={() => viewFriendStatus(friend)}>
                       <div className={styles.hunterAvatar}>{hunter.name[0]}</div>
                       <div style={{ flex: 1 }}>
                         <div className={styles.hunterName}>{hunter.name}</div>
-                        <div className={styles.hunterRank}>{hunter.tag} • LVL {hunter.level}</div>
+                        <div className={styles.hunterRank}>LVL {hunter.level} • {hunter.rank}-Rank</div>
                       </div>
-                      <MdVisibility style={{ color: 'var(--sl-text-ghost)' }} />
+                      <MdVisibility style={{ color: isSelected ? 'var(--sl-blue)' : 'var(--sl-text-ghost)' }} />
                     </div>
                   );
                 })}
@@ -222,56 +269,112 @@ export default function HunterNetwork() {
           </div>
 
           <div className={styles.visibilityCol}>
-            {selectedFriend ? (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`sl-panel ${styles.statusPanel}`}>
-                <div className={styles.statusHeader}>
-                  <div className={styles.hunterBigAvatar}>
-                    {(selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester).name[0]}
-                  </div>
-                  <div>
-                    <h2 className={styles.hunterBigName}>
-                      {(selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester).name}
-                      <span style={{ fontSize: '0.8rem', color: 'var(--sl-text-ghost)', marginLeft: '10px' }}>
-                        #{(selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester).tag?.split('#')[1]}
-                      </span>
-                    </h2>
-                    <p className={styles.hunterBigTitle}>{(selectedFriend.requester._id === session?.user?.id ? selectedFriend.recipient : selectedFriend.requester).title}</p>
-                  </div>
-                </div>
-
-                <div className={styles.questFeed}>
-                  <h3 className={styles.feedLabel}>Recent Quests</h3>
-                  {loadingQuests ? (
-                    <div className="sl-loader" style={{ padding: '20px' }}>ACCESSING RECORDS...</div>
-                  ) : friendQuests.length > 0 ? (
-                    <div className={styles.questList}>
-                      {friendQuests.map(quest => (
-                        <div key={quest._id} className={styles.questItem}>
-                          <MdStars style={{ color: quest.completed ? 'var(--sl-green)' : 'var(--sl-text-ghost)' }} />
-                          <span style={{ color: quest.completed ? 'var(--sl-text-bright)' : 'var(--sl-text-ghost)' }}>{quest.title}</span>
-                        </div>
-                      ))}
+            <div className={`sl-panel ${styles.statusPanel}`}>
+              {activeView === 'intel' ? (
+                <div className={styles.intelView}>
+                  <div className={styles.statusHeader}>
+                    <div className={styles.hunterBigAvatar}><MdNotifications /></div>
+                    <div style={{ flex: 1 }}>
+                      <h2 className={styles.hunterBigName}>System Intelligence</h2>
+                      <p className={styles.hunterBigTitle}>High-priority notifications and alerts</p>
                     </div>
-                  ) : (
-                    <p style={{ textAlign: 'center', color: 'var(--sl-text-ghost)', padding: '20px' }}>NO ACTIVE QUESTS</p>
-                  )}
+                    <button className="sl-btn sl-btn-ghost" onClick={clearSystemIntel} style={{ fontSize: '0.65rem' }}>Purge Intel</button>
+                  </div>
+                  
+                  <div className={styles.chatWindow} ref={scrollRef}>
+                    {chatMessages.length > 0 ? (
+                      <div className={styles.messageList}>
+                        {chatMessages.map(msg => (
+                          <div 
+                            key={msg._id} 
+                            className={`${styles.msgItem} ${!msg.isRead ? styles.msgUnread : ''}`}
+                            onMouseEnter={() => !msg.isRead && markAsRead(msg._id)}
+                          >
+                            <div className={styles.msgIcon}><MdStars style={{ color: 'var(--sl-blue)' }} /></div>
+                            <div className={styles.msgBody}>
+                              <div className={styles.msgMeta}>
+                                <span className={styles.msgTime}>{new Date(msg.createdAt).toLocaleString()}</span>
+                              </div>
+                              <div className={styles.msgText}>{msg.text}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="sl-empty">
+                        <div className="sl-empty-text">NO TACTICAL INTEL AVAILABLE</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
+              ) : currentHunter ? (
+                <div className={styles.comradeView}>
+                  <div className={styles.statusHeader}>
+                    <div className={styles.hunterBigAvatar}>{currentHunter.name[0]}</div>
+                    <div style={{ flex: 1 }}>
+                      <h2 className={styles.hunterBigName}>
+                        {currentHunter.name}
+                        <span className={styles.tagSpan}>#{currentHunter.tag?.split('#')[1]}</span>
+                      </h2>
+                      <p className={styles.hunterBigTitle}>{currentHunter.title || 'Awakened Hunter'}</p>
+                    </div>
+                  </div>
 
-                <div className={styles.encourageArea}>
-                  <input 
-                    className="sl-input" 
-                    placeholder="Send a word of encouragement..." 
-                    value={encourageMsg}
-                    onChange={(e) => setEncourageMsg(e.target.value)}
-                  />
-                  <button className="sl-btn sl-btn-primary" onClick={sendEncouragement}><MdSend /> Inspire</button>
+                  <div className={styles.comradeContent}>
+                    <div className={styles.questFeed}>
+                      <h3 className={styles.feedLabel}>Recent Quests</h3>
+                      {loadingQuests ? (
+                        <div className="sl-loader" style={{ padding: '20px', fontSize: '0.7rem' }}>ACCESSING RECORDS...</div>
+                      ) : friendQuests.length > 0 ? (
+                        <div className={styles.questList}>
+                          {friendQuests.map(quest => (
+                            <div key={quest._id} className={styles.questItem}>
+                              <MdStars style={{ color: quest.completed ? 'var(--sl-green)' : 'var(--sl-text-ghost)' }} />
+                              <span style={{ color: quest.completed ? 'var(--sl-text-bright)' : 'var(--sl-text-ghost)' }}>{quest.title}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p style={{ textAlign: 'center', color: 'var(--sl-text-ghost)', padding: '20px', fontSize: '0.7rem' }}>NO ACTIVE QUESTS</p>
+                      )}
+                    </div>
+
+                    <div className={styles.chatSection}>
+                      <h3 className={styles.feedLabel}>Comrade Communication</h3>
+                      <div className={styles.chatWindow} ref={scrollRef}>
+                        {chatMessages.length > 0 ? (
+                          <div className={styles.messageList}>
+                            {chatMessages.map(msg => {
+                              const isMe = msg.senderId === session?.user?.id;
+                              return (
+                                <div key={msg._id} className={`${styles.chatBubble} ${isMe ? styles.chatMe : styles.chatThem}`}>
+                                  <div className={styles.bubbleText}>{msg.text}</div>
+                                  <div className={styles.bubbleTime}>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="sl-empty" style={{ padding: '40px 0' }}>
+                            <div className="sl-empty-text" style={{ fontSize: '0.6rem' }}>NO MESSAGES EXCHANGED</div>
+                          </div>
+                        )}
+                      </div>
+                      <div className={styles.chatInput}>
+                        <input 
+                          className="sl-input" 
+                          placeholder="Send encrypted message..." 
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                        />
+                        <button className="sl-btn sl-btn-primary" onClick={sendMessage} style={{ padding: '12px' }}><MdSend /></button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </motion.div>
-            ) : (
-              <div className="sl-empty" style={{ height: '100%' }}>
-                <div className="sl-empty-text">SELECT A COMRADE TO VIEW INTEL</div>
-              </div>
-            )}
+              ) : null}
+            </div>
           </div>
         </div>
       </main>

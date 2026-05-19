@@ -11,7 +11,7 @@ const TopHeader = () => {
 
   return (
     <div className={styles.topHeader}>
-      <Link href="/messages" className={styles.notificationIcon} aria-label="Messages">
+      <Link href="/network" className={styles.notificationIcon} aria-label="Notifications">
         <MdMail />
         {unreadCount > 0 && (
           <span className={styles.badge}>
