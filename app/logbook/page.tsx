@@ -11,6 +11,7 @@ interface Todo {
   title: string;
   completed: boolean;
   status: string;
+  note?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -283,7 +284,8 @@ export default function LogbookPage() {
                        {(todo.status === 'Done' || todo.completed) ? <MdCheckCircle color="#27ae60" /> : <MdRadioButtonUnchecked />}
                     </div>
                     <div className={`${styles.entryText} ${(todo.status === 'Done' || todo.completed) ? styles.doneText : ''}`}>
-                      {todo.title}
+                      <div style={{ fontWeight: 600 }}>{todo.title}</div>
+                      {todo.note && <div style={{ fontSize: '0.75rem', color: '#666', fontStyle: 'italic', marginTop: '4px' }}>- {todo.note}</div>}
                     </div>
                   </div>
                 ))
@@ -301,7 +303,8 @@ export default function LogbookPage() {
                        <MdCheckCircle color="#27ae60" />
                     </div>
                     <div className={styles.entryText}>
-                      {todo.title}
+                      <div style={{ fontWeight: 600 }}>{todo.title}</div>
+                      {todo.note && <div style={{ fontSize: '0.75rem', color: '#666', fontStyle: 'italic', marginTop: '4px' }}>- {todo.note}</div>}
                     </div>
                   </div>
                 ))

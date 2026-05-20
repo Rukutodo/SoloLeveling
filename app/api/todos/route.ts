@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import dbConnect from '@/lib/mongodb';
 import Todo from '@/lib/models/Todo';
+import { awardXP, XP_REWARDS } from '@/lib/xpSystem';
 
 export async function GET(req: NextRequest) {
   try {
@@ -38,12 +39,24 @@ export async function PUT(req: NextRequest) {
     await dbConnect();
     const body = await req.json();
     const { id, ...updates } = body;
+
+    // Check if it was already completed to avoid double XP
+    const existingTodo = await Todo.findOne({ _id: id, userId: session.user.id });
+    const wasCompleted = existingTodo?.completed || existingTodo?.status === 'Done';
+    const isNowCompleted = updates.completed || updates.status === 'Done';
+
     const todo = await Todo.findOneAndUpdate(
       { _id: id, userId: session.user.id },
       { $set: updates },
       { new: true }
     );
-    return NextResponse.json({ todo });
+
+    let xpResult = null;
+    if (!wasCompleted && isNowCompleted) {
+      xpResult = await awardXP(session.user.id, XP_REWARDS.COMPLETE_QUEST);
+    }
+
+    return NextResponse.json({ todo, xp: xpResult });
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

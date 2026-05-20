@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import { MdAdd, MdDelete, MdCheckCircle, MdFlag, MdLightbulbOutline, MdRadioButtonUnchecked } from 'react-icons/md';
 import styles from './todos.module.css';
@@ -13,6 +15,9 @@ interface Todo {
   priority: 'Low' | 'Medium' | 'High';
   dueDate?: string;
   status: 'Idea' | 'Todo' | 'In Progress' | 'Done';
+  note?: string;
+  updatedAt?: string;
+  category: 'Strategic' | 'Daily';
 }
 
 export default function TodosPage() {
@@ -23,6 +28,10 @@ export default function TodosPage() {
   const [columnInputs, setColumnInputs] = useState<Record<string, string>>({ Idea: '', Todo: '', 'In Progress': '', Done: '' });
   
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
+
+  // State for editing notes
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [noteValue, setNoteValue] = useState('');
 
   useEffect(() => {
     if (sessionStatus === 'authenticated') {
@@ -56,10 +65,12 @@ export default function TodosPage() {
     const text = columnInputs[status];
     if (!text || !text.trim()) return;
     
+    const category = status === 'Idea' ? 'Strategic' : 'Daily';
+    
     const res = await fetch('/api/todos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: text, priority: 'Medium', status }),
+      body: JSON.stringify({ title: text, priority: 'Medium', status, category }),
     });
     if (res.ok) {
       setColumnInputs({ ...columnInputs, [status]: '' });
@@ -72,14 +83,29 @@ export default function TodosPage() {
     if (res.ok) fetchTodos();
   };
 
-  const updateTodoStatus = async (id: string, newStatus: string) => {
-    setTodos(todos.map(t => t._id === id ? { ...t, status: newStatus as any, completed: newStatus === 'Done' } : t));
+  const updateTodoStatus = async (id: string, newStatus: string, note?: string) => {
+    const todo = todos.find(t => t._id === id);
+    if (!todo) return;
+
+    // Restriction: Only items added from 'Idea' (Strategic) can move from 'In Progress' to 'Done'
+    if (newStatus === 'Done' && todo.status === 'In Progress' && todo.category !== 'Strategic') {
+      alert('[SYSTEM ERROR] Only Strategic objectives initiated from "IDEA" can be finalized via the Strategic Board.');
+      return;
+    }
+
+    setTodos(todos.map(t => t._id === id ? { ...t, status: newStatus as any, completed: newStatus === 'Done', note: note !== undefined ? note : t.note } : t));
     const res = await fetch('/api/todos', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status: newStatus, completed: newStatus === 'Done' }),
+      body: JSON.stringify({ id, status: newStatus, completed: newStatus === 'Done', note }),
     });
     if (!res.ok) fetchTodos();
+  };
+
+  const saveNote = async (id: string) => {
+    await updateTodoStatus(id, todos.find(t => t._id === id)?.status || 'Todo', noteValue);
+    setEditingNoteId(null);
+    setNoteValue('');
   };
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
@@ -133,6 +159,30 @@ export default function TodosPage() {
               <div className={styles.todoMeta} style={{ color: getPriorityColor(todo.priority) }}>
                 <MdFlag style={{ fontSize: '0.7rem' }} /> {todo.priority} Rank
               </div>
+              {todo.status === 'Done' && (
+                <div style={{ marginTop: '8px' }}>
+                  {editingNoteId === todo._id ? (
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input 
+                        className="sl-input" 
+                        value={noteValue} 
+                        onChange={(e) => setNoteValue(e.target.value)} 
+                        placeholder="Log report..." 
+                        style={{ fontSize: '0.7rem', padding: '4px 8px' }}
+                        autoFocus
+                      />
+                      <button className="sl-btn sl-btn-primary" onClick={() => saveNote(todo._id)} style={{ padding: '4px 8px', fontSize: '0.7rem' }}>Save</button>
+                    </div>
+                  ) : (
+                    <div 
+                      onClick={() => { setEditingNoteId(todo._id); setNoteValue(todo.note || ''); }}
+                      style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontStyle: 'italic', cursor: 'pointer' }}
+                    >
+                      {todo.note ? `Report: ${todo.note}` : '+ Add System Report'}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <button className={styles.deleteBtn} onClick={() => deleteTodo(todo._id)}>
               <MdDelete />
@@ -159,6 +209,17 @@ export default function TodosPage() {
     </div>
   );
 
+  const isSameDay = (dateStr: string | undefined, targetDate: Date) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    return d.getDate() === targetDate.getDate() &&
+           d.getMonth() === targetDate.getMonth() &&
+           d.getFullYear() === targetDate.getFullYear();
+  };
+
+  const dailyDirectives = todos.filter(t => t.status === 'Todo' || (t.status === 'Done' && isSameDay(t.updatedAt, new Date())));
+  const completedDirectives = dailyDirectives.filter(t => t.completed || t.status === 'Done');
+
   if (sessionStatus === 'loading') return null;
 
   return (
@@ -172,17 +233,48 @@ export default function TodosPage() {
           <p className="sl-page-subtitle">[SYSTEM] Drag and drop your objectives to progress</p>
         </div>
 
-        <div style={{ marginBottom: '64px' }}>
+        <div>
           <h2 className="sl-section-title">
-            Daily Trackers
+            Strategic Board
           </h2>
+          <div className={styles.kanbanBoard} style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+            {['Idea', 'In Progress', 'Done'].map(renderColumn)}
+          </div>
+        </div>
+
+        <div style={{ marginTop: '64px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '16px' }}>
+            <div>
+              <h2 className="sl-section-title" style={{ marginBottom: '4px' }}>
+                Daily Directives
+              </h2>
+              <p style={{ fontSize: '0.75rem', color: 'var(--sl-text-ghost)', margin: 0 }}>
+                [SYSTEM] Completion data is synchronized with the <Link href="/logbook" style={{ color: 'var(--sl-blue)', textDecoration: 'underline' }}>Hunter's Logbook</Link>
+              </p>
+            </div>
+            {dailyDirectives.length > 0 && (
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'var(--sl-text-bright)', marginBottom: '4px', letterSpacing: '1px' }}>
+                  OBJECTIVE PROGRESS: {completedDirectives.length} / {dailyDirectives.length}
+                </div>
+                <div style={{ width: '200px', height: '4px', background: 'var(--sl-bg-dark)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(completedDirectives.length / dailyDirectives.length) * 100}%` }}
+                    style={{ height: '100%', background: 'var(--sl-blue)', boxShadow: '0 0 10px var(--sl-blue-glow)' }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          
           <div 
             className={styles.todoList}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, 'Todo')}
             style={{ minHeight: '100px', paddingBottom: '20px' }}
           >
-            {todos.filter(t => t.status === 'Todo').map(todo => (
+            {dailyDirectives.map(todo => (
               <div 
                 key={todo._id} 
                 className={styles.todoItem}
@@ -192,16 +284,42 @@ export default function TodosPage() {
                 <div className={styles.todoLeft}>
                   <button 
                     className={styles.checkBtn} 
-                    onClick={() => updateTodoStatus(todo._id, 'Done')}
-                    style={{ color: 'var(--sl-text-ghost)' }}
+                    onClick={() => updateTodoStatus(todo._id, todo.completed ? 'Todo' : 'Done')}
+                    style={{ color: todo.completed ? 'var(--sl-green)' : 'var(--sl-text-ghost)' }}
                   >
-                    <MdRadioButtonUnchecked />
+                    {todo.completed ? <MdCheckCircle /> : <MdRadioButtonUnchecked />}
                   </button>
                   <div className={styles.todoContent}>
-                    <div className={styles.todoTitle}>{todo.title}</div>
+                    <div className={styles.todoTitle} style={{ textDecoration: todo.completed ? 'line-through' : 'none', opacity: todo.completed ? 0.6 : 1 }}>
+                      {todo.title}
+                    </div>
                     <div className={styles.todoMeta} style={{ color: getPriorityColor(todo.priority) }}>
                       <MdFlag style={{ fontSize: '0.7rem' }} /> {todo.priority} Rank
                     </div>
+                    {todo.completed && (
+                      <div style={{ marginTop: '8px' }}>
+                        {editingNoteId === todo._id ? (
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <input 
+                              className="sl-input" 
+                              value={noteValue} 
+                              onChange={(e) => setNoteValue(e.target.value)} 
+                              placeholder="Log report..." 
+                              style={{ fontSize: '0.7rem', padding: '4px 8px' }}
+                              autoFocus
+                            />
+                            <button className="sl-btn sl-btn-primary" onClick={() => saveNote(todo._id)} style={{ padding: '4px 8px', fontSize: '0.7rem' }}>Save</button>
+                          </div>
+                        ) : (
+                          <div 
+                            onClick={() => { setEditingNoteId(todo._id); setNoteValue(todo.note || ''); }}
+                            style={{ fontSize: '0.7rem', color: 'var(--sl-text-ghost)', fontStyle: 'italic', cursor: 'pointer' }}
+                          >
+                            {todo.note ? `Report: ${todo.note}` : '+ Add System Report'}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <button className={styles.deleteBtn} onClick={() => deleteTodo(todo._id)}>
@@ -215,22 +333,13 @@ export default function TodosPage() {
                 className="sl-input" 
                 value={columnInputs['Todo'] || ''} 
                 onChange={(e) => setColumnInputs({ ...columnInputs, 'Todo': e.target.value })} 
-                placeholder="Add new daily tracker item..." 
+                placeholder="Add new daily directive..." 
                 style={{ flex: 1 }}
               />
               <button className="sl-btn sl-btn-primary" type="submit">
-                <MdAdd /> Add Tracker
+                <MdAdd /> Add Directive
               </button>
             </form>
-          </div>
-        </div>
-
-        <div>
-          <h2 className="sl-section-title">
-            Strategic Board
-          </h2>
-          <div className={styles.kanbanBoard} style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-            {['Idea', 'In Progress', 'Done'].map(renderColumn)}
           </div>
         </div>
       </main>

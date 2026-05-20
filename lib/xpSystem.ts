@@ -10,6 +10,7 @@ export const XP_REWARDS = {
   LOG_TRANSACTION: 5,
   SEVEN_DAY_STREAK: 50,
   COMPLETE_DAILY_GOALS: 30,
+  COMPLETE_QUEST: 15,
 } as const;
 
 /* ─── Rank Thresholds ──────────────────────────────────────────────── */

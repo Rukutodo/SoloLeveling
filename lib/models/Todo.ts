@@ -7,6 +7,8 @@ export interface ITodo extends Document {
   priority: 'Low' | 'Medium' | 'High';
   dueDate?: Date;
   status: 'Idea' | 'Todo' | 'In Progress' | 'Done';
+  note?: string;
+  category: 'Strategic' | 'Daily';
 }
 
 const TodoSchema: Schema = new Schema({
@@ -16,6 +18,8 @@ const TodoSchema: Schema = new Schema({
   priority: { type: String, enum: ['Low', 'Medium', 'High'], default: 'Medium' },
   dueDate: { type: Date },
   status: { type: String, enum: ['Idea', 'Todo', 'In Progress', 'Done'], default: 'Todo' },
+  note: { type: String },
+  category: { type: String, enum: ['Strategic', 'Daily'], default: 'Daily' },
 }, { timestamps: true });
 
 export default mongoose.models.Todo || mongoose.model<ITodo>('Todo', TodoSchema);
