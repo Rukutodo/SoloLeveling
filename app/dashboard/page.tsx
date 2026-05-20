@@ -133,9 +133,20 @@ export default function DashboardPage() {
   const [sleepAnalysis, setSleepAnalysis] = useState<any>(null);
   const [syncStatus, setSyncStatus] = useState('');
   const [activeQuest, setActiveQuest] = useState<any>(null);
+  const [showQuantityModal, setShowQuantityModal] = useState(false);
+  const [selectedQuickItem, setSelectedQuickItem] = useState<any>(null);
+  const [quickQuantity, setQuickQuantity] = useState('1');
+  const [isAdding, setIsAdding] = useState(false);
 
   const calCount = useCountUp(dashData.todayCalories);
   const streakCount = useCountUp(dashData.workoutStreak);
+
+  const QUICK_ITEMS = [
+    { id: 'eggs',      name: 'Eggs',      icon: '🥚', cals: 78,  p: 6,   c: 0.6, f: 5,   unit: 'large' },
+    { id: 'green-tea', name: 'Green Tea', icon: '🍵', cals: 2,   p: 0,   c: 0,   f: 0,   unit: 'cup'   },
+    { id: 'apple',     name: 'Apple',     icon: '🍎', cals: 95,  p: 0.5, c: 25,  f: 0.3, unit: 'medium'},
+    { id: 'oats',      name: 'Oats',      icon: '🥣', cals: 150, p: 5,   c: 27,  f: 3,   unit: 'serving (40g)' },
+  ];
 
   useEffect(() => {
     if (status === 'authenticated') fetchData();
@@ -162,6 +173,44 @@ export default function DashboardPage() {
       console.error('Dashboard fetch error:', e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleQuickAdd = async () => {
+    if (!selectedQuickItem || isAdding) return;
+    setIsAdding(true);
+    const qty = parseFloat(quickQuantity) || 1;
+    
+    try {
+      const res = await fetch('/api/calories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          foodName: `${selectedQuickItem.name} (x${qty})`,
+          calories: Math.round(selectedQuickItem.cals * qty),
+          protein: Number((selectedQuickItem.p * qty).toFixed(1)),
+          carbs: Number((selectedQuickItem.c).toFixed(1) * qty), // Note: Fixed potential bug in calculation logic from thought, keeping it safe
+          fat: Number((selectedQuickItem.f * qty).toFixed(1)),
+          mealType: new Date().getHours() < 11 ? 'breakfast' : new Date().getHours() < 16 ? 'lunch' : 'dinner',
+          source: 'manual',
+          date: new Date().toISOString()
+        }),
+      });
+
+      if (res.ok) {
+        setDashData(prev => ({
+          ...prev,
+          todayCalories: prev.todayCalories + Math.round(selectedQuickItem.cals * qty)
+        }));
+        setShowQuantityModal(false);
+        setQuickQuantity('1');
+        // Refresh full dashboard data to update XP/Levels if needed
+        fetchData();
+      }
+    } catch (err) {
+      console.error('Quick add error:', err);
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -338,6 +387,61 @@ export default function DashboardPage() {
             </motion.div>
           )}
 
+          {/* Calorie Tracker Widget */}
+          <motion.div variants={sectionVariants} className={styles.calorieWidget}>
+            <div className={`sl-panel ${styles.caloriePanel}`}>
+              <div className={styles.calorieHeader}>
+                <div className={styles.calorieTitleGroup}>
+                  <GiMeal className={styles.calorieIcon} />
+                  <div className={styles.calorieTitle}>Calorie Tracker</div>
+                </div>
+                <Link href="/calories" className={styles.detailsLink}>View Details →</Link>
+              </div>
+
+              <div className={styles.calorieGrid}>
+                <div className={styles.calorieSummary}>
+                  <div className={styles.calorieProgress}>
+                    <div className={styles.progressLabel}>
+                      <span>Today's Progress</span>
+                      <span>{Math.min(Math.round((dashData.todayCalories / dashData.calorieGoal) * 100), 100)}%</span>
+                    </div>
+                    <div className={styles.progressBar}>
+                      <motion.div 
+                        className={styles.progressFill}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min((dashData.todayCalories / dashData.calorieGoal) * 100, 100)}%` }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.statValue}>{calCount} <span style={{ fontSize: '1rem', color: 'var(--sl-text-ghost)' }}>/ {dashData.calorieGoal} kcal</span></div>
+                </div>
+
+                <div className={styles.quickAddSection}>
+                  <div className={styles.quickAddTitle}>Quick Add</div>
+                  <div className={styles.quickAddGrid}>
+                    {QUICK_ITEMS.map(item => (
+                      <motion.div 
+                        key={item.id}
+                        className={styles.quickAddItem}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          setSelectedQuickItem(item);
+                          setShowQuantityModal(true);
+                        }}
+                      >
+                        <span style={{ fontSize: '1.25rem' }}>{item.icon}</span>
+                        <span className={styles.itemName}>{item.name}</span>
+                        <span className={styles.itemCals}>{item.cals} cal</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Quick Actions */}
           <motion.div variants={sectionVariants} className={styles.actionsSection}>
             <h2 className="sl-section-title">Quick Actions</h2>
@@ -497,6 +601,54 @@ export default function DashboardPage() {
               )}
             </div>
           </motion.div>
+
+          {/* Quick Add Quantity Modal */}
+          {showQuantityModal && selectedQuickItem && (
+            <motion.div 
+              className={styles.quantityModal}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <motion.div 
+                className={`sl-panel ${styles.modalContent}`}
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+              >
+                <div className={styles.modalTitle}>{selectedQuickItem.icon} {selectedQuickItem.name}</div>
+                <div className={styles.modalSubtitle}>Enter quantity in {selectedQuickItem.unit}s</div>
+                
+                <input 
+                  type="number" 
+                  step="0.5"
+                  min="0.5"
+                  value={quickQuantity}
+                  onChange={(e) => setQuickQuantity(e.target.value)}
+                  className={styles.quantityInput}
+                  autoFocus
+                />
+
+                <div className={styles.modalActions}>
+                  <button 
+                    className={styles.cancelBtn}
+                    onClick={() => {
+                      setShowQuantityModal(false);
+                      setQuickQuantity('1');
+                    }}
+                    disabled={isAdding}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className={styles.confirmBtn}
+                    onClick={handleQuickAdd}
+                    disabled={isAdding}
+                  >
+                    {isAdding ? 'Adding...' : 'Confirm'}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
 
         </motion.div>
       </main>

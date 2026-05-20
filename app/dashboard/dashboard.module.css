@@ -136,6 +136,235 @@
 
 .statBar { height: 4px; background: var(--sl-bg-base); border-radius: 2px; overflow: hidden; margin-top: 20px; }
 
+/* ─── Calorie Widget ───────────────────────────────────────────────── */
+.caloriePanel {
+  padding: 32px;
+  background: linear-gradient(135deg, oklch(70% 0.18 190 / 0.05) 0%, transparent 60%) !important;
+  border: 1px solid oklch(70% 0.18 190 / 0.2) !important;
+}
+
+.calorieHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.calorieTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.calorieIcon {
+  font-size: 1.75rem;
+  color: var(--sl-blue);
+}
+
+.calorieTitle {
+  font-family: var(--sl-font-display);
+  font-size: 1.125rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: var(--sl-text-bright);
+}
+
+.detailsLink {
+  font-family: var(--sl-font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--sl-blue);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.detailsLink:hover {
+  border-color: var(--sl-blue);
+  text-shadow: 0 0 10px var(--sl-blue-glow);
+}
+
+.calorieGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.calorieSummary {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.calorieProgress {
+  margin-bottom: 24px;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--sl-font-mono);
+  font-size: 0.75rem;
+  color: var(--sl-text-dim);
+  margin-bottom: 8px;
+}
+
+.progressBar {
+  height: 8px;
+  background: var(--sl-bg-sub);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--sl-blue);
+  box-shadow: 0 0 15px var(--sl-blue-glow);
+  transition: width 0.5s ease;
+}
+
+.quickAddSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.quickAddTitle {
+  font-family: var(--sl-font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--sl-text-ghost);
+}
+
+.quickAddGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.quickAddItem {
+  background: var(--sl-bg-sub);
+  border: 1px solid var(--sl-glass-border);
+  padding: 12px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quickAddItem:hover {
+  border-color: var(--sl-blue);
+  background: oklch(70% 0.18 190 / 0.1);
+  transform: translateY(-2px);
+}
+
+.itemName {
+  font-family: var(--sl-font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--sl-text-bright);
+}
+
+.itemCals {
+  font-family: var(--sl-font-mono);
+  font-size: 0.65rem;
+  color: var(--sl-text-ghost);
+}
+
+.quantityModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  width: 90%;
+  max-width: 400px;
+  padding: 40px;
+  text-align: center;
+}
+
+.modalTitle {
+  font-family: var(--sl-font-display);
+  font-size: 1.5rem;
+  font-weight: 900;
+  margin-bottom: 8px;
+  color: var(--sl-text-bright);
+}
+
+.modalSubtitle {
+  font-family: var(--sl-font-main);
+  font-size: 0.9rem;
+  color: var(--sl-text-dim);
+  margin-bottom: 32px;
+}
+
+.quantityInput {
+  width: 100%;
+  background: var(--sl-bg-sub);
+  border: 1px solid var(--sl-glass-border);
+  border-radius: 12px;
+  padding: 16px;
+  font-family: var(--sl-font-mono);
+  font-size: 1.25rem;
+  color: var(--sl-text-bright);
+  text-align: center;
+  margin-bottom: 32px;
+  outline: none;
+}
+
+.quantityInput:focus {
+  border-color: var(--sl-blue);
+  box-shadow: 0 0 15px var(--sl-blue-glow);
+}
+
+.modalActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.cancelBtn {
+  background: var(--sl-bg-sub);
+  color: var(--sl-text-dim);
+  border: 1px solid var(--sl-glass-border);
+  padding: 12px;
+  border-radius: 8px;
+  font-family: var(--sl-font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+
+.confirmBtn {
+  background: var(--sl-blue);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-family: var(--sl-font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 0 20px var(--sl-blue-glow);
+}
+
 /* ─── Quest Widget ─────────────────────────────────────────────────── */
 .questPanel {
   padding: 32px;
