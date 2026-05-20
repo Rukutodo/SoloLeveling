@@ -67,10 +67,11 @@ export default function CaloriesPage() {
   const [isAddingQuick, setIsAddingQuick] = useState(false);
 
   const QUICK_ITEMS = [
-    { id: 'eggs',      name: 'Eggs',      icon: '🥚', cals: 78,  p: 6,   c: 0.6, f: 5,   unit: 'large' },
-    { id: 'green-tea', name: 'Green Tea', icon: '🍵', cals: 2,   p: 0,   c: 0,   f: 0,   unit: 'cup'   },
-    { id: 'apple',     name: 'Apple',     icon: '🍎', cals: 95,  p: 0.5, c: 25,  f: 0.3, unit: 'medium'},
-    { id: 'oats',      name: 'Oats',      icon: '🥣', cals: 150, p: 5,   c: 27,  f: 3,   unit: 'serving (40g)' },
+    { id: 'eggs',      name: 'Eggs',      icon: '🥚', cals: 78,  p: 6,   c: 0.6, f: 5,   caf: 0,  unit: 'large' },
+    { id: 'green-tea', name: 'Green Tea', icon: '🍵', cals: 2,   p: 0,   c: 0,   f: 0,   caf: 35, unit: 'cup'   },
+    { id: 'diet-coke', name: 'Diet Coke', icon: '🥤', cals: 0,   p: 0,   c: 0,   f: 0,   caf: 10, unit: 'ml'    },
+    { id: 'apple',     name: 'Apple',     icon: '🍎', cals: 95,  p: 0.5, c: 25,  f: 0.3, caf: 0,  unit: 'medium'},
+    { id: 'oats',      name: 'Oats',      icon: '🥣', cals: 150, p: 5,   c: 27,  f: 3,   caf: 0,  unit: 'serving (40g)' },
   ];
 
   const [chartView, setChartView] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
@@ -300,17 +301,21 @@ export default function CaloriesPage() {
     if (!selectedQuickItem || isAddingQuick) return;
     setIsAddingQuick(true);
     const qty = parseFloat(quickQuantity) || 1;
+    
+    // For ml, caffeine is usually ~10mg per 100ml. Our caf is per unit (100ml for coke, 1 cup for tea)
+    const multiplier = selectedQuickItem.unit === 'ml' ? qty / 100 : qty;
 
     try {
       const res = await fetch('/api/calories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          foodName: `${selectedQuickItem.name} (x${qty})`,
-          calories: Math.round(selectedQuickItem.cals * qty),
-          protein: Number((selectedQuickItem.p * qty).toFixed(1)),
-          carbs: Number((selectedQuickItem.c * qty).toFixed(1)),
-          fat: Number((selectedQuickItem.f * qty).toFixed(1)),
+          foodName: `${selectedQuickItem.name} (${qty}${selectedQuickItem.unit})`,
+          calories: Math.round(selectedQuickItem.cals * multiplier),
+          protein: Number((selectedQuickItem.p * multiplier).toFixed(1)),
+          carbs: Number((selectedQuickItem.c * multiplier).toFixed(1)),
+          fat: Number((selectedQuickItem.f * multiplier).toFixed(1)),
+          caffeine: Math.round((selectedQuickItem.caf || 0) * multiplier),
           mealType: mealType,
           source: 'manual',
           date: selectedDate
@@ -696,12 +701,16 @@ export default function CaloriesPage() {
               animate={{ scale: 1, y: 0 }}
             >
               <div className={styles.modalTitle}>{selectedQuickItem.icon} {selectedQuickItem.name}</div>
-              <div className={styles.modalSubtitle}>Enter quantity in {selectedQuickItem.unit}s</div>
+              <div className={styles.modalSubtitle}>
+                {selectedQuickItem.unit === 'ml' 
+                  ? `Enter volume in ${selectedQuickItem.unit}` 
+                  : `Enter quantity in ${selectedQuickItem.unit}s`}
+              </div>
               
               <input 
                 type="number" 
-                step="0.5"
-                min="0.5"
+                step={selectedQuickItem.unit === 'ml' ? "50" : "0.5"}
+                min={selectedQuickItem.unit === 'ml' ? "50" : "0.5"}
                 value={quickQuantity}
                 onChange={(e) => setQuickQuantity(e.target.value)}
                 className={styles.quantityInput}
