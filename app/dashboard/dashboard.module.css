@@ -136,7 +136,101 @@
 
 .statBar { height: 4px; background: var(--sl-bg-base); border-radius: 2px; overflow: hidden; margin-top: 20px; }
 
-/* ─── Calorie Widget ───────────────────────────────────────────────── */
+/* ΓöÇΓöÇΓöÇ Directives Widget ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+.directivesPanel {
+  padding: 32px;
+  background: linear-gradient(135deg, oklch(70% 0.18 190 / 0.05) 0%, transparent 60%) !important;
+  border: 1px solid oklch(70% 0.18 190 / 0.2) !important;
+}
+
+.directivesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.directivesTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.directivesIcon {
+  font-size: 1.75rem;
+  color: var(--sl-blue);
+}
+
+.directivesTitle {
+  font-family: var(--sl-font-display);
+  font-size: 1.125rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: var(--sl-text-bright);
+}
+
+.directivesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dashTodoItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--sl-bg-sub);
+  border: 1px solid var(--sl-glass-border);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.dashTodoItem:hover {
+  background: var(--sl-bg-surface);
+  border-color: var(--sl-blue);
+  transform: translateX(4px);
+}
+
+.todoCheck {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s var(--sl-spring);
+}
+
+.todoCheck:hover {
+  transform: scale(1.1);
+}
+
+.todoText {
+  font-family: var(--sl-font-main);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--sl-text-bright);
+}
+
+.todoDone {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.emptyDirectives {
+  padding: 32px;
+  text-align: center;
+  font-family: var(--sl-font-mono);
+  font-size: 0.75rem;
+  color: var(--sl-text-ghost);
+  letter-spacing: 1px;
+  border: 1px dashed var(--sl-glass-border);
+  border-radius: 12px;
+}
+
+/* ΓöÇΓöÇΓöÇ Calorie Widget ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 .caloriePanel {
   padding: 32px;
   background: linear-gradient(135deg, oklch(70% 0.18 190 / 0.05) 0%, transparent 60%) !important;

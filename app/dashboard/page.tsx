@@ -14,7 +14,8 @@ import {
   GiCrossedSwords,
   GiTreasureMap,
 } from 'react-icons/gi';
-import { MdFitnessCenter, MdRestaurant, MdAddCircle } from 'react-icons/md';
+import { RiTodoFill } from 'react-icons/ri';
+import { MdFitnessCenter, MdRestaurant, MdAddCircle, MdRadioButtonUnchecked, MdCheckCircle } from 'react-icons/md';
 import styles from './dashboard.module.css';
 
 interface UserStats {
@@ -118,6 +119,7 @@ function DashboardSkeleton() {
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [todos, setTodos] = useState<any[]>([]);
   const [dashData, setDashData] = useState<DashboardData>({
     todayCalories: 0,
     calorieGoal: 2000,
@@ -155,10 +157,11 @@ export default function DashboardPage() {
 
   const fetchData = async () => {
     try {
-      const [userRes, dashRes, questRes] = await Promise.all([
+      const [userRes, dashRes, questRes, todoRes] = await Promise.all([
         fetch('/api/user'),
         fetch('/api/dashboard'),
         fetch('/api/quests/chain'),
+        fetch('/api/todos'),
       ]);
       if (userRes.ok) {
         const ud = await userRes.json();
@@ -170,10 +173,31 @@ export default function DashboardPage() {
         setDashData((p) => ({ ...p, ...dashJson }));
       }
       if (questRes.ok) { const d = await questRes.json(); setActiveQuest(d.quest); }
+      if (todoRes.ok) {
+        const d = await todoRes.json();
+        setTodos(d.todos);
+      }
     } catch (e) {
       console.error('Dashboard fetch error:', e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updateTodoStatus = async (id: string, completed: boolean) => {
+    const newStatus = completed ? 'Done' : 'Todo';
+    
+    // Optimistic update
+    setTodos(todos.map(t => t._id === id ? { ...t, completed, status: newStatus } : t));
+    
+    const res = await fetch('/api/todos', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status: newStatus, completed }),
+    });
+    
+    if (res.ok) {
+      fetchData(); // Refresh to update XP/Activity
     }
   };
 
@@ -303,6 +327,92 @@ export default function DashboardPage() {
             </div>
           </motion.div>
 
+          {/* Daily Directives Widget (New) */}
+          <motion.div variants={sectionVariants} className={styles.directivesWidget}>
+            <div className={`sl-panel ${styles.directivesPanel}`}>
+              <div className={styles.directivesHeader}>
+                <div className={styles.directivesTitleGroup}>
+                  <RiTodoFill className={styles.directivesIcon} />
+                  <div className={styles.directivesTitle}>Daily Directives</div>
+                </div>
+                <Link href="/todos" className={styles.detailsLink}>View Board →</Link>
+              </div>
+              <div className={styles.directivesList}>
+                {todos.filter(t => t.status === 'Todo' || (t.status === 'Done' && new Date(t.updatedAt).toDateString() === new Date().toDateString())).length > 0 ? (
+                  todos.filter(t => t.status === 'Todo' || (t.status === 'Done' && new Date(t.updatedAt).toDateString() === new Date().toDateString())).slice(0, 5).map(todo => (
+                    <div key={todo._id} className={styles.dashTodoItem}>
+                      <button 
+                        className={styles.todoCheck}
+                        onClick={() => updateTodoStatus(todo._id, !todo.completed)}
+                        style={{ color: todo.completed ? 'var(--sl-green)' : 'var(--sl-text-ghost)' }}
+                      >
+                        {todo.completed ? <MdCheckCircle /> : <MdRadioButtonUnchecked />}
+                      </button>
+                      <span className={`${styles.todoText} ${todo.completed ? styles.todoDone : ''}`}>{todo.title}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className={styles.emptyDirectives}>[SYSTEM] No active directives. Proceed to the Strategic Board.</div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Calorie Tracker Widget (Moved up) */}
+          <motion.div variants={sectionVariants} className={styles.calorieWidget}>
+            <div className={`sl-panel ${styles.caloriePanel}`}>
+              <div className={styles.calorieHeader}>
+                <div className={styles.calorieTitleGroup}>
+                  <GiMeal className={styles.calorieIcon} />
+                  <div className={styles.calorieTitle}>Calorie Tracker</div>
+                </div>
+                <Link href="/calories" className={styles.detailsLink}>View Details →</Link>
+              </div>
+
+              <div className={styles.calorieGrid}>
+                <div className={styles.calorieSummary}>
+                  <div className={styles.calorieProgress}>
+                    <div className={styles.progressLabel}>
+                      <span>Today's Progress</span>
+                      <span>{Math.min(Math.round((dashData.todayCalories / dashData.calorieGoal) * 100), 100)}%</span>
+                    </div>
+                    <div className={styles.progressBar}>
+                      <motion.div 
+                        className={styles.progressFill}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min((dashData.todayCalories / dashData.calorieGoal) * 100, 100)}%` }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.statValue}>{calCount} <span style={{ fontSize: '1rem', color: 'var(--sl-text-ghost)' }}>/ {dashData.calorieGoal} kcal</span></div>
+                </div>
+
+                <div className={styles.quickAddSection}>
+                  <div className={styles.quickAddTitle}>Quick Add</div>
+                  <div className={styles.quickAddGrid}>
+                    {QUICK_ITEMS.map(item => (
+                      <motion.div 
+                        key={item.id}
+                        className={styles.quickAddItem}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          setSelectedQuickItem(item);
+                          setShowQuantityModal(true);
+                        }}
+                      >
+                        <span style={{ fontSize: '1.25rem' }}>{item.icon}</span>
+                        <span className={styles.itemName}>{item.name}</span>
+                        <span className={styles.itemCals}>{item.cals} cal</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Quick Stats */}
           <motion.div variants={sectionVariants} className={styles.statsGrid}>
             <motion.div whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.2 } }} className={`sl-panel ${styles.statCard} ${styles.statCalories}`}>
@@ -391,61 +501,6 @@ export default function DashboardPage() {
               </div>
             </motion.div>
           )}
-
-          {/* Calorie Tracker Widget */}
-          <motion.div variants={sectionVariants} className={styles.calorieWidget}>
-            <div className={`sl-panel ${styles.caloriePanel}`}>
-              <div className={styles.calorieHeader}>
-                <div className={styles.calorieTitleGroup}>
-                  <GiMeal className={styles.calorieIcon} />
-                  <div className={styles.calorieTitle}>Calorie Tracker</div>
-                </div>
-                <Link href="/calories" className={styles.detailsLink}>View Details →</Link>
-              </div>
-
-              <div className={styles.calorieGrid}>
-                <div className={styles.calorieSummary}>
-                  <div className={styles.calorieProgress}>
-                    <div className={styles.progressLabel}>
-                      <span>Today's Progress</span>
-                      <span>{Math.min(Math.round((dashData.todayCalories / dashData.calorieGoal) * 100), 100)}%</span>
-                    </div>
-                    <div className={styles.progressBar}>
-                      <motion.div 
-                        className={styles.progressFill}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min((dashData.todayCalories / dashData.calorieGoal) * 100, 100)}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                      />
-                    </div>
-                  </div>
-                  <div className={styles.statValue}>{calCount} <span style={{ fontSize: '1rem', color: 'var(--sl-text-ghost)' }}>/ {dashData.calorieGoal} kcal</span></div>
-                </div>
-
-                <div className={styles.quickAddSection}>
-                  <div className={styles.quickAddTitle}>Quick Add</div>
-                  <div className={styles.quickAddGrid}>
-                    {QUICK_ITEMS.map(item => (
-                      <motion.div 
-                        key={item.id}
-                        className={styles.quickAddItem}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => {
-                          setSelectedQuickItem(item);
-                          setShowQuantityModal(true);
-                        }}
-                      >
-                        <span style={{ fontSize: '1.25rem' }}>{item.icon}</span>
-                        <span className={styles.itemName}>{item.name}</span>
-                        <span className={styles.itemCals}>{item.cals} cal</span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
 
           {/* Quick Actions */}
           <motion.div variants={sectionVariants} className={styles.actionsSection}>
