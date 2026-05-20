@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Sidebar from '@/components/Sidebar';
 import DarkDatePicker from '@/components/DarkDatePicker';
+import { motion } from 'framer-motion';
 import { GiMeal } from 'react-icons/gi';
 import { MdCloudUpload, MdDelete, MdFastfood, MdCameraAlt, MdLocalFireDepartment } from 'react-icons/md';
 import { FaBolt } from 'react-icons/fa';
@@ -59,6 +60,18 @@ export default function CaloriesPage() {
   const [manualForm, setManualForm] = useState({ foodName: '', calories: '', protein: '', carbs: '', fat: '', sugar: '', caffeine: '' });
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [showQuickModal, setShowQuickModal] = useState(false);
+  const [selectedQuickItem, setSelectedQuickItem] = useState<any>(null);
+  const [quickQuantity, setQuickQuantity] = useState('1');
+  const [isAddingQuick, setIsAddingQuick] = useState(false);
+
+  const QUICK_ITEMS = [
+    { id: 'eggs',      name: 'Eggs',      icon: '🥚', cals: 78,  p: 6,   c: 0.6, f: 5,   unit: 'large' },
+    { id: 'green-tea', name: 'Green Tea', icon: '🍵', cals: 2,   p: 0,   c: 0,   f: 0,   unit: 'cup'   },
+    { id: 'apple',     name: 'Apple',     icon: '🍎', cals: 95,  p: 0.5, c: 25,  f: 0.3, unit: 'medium'},
+    { id: 'oats',      name: 'Oats',      icon: '🥣', cals: 150, p: 5,   c: 27,  f: 3,   unit: 'serving (40g)' },
+  ];
 
   const [chartView, setChartView] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
   const [chartData, setChartData] = useState<Array<{ label: string; steps: number; calories: number }>>([]);
@@ -283,6 +296,40 @@ export default function CaloriesPage() {
     }
   };
 
+  const handleQuickAdd = async () => {
+    if (!selectedQuickItem || isAddingQuick) return;
+    setIsAddingQuick(true);
+    const qty = parseFloat(quickQuantity) || 1;
+
+    try {
+      const res = await fetch('/api/calories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          foodName: `${selectedQuickItem.name} (x${qty})`,
+          calories: Math.round(selectedQuickItem.cals * qty),
+          protein: Number((selectedQuickItem.p * qty).toFixed(1)),
+          carbs: Number((selectedQuickItem.c * qty).toFixed(1)),
+          fat: Number((selectedQuickItem.f * qty).toFixed(1)),
+          mealType: mealType,
+          source: 'manual',
+          date: selectedDate
+        }),
+      });
+
+      if (res.ok) {
+        setShowQuickModal(false);
+        setQuickQuantity('1');
+        fetchData();
+        fetchUserData();
+      }
+    } catch (err) {
+      console.error('Quick add error:', err);
+    } finally {
+      setIsAddingQuick(false);
+    }
+  };
+
   const deleteEntry = async (id: string) => {
     try {
       await fetch(`/api/calories?id=${id}`, { method: 'DELETE' });
@@ -455,7 +502,27 @@ export default function CaloriesPage() {
 
         {/* Upload Section */}
         <div className="sl-panel" style={{ padding: '24px', marginBottom: '24px' }}>
-          <h2 className="sl-section-title">Log Meal</h2>
+          <h2 className="sl-section-title">Quick Add Widget</h2>
+          <div className={styles.quickAddGrid}>
+            {QUICK_ITEMS.map((item) => (
+              <motion.div
+                key={item.id}
+                className={styles.quickAddItem}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setSelectedQuickItem(item);
+                  setShowQuickModal(true);
+                }}
+              >
+                <span style={{ fontSize: '1.75rem' }}>{item.icon}</span>
+                <span className={styles.itemName}>{item.name}</span>
+                <span className={styles.itemCals}>{item.cals} cal</span>
+              </motion.div>
+            ))}
+          </div>
+
+          <h2 className="sl-section-title">AI Log / Manual</h2>
           <div className={styles.mealTypeRow}>
             {['breakfast', 'lunch', 'dinner', 'snack'].map((type) => (
               <button key={type} className={`sl-btn ${mealType === type ? 'sl-btn-primary' : 'sl-btn-ghost'}`} onClick={() => setMealType(type)} style={{ textTransform: 'capitalize' }}>{type}</button>
@@ -615,6 +682,54 @@ export default function CaloriesPage() {
         >
           <MdCameraAlt />
         </button>
+
+        {/* Quick Add Quantity Modal */}
+        {showQuickModal && selectedQuickItem && (
+          <motion.div 
+            className={styles.quantityModal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <motion.div 
+              className={`sl-panel ${styles.modalContent}`}
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+            >
+              <div className={styles.modalTitle}>{selectedQuickItem.icon} {selectedQuickItem.name}</div>
+              <div className={styles.modalSubtitle}>Enter quantity in {selectedQuickItem.unit}s</div>
+              
+              <input 
+                type="number" 
+                step="0.5"
+                min="0.5"
+                value={quickQuantity}
+                onChange={(e) => setQuickQuantity(e.target.value)}
+                className={styles.quantityInput}
+                autoFocus
+              />
+
+              <div className={styles.modalActions}>
+                <button 
+                  className={styles.cancelBtn}
+                  onClick={() => {
+                    setShowQuickModal(false);
+                    setQuickQuantity('1');
+                  }}
+                  disabled={isAddingQuick}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className={styles.confirmBtn}
+                  onClick={handleQuickAdd}
+                  disabled={isAddingQuick}
+                >
+                  {isAddingQuick ? 'Adding...' : 'Confirm'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </main>
     </div>
   );

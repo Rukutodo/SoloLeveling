@@ -69,7 +69,137 @@
 }
 .mobileCameraBtn:active { transform: scale(0.9); background: var(--sl-text-bright); }
 
+/* ΓöÇΓöÇΓöÇ Quick Add Widget ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+.quickAddGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.quickAddItem {
+  background: var(--sl-bg-sub);
+  border: 1px solid var(--sl-glass-border);
+  padding: 16px;
+  border-radius: var(--sl-radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quickAddItem:hover {
+  border-color: var(--sl-blue);
+  background: oklch(70% 0.18 190 / 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.1);
+}
+
+.itemName {
+  font-family: var(--sl-font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--sl-text-bright);
+}
+
+.itemCals {
+  font-family: var(--sl-font-mono);
+  font-size: 0.75rem;
+  color: var(--sl-text-ghost);
+}
+
+.quantityModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modalContent {
+  width: 90%;
+  max-width: 400px;
+  padding: 48px;
+  text-align: center;
+}
+
+.modalTitle {
+  font-family: var(--sl-font-display);
+  font-size: 1.75rem;
+  font-weight: 900;
+  margin-bottom: 8px;
+  color: var(--sl-text-bright);
+}
+
+.modalSubtitle {
+  font-family: var(--sl-font-main);
+  font-size: 0.95rem;
+  color: var(--sl-text-dim);
+  margin-bottom: 32px;
+}
+
+.quantityInput {
+  width: 100%;
+  background: var(--sl-bg-sub) !important;
+  border: 1px solid var(--sl-glass-border) !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  font-family: var(--sl-font-mono) !important;
+  font-size: 1.5rem !important;
+  color: var(--sl-text-bright) !important;
+  text-align: center !important;
+  margin-bottom: 32px !important;
+  outline: none !important;
+}
+
+.quantityInput:focus {
+  border-color: var(--sl-blue) !important;
+  box-shadow: 0 0 25px var(--sl-blue-glow) !important;
+}
+
+.modalActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.cancelBtn {
+  background: var(--sl-bg-sub);
+  color: var(--sl-text-dim);
+  border: 1px solid var(--sl-glass-border);
+  padding: 14px;
+  border-radius: 12px;
+  font-family: var(--sl-font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+}
+
+.confirmBtn {
+  background: var(--sl-blue);
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-family: var(--sl-font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  box-shadow: 0 0 20px var(--sl-blue-glow);
+}
+
 @media (max-width: 768px) {
+  .quickAddGrid { grid-template-columns: repeat(2, 1fr); }
   .macroGrid { grid-template-columns: repeat(2, 1fr); }
   .manualRow { grid-template-columns: repeat(2, 1fr); }
   .followUpRow { flex-direction: column; }
