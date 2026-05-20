@@ -59,12 +59,14 @@ export default function CaloriesPage() {
   const [showManual, setShowManual] = useState(false);
   const [manualForm, setManualForm] = useState({ foodName: '', calories: '', protein: '', carbs: '', fat: '', sugar: '', caffeine: '' });
   const [sidebarData, setSidebarData] = useState({ userName: '', level: 1, xp: 0, xpToNext: 100, rank: 'E', title: 'Awakened Hunter', rankColor: '#8b8b8b' });
+  const [user, setUser] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [selectedQuickItem, setSelectedQuickItem] = useState<any>(null);
   const [quickQuantity, setQuickQuantity] = useState('1');
   const [isAddingQuick, setIsAddingQuick] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const QUICK_ITEMS = [
     { id: 'eggs',      name: 'Eggs',      icon: '🥚', cals: 78,  p: 6,   c: 0.6, f: 5,   caf: 0,  unit: 'large' },
@@ -118,7 +120,31 @@ export default function CaloriesPage() {
     return () => window.removeEventListener('message', handleMessage);
   }, [selectedDate]);
 
-  const syncWithGoogleFit = () => {
+  const syncWithGoogleFit = async () => {
+    if (user?.googleRefreshToken) {
+      setIsSyncing(true);
+      try {
+        const res = await fetch('/api/steps/google-fit/sync');
+        if (res.ok) {
+          const data = await res.json();
+          fetchData();
+          fetchUserData();
+          fetchChartData();
+          // We can show a notification or just let it update
+        } else {
+          openAuthPopup();
+        }
+      } catch (err) {
+        openAuthPopup();
+      } finally {
+        setIsSyncing(false);
+      }
+    } else {
+      openAuthPopup();
+    }
+  };
+
+  const openAuthPopup = () => {
     const width = 500;
     const height = 600;
     const left = window.screen.width / 2 - width / 2;
@@ -134,6 +160,7 @@ export default function CaloriesPage() {
     const res = await fetch('/api/user');
     if (res.ok) {
       const data = await res.json();
+      setUser(data.user);
       setSidebarData({ userName: data.stats.name, level: data.stats.level, xp: data.stats.xp, xpToNext: data.stats.xpToNext, rank: data.stats.rank, title: data.stats.title, rankColor: data.stats.rankColor });
     }
   };

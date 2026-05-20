@@ -46,9 +46,16 @@ export async function GET(req: NextRequest) {
 
     const tokens = await tokenRes.json();
     const accessToken = tokens.access_token;
+    const refreshToken = tokens.refresh_token;
 
     // Connect to database and retrieve user metrics
     await dbConnect();
+    
+    // Save refresh token if we got one (usually only on first consent)
+    if (refreshToken) {
+      await User.findByIdAndUpdate(session.user.id, { googleRefreshToken: refreshToken });
+    }
+
     const userObj = await User.findById(session.user.id);
     const userHeight = userObj?.height || 175;
 

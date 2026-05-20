@@ -119,6 +119,7 @@ function DashboardSkeleton() {
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [todos, setTodos] = useState<any[]>([]);
   const [dashData, setDashData] = useState<DashboardData>({
     todayCalories: 0,
@@ -139,6 +140,7 @@ export default function DashboardPage() {
   const [selectedQuickItem, setSelectedQuickItem] = useState<any>(null);
   const [quickQuantity, setQuickQuantity] = useState('1');
   const [isAdding, setIsAdding] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const calCount = useCountUp(dashData.todayCalories);
   const streakCount = useCountUp(dashData.workoutStreak);
@@ -166,6 +168,7 @@ export default function DashboardPage() {
       if (userRes.ok) {
         const ud = await userRes.json();
         setStats(ud.stats);
+        setUser(ud.user);
         if (ud.user?.dailyCalorieGoal) setDashData((p) => ({ ...p, calorieGoal: ud.user.dailyCalorieGoal }));
       }
       if (dashRes.ok) {
@@ -199,6 +202,38 @@ export default function DashboardPage() {
     if (res.ok) {
       fetchData(); // Refresh to update XP/Activity
     }
+  };
+
+  const syncWithGoogleFit = async () => {
+    if (user?.googleRefreshToken) {
+      setIsSyncing(true);
+      try {
+        const res = await fetch('/api/steps/google-fit/sync');
+        if (res.ok) {
+          fetchData();
+        } else {
+          openAuthPopup();
+        }
+      } catch (err) {
+        openAuthPopup();
+      } finally {
+        setIsSyncing(false);
+      }
+    } else {
+      openAuthPopup();
+    }
+  };
+
+  const openAuthPopup = () => {
+    const width = 500;
+    const height = 600;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+    window.open(
+      `/api/steps/google-fit/auth?date=${new Date().toISOString().split('T')[0]}`,
+      'GoogleFitSync',
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
   };
 
   const handleQuickAdd = async () => {
@@ -556,21 +591,10 @@ export default function DashboardPage() {
                     <button
                       className="sl-btn sl-btn-primary"
                       style={{ flex: 1 }}
-                      onClick={async () => {
-                        await fetch('/api/sleep', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            date: new Date().toISOString().split('T')[0],
-                            hours: sleepHours,
-                            quality: sleepQuality,
-                          }),
-                        });
-                        setSyncStatus('Recovery synced');
-                        setTimeout(() => setSyncStatus(''), 3000);
-                      }}
+                      onClick={syncWithGoogleFit}
+                      disabled={isSyncing}
                     >
-                      Sync Recovery
+                      {isSyncing ? 'Syncing...' : 'Sync Recovery'}
                     </button>
                     <button
                       className={`sl-btn sl-btn-ghost ${styles.scanBtn}`}

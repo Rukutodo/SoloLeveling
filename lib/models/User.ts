@@ -13,6 +13,7 @@ export interface IUser extends Document {
   targetWeight?: number;
   dailyCalorieGoal: number;
   tag: string; // Unique Hunter Tag (e.g. Sung#1234)
+  googleRefreshToken?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +46,7 @@ const UserSchema = new Schema<IUser>(
     targetWeight: { type: Number },
     dailyCalorieGoal: { type: Number, default: 2000 },
     tag: { type: String, unique: true, index: true },
+    googleRefreshToken: { type: String },
   },
   {
     timestamps: true,
