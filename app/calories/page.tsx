@@ -69,11 +69,14 @@ export default function CaloriesPage() {
   const [isSyncing, setIsSyncing] = useState(false);
 
   const QUICK_ITEMS = [
-    { id: 'eggs',      name: 'Eggs',      icon: '🥚', cals: 78,  p: 6,   c: 0.6, f: 5,   caf: 0,  unit: 'large' },
-    { id: 'green-tea', name: 'Green Tea', icon: '🍵', cals: 2,   p: 0,   c: 0,   f: 0,   caf: 35, unit: 'cup'   },
-    { id: 'diet-coke', name: 'Diet Coke', icon: '🥤', cals: 0,   p: 0,   c: 0,   f: 0,   caf: 10, unit: 'ml'    },
+    { id: 'soya-50g',   name: 'Soya Chunks', icon: '🫘', cals: 172, p: 26,  c: 16,  f: 0.2, caf: 0,  unit: '50g (dry)' },
+    { id: 'paneer',     name: 'Paneer',      icon: '🧀', cals: 265, p: 18,  c: 1.2, f: 20,  caf: 0,  unit: '100g'      },
+    { id: 'greek-yog',  name: 'Greek Yogurt',icon: '🍦', cals: 120, p: 15,  c: 6,   f: 4,   caf: 0,  unit: '150g'      },
+    { id: 'black-coffee', name: 'Black Coffee', icon: '☕', cals: 2,   p: 0.3, c: 0,   f: 0,   caf: 95, unit: 'cup'   },
     { id: 'apple',     name: 'Apple',     icon: '🍎', cals: 95,  p: 0.5, c: 25,  f: 0.3, caf: 0,  unit: 'medium'},
     { id: 'oats',      name: 'Oats',      icon: '🥣', cals: 150, p: 5,   c: 27,  f: 3,   caf: 0,  unit: 'serving (40g)' },
+    { id: 'green-tea', name: 'Green Tea', icon: '🍵', cals: 2,   p: 0,   c: 0,   f: 0,   caf: 35, unit: 'cup'   },
+    { id: 'diet-coke', name: 'Diet Coke', icon: '🥤', cals: 0,   p: 0,   c: 0,   f: 0,   caf: 10, unit: 'ml'    },
   ];
 
   const [chartView, setChartView] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
